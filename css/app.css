@@ -645,10 +645,8 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
   --login-teal:#2a9d8f;
   --login-teal-light:#3ebdb0;
   --login-sky:#7eb8c9;
-  --login-mist:#e8f3f7;
-  --login-mist-deep:#c9dde8;
-  --login-card-top:#ffffff;
-  --login-card-bot:#f6fafb;
+  --login-card:#e3edf3;
+  --login-card-border:rgba(13,40,64,.1);
 }
 
 body.login-pending:not(.login-done) #map,
@@ -674,9 +672,8 @@ body.login-done .login-screen{display:none!important}
   padding:24px calc(16px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   overflow:auto;
   background:
-    radial-gradient(ellipse 90% 70% at 50% 15%,rgba(255,255,255,.75) 0%,transparent 55%),
-    radial-gradient(ellipse 70% 50% at 80% 90%,rgba(42,157,143,.18) 0%,transparent 50%),
-    linear-gradient(175deg,#edf6fa 0%,#d4e8f0 38%,#9ec4d4 72%,#6a9eb5 100%)
+    radial-gradient(ellipse 80% 60% at 50% 10%,rgba(255,255,255,.35) 0%,transparent 55%),
+    linear-gradient(175deg,#b8d0dc 0%,#94b8c8 45%,#6a9eb0 100%)
 }
 .login-screen.is-hidden{display:none!important}
 
@@ -694,13 +691,13 @@ body.login-done .login-screen{display:none!important}
 .login-orb{
   position:absolute;border-radius:50%;filter:blur(50px);opacity:.45
 }
-.login-orb--1{width:240px;height:240px;top:6%;left:-2%;background:rgba(255,255,255,.55)}
-.login-orb--2{width:200px;height:200px;top:50%;right:-4%;background:rgba(42,157,143,.22)}
-.login-orb--3{width:160px;height:160px;bottom:10%;left:15%;background:rgba(126,184,201,.28)}
+.login-orb--1{width:240px;height:240px;top:6%;left:-2%;background:rgba(255,255,255,.28)}
+.login-orb--2{width:200px;height:200px;top:50%;right:-4%;background:rgba(42,157,143,.18)}
+.login-orb--3{width:160px;height:160px;bottom:10%;left:15%;background:rgba(126,184,201,.2)}
 
 .login-glow{
   position:absolute;width:120%;height:55%;left:-10%;top:-5%;
-  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.55) 0%,transparent 62%)
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.28) 0%,transparent 62%)
 }
 
 .login-wave{
@@ -715,27 +712,20 @@ body.login-done .login-screen{display:none!important}
 .login-card{
   position:relative;width:min(100%,420px);padding:0 0 28px;
   border-radius:32px;overflow:hidden;
-  background:linear-gradient(180deg,var(--login-card-top) 0%,var(--login-card-bot) 100%);
-  border:1px solid rgba(255,255,255,.85);
-  box-shadow:
-    0 28px 70px rgba(13,40,64,.18),
-    0 8px 24px rgba(13,40,64,.08),
-    inset 0 1px 0 rgba(255,255,255,1)
+  background:var(--login-card);
+  border:1px solid var(--login-card-border);
+  box-shadow:0 24px 60px rgba(13,40,64,.16),0 6px 20px rgba(13,40,64,.08)
 }
 
 .login-card-shine{display:none}
 
 .login-logo-wrap{
   position:relative;display:flex;justify-content:center;align-items:center;
-  margin:0;padding:28px 24px 18px;
-  min-height:210px;
-  background:
-    radial-gradient(ellipse 85% 90% at 50% 40%,#ffffff 0%,#f3f9fc 55%,#e9f2f7 100%)
+  margin:0;padding:28px 24px 14px;
+  min-height:200px;
+  background:transparent
 }
-.login-logo-wrap::after{
-  content:'';position:absolute;left:8%;right:8%;bottom:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(42,157,143,.25),transparent)
-}
+.login-logo-wrap::after{display:none}
 .login-logo-glow{
   position:absolute;width:min(72vw,230px);height:min(72vw,230px);border-radius:50%;
   background:radial-gradient(circle,rgba(42,157,143,.12) 0%,transparent 68%);
@@ -770,15 +760,15 @@ body.login-done .login-screen{display:none!important}
 }
 .login-input{
   width:100%;height:50px;padding:0 16px;border-radius:16px;
-  border:1.5px solid rgba(13,40,64,.1);
-  background:#fff;
+  border:1.5px solid rgba(13,40,64,.12);
+  background:rgba(255,255,255,.72);
   font:inherit;font-size:15px;font-weight:600;color:var(--login-navy);
-  transition:border-color .25s,box-shadow .25s
+  transition:border-color .25s,box-shadow .25s,background .25s
 }
-.login-input::placeholder{color:rgba(13,40,64,.28);font-weight:500}
+.login-input::placeholder{color:rgba(13,40,64,.32);font-weight:500}
 .login-input:focus{
-  outline:none;border-color:rgba(42,157,143,.65);
-  box-shadow:0 0 0 3px rgba(42,157,143,.14),0 6px 18px rgba(13,40,64,.06)
+  outline:none;border-color:rgba(42,157,143,.65);background:#fff;
+  box-shadow:0 0 0 3px rgba(42,157,143,.14),0 4px 14px rgba(13,40,64,.06)
 }
 .login-field--pass .login-input{padding-right:48px}
 
