@@ -56,10 +56,14 @@ function applyRows(points, { nearby = isRadarOn() } = {}) {
   return rows;
 }
 
+function setTopbarVisible(show) {
+  $('topbar')?.classList.toggle('is-hidden', !show);
+}
+
 function syncChrome() {
   if (!isRadarOn()) return;
   const count = rows.length;
-  $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
+  $('hudCount').textContent = count ? `${count} pontos próximos` : 'Buscando…';
   $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
   $('weatherNote')?.classList.toggle('is-hidden', !state.weatherEstimated);
 }
@@ -155,9 +159,9 @@ function stopLoadingHints() {
 export function showAwaitingPermission() {
   $('permWait')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
+  setTopbarVisible(false);
   $('recover')?.classList.add('is-hidden');
   $('radarScan')?.classList.add('is-hidden');
-  $('statusLine').textContent = 'Aguardando permissão…';
   setEntryVisible(false);
 }
 
@@ -170,8 +174,8 @@ export function showSearching() {
   hideAwaitingPermission();
   $('radarScan')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
+  setTopbarVisible(false);
   $('recover')?.classList.add('is-hidden');
-  $('statusLine').textContent = 'Radar ativo…';
   setEntryVisible(false);
 
   let i = 0;
@@ -193,6 +197,7 @@ export function showSearching() {
 export function showPermissionDenied() {
   stopLoadingHints();
   hideAwaitingPermission();
+  setTopbarVisible(false);
   $('radarScan')?.classList.add('is-hidden');
   setRadarDockVisible(false);
   $('recover')?.classList.remove('is-hidden');
@@ -204,6 +209,7 @@ export function showPermissionDenied() {
 export function showRecover(reason = 'unknown') {
   stopLoadingHints();
   hideAwaitingPermission();
+  setTopbarVisible(false);
   $('radarScan')?.classList.add('is-hidden');
   setRadarDockVisible(false);
   $('recover')?.classList.remove('is-hidden');
@@ -239,6 +245,7 @@ export function ready() {
   document.body.classList.add('app-ready');
   setRadarDockVisible(false);
   syncChrome();
+  setTopbarVisible(true);
   setEntryVisible(true);
 
   fitNearby(pointsRef, rows.map((r) => r.p));

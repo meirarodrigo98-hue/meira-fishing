@@ -19,9 +19,13 @@
 <div id="map"></div>
 <div class="map-dim" id="mapDim" aria-hidden="true"></div>
 
-<header class="topbar">
-  <p class="status" id="statusLine">Mapa do RJ</p>
-  <button class="btn-icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
+<header class="topbar is-hidden" id="topbar">
+  <div class="hud-chip">
+    <span class="hud-dot" aria-hidden="true"></span>
+    <span class="hud-label" id="hudLabel">Radar ativo</span>
+    <span class="hud-count" id="hudCount">—</span>
+  </div>
+  <button class="hud-btn" id="relocate" type="button" aria-label="Atualizar localização">◎</button>
 </header>
 
 <div class="radar-dock" id="radarDock">
