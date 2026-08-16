@@ -11,48 +11,46 @@ import {
   setBestPointId,
   updateRoute,
 } from './map.js';
-import { collapseSheet, openSheet } from './sheet.js';
 
-/** Painel de pontos — um card, setas grandes, zero arraste. */
+/** Card de pontos estilo mapa nativo — abrir, navegar, ir. */
 let onRefresh = null;
 let pointsRef = [];
-let carouselRows = [];
-let carouselIndex = 0;
-let lastCarouselId = null;
+let rows = [];
+let index = 0;
+let lastId = null;
 
-function revealPoints() {
-  setPointsRevealed(true);
+const els = () => ({
+  body: document.body,
+  card: $('spotsCard'),
+  dim: $('mapDim'),
+  entry: $('spotsEntry'),
+  entryBtn: $('openPoints'),
+});
+
+function isOpen() {
+  return els().body.classList.contains('spots-open');
 }
 
-function hidePoints() {
+function openSpots() {
+  setPointsRevealed(true);
+  els().body.classList.add('spots-open');
+  els().card?.setAttribute('aria-hidden', 'false');
+  els().dim?.classList.add('show');
+  els().entry?.classList.add('hidden');
+  invalidateMapSize();
+  if (rows.length) showAt(index, { fly: true });
+  else renderList(pointsRef);
+}
+
+function closeSpots() {
   if (state.navigating) return;
   setPointsRevealed(false);
+  els().body.classList.remove('spots-open');
+  els().card?.setAttribute('aria-hidden', 'true');
+  els().dim?.classList.remove('show');
+  els().entry?.classList.remove('hidden');
   renderMarkers(pointsRef);
-}
-
-function updateWeatherNote() {
-  $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
-}
-
-function showFab() {
-  $('openPoints')?.classList.remove('hidden');
-}
-
-function hideFab() {
-  $('openPoints')?.classList.add('hidden');
-}
-
-function openPanel() {
-  revealPoints();
-  openSheet();
-  renderList(pointsRef);
-  hideFab();
-}
-
-function closePanel() {
-  collapseSheet();
-  hidePoints();
-  showFab();
+  invalidateMapSize();
 }
 
 export function bindUi({ onRelocate }) {
@@ -61,18 +59,18 @@ export function bindUi({ onRelocate }) {
   $('filters').querySelectorAll('[data-filter]').forEach((btn) => {
     btn.onclick = () => {
       setFilter(btn.dataset.filter);
-      $('filters').querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === btn));
+      $('filters').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === btn));
       renderList(pointsRef);
     };
   });
 
-  $('openPoints').onclick = openPanel;
-  $('closePanel').onclick = closePanel;
-  $('pointPrev').onclick = () => stepPoint(-1);
-  $('pointNext').onclick = () => stepPoint(1);
+  $('openPoints').onclick = openSpots;
+  $('mapDim').onclick = closeSpots;
+  $('pointPrev').onclick = () => step(-1);
+  $('pointNext').onclick = () => step(1);
   $('cardGo').onclick = () => {
-    const row = carouselRows[carouselIndex];
-    if (row) goNowFromPoint(row.p);
+    const row = rows[index];
+    if (row) goNow(row.p);
   };
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
@@ -81,161 +79,130 @@ export function bindUi({ onRelocate }) {
   return { showBoot, showFallback, hideOverlays, ready, renderList: () => renderList(pointsRef) };
 }
 
-export function onSheetSnap(name) {
-  if (name === 'hidden') {
-    hidePoints();
-    if (!state.navigating) showFab();
-  }
-}
-
 export function setPoints(points) {
   pointsRef = points;
 }
 
 export function renderPlaces(places, onPick) {
-  $('places').innerHTML = places
-    .map((p) => `<button type="button" data-place="${p.name}">${p.name}</button>`)
-    .join('');
+  $('places').innerHTML = places.map((p) => `<button type="button" data-place="${p.name}">${p.name}</button>`).join('');
   $('places').querySelectorAll('[data-place]').forEach((btn) => {
     btn.onclick = () => onPick(places.find((x) => x.name === btn.dataset.place));
   });
+}
+
+function setEntryVisible(show) {
+  els().entry?.classList.toggle('hidden', !show);
 }
 
 export function showBoot() {
   $('boot').classList.remove('hidden');
   $('fallback').classList.add('hidden');
   $('statusLine').textContent = 'Achando você…';
-  hideFab();
+  setEntryVisible(false);
 }
 
 export function showBootLight() {
   $('boot').classList.add('hidden');
   $('fallback').classList.add('hidden');
   $('statusLine').textContent = 'Buscando GPS…';
-  hideFab();
+  setEntryVisible(false);
 }
 
 export function showFallback() {
   $('boot').classList.add('hidden');
   $('fallback').classList.remove('hidden');
-  hideFab();
+  setEntryVisible(false);
 }
 
 export function hideOverlays() {
   $('boot').classList.add('hidden');
   $('fallback').classList.add('hidden');
-  invalidateMapSize();
 }
 
 export function ready(label) {
   hideOverlays();
   $('statusLine').textContent = label;
-  showFab();
-  updateWeatherNote();
+  $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
+  setEntryVisible(true);
   if (onRefresh) onRefresh();
 }
 
 export function openPoint(point) {
   setSelected(point);
-  lastCarouselId = point.id;
-  if (!carouselRows.length) renderList(pointsRef);
-  openPanel();
-  showPointAt(indexForPointId(point.id), { fly: true });
+  lastId = point.id;
+  if (!rows.length) renderList(pointsRef);
+  openSpots();
+  showAt(idxOf(point.id), { fly: true });
 }
 
-function updateCard(row, index) {
-  const { p, distance, v } = row;
-  $('cardRank').textContent = index === 0 ? 'Melhor agora' : `#${index + 1}`;
-  $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(' / ')}`;
-  $('cardVerdict').textContent = v.label;
-  $('cardVerdict').className = `verdict ${v.key}`;
-  const why = state.weatherEstimated ? `${v.why} (estimado)` : v.why;
-  $('cardWhy').textContent = why;
-  $('panelCard').classList.toggle('is-best', index === 0);
-  $('cardGo').disabled = false;
-}
-
-function updatePointNav() {
-  const total = carouselRows.length;
-  const nav = $('pointsNav');
-  const card = $('panelCard');
-
-  if (!total) {
-    nav?.classList.add('hidden');
-    $('cardName').textContent = 'Nenhum ponto';
-    $('cardMeta').textContent = 'Tente outro filtro';
-    $('cardWhy').textContent = '';
-    $('cardVerdict').textContent = '—';
-    $('cardVerdict').className = 'verdict lendo';
-    $('cardGo').disabled = true;
-    $('pointCounter').textContent = '—';
-    return;
-  }
-
-  nav?.classList.remove('hidden');
-  card?.classList.remove('hidden');
-  $('pointCounter').textContent = `${carouselIndex + 1} / ${total}`;
-  $('pointPrev').disabled = carouselIndex <= 0;
-  $('pointNext').disabled = carouselIndex >= total - 1;
-}
-
-function showPointAt(index, { fly = true } = {}) {
-  if (!carouselRows.length) return;
-
-  carouselIndex = Math.max(0, Math.min(carouselRows.length - 1, index));
-  const row = carouselRows[carouselIndex];
-  lastCarouselId = row.p.id;
-  setSelected(row.p);
-
-  updateCard(row, carouselIndex);
-  updatePointNav();
-
-  setBestPointId(row.p.id);
-  renderMarkers(pointsRef);
-  if (fly) flyToPoint(row.p);
-}
-
-function stepPoint(delta) {
-  if (!carouselRows.length) return;
-  showPointAt(carouselIndex + delta, { fly: true });
-}
-
-function indexForPointId(id) {
-  const i = carouselRows.findIndex((r) => r.p.id === id);
+function idxOf(id) {
+  const i = rows.findIndex((r) => r.p.id === id);
   return i >= 0 ? i : 0;
 }
 
-export function renderList(points) {
-  carouselRows = rankPoints(points, state.userPos, state.filter, state.weather);
-  const total = carouselRows.length;
+function paint(row, i) {
+  const { p, distance, v } = row;
+  $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
+  $('cardName').textContent = p.name;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}`;
+  $('cardVerdict').textContent = v.label;
+  $('cardVerdict').className = `pill ${v.key}`;
+  $('cardWhy').textContent = state.weatherEstimated ? `${v.why} (estimado)` : v.why;
+  $('spotsBody').classList.toggle('is-best', i === 0);
+  $('cardGo').disabled = false;
+}
 
-  $('listSub').textContent = state.userPos
-    ? `${total} ponto${total !== 1 ? 's' : ''} perto de você`
-    : 'Escolha um bairro para continuar';
-  updateWeatherNote();
+function paintEmpty() {
+  $('cardRank').textContent = '—';
+  $('cardName').textContent = 'Nenhum ponto';
+  $('cardMeta').textContent = 'Mude o filtro acima';
+  $('cardVerdict').textContent = '—';
+  $('cardVerdict').className = 'pill lendo';
+  $('cardWhy').textContent = '';
+  $('cardGo').disabled = true;
+  $('pointCounter').textContent = '—';
+  $('pointPrev').disabled = true;
+  $('pointNext').disabled = true;
+}
 
-  if (!total) {
-    carouselIndex = 0;
-    updatePointNav();
+function showAt(i, { fly = true } = {}) {
+  if (!rows.length) {
+    paintEmpty();
     setBestPointId(null);
-    renderMarkers(points);
+    renderMarkers(pointsRef);
     return;
   }
 
-  const preserveId =
-    lastCarouselId && carouselRows.some((r) => r.p.id === lastCarouselId)
-      ? lastCarouselId
-      : carouselRows[0]?.p?.id;
+  index = Math.max(0, Math.min(rows.length - 1, i));
+  const row = rows[index];
+  lastId = row.p.id;
+  setSelected(row.p);
+  paint(row, index);
 
-  const panelOpen = $('sheet')?.classList.contains('open');
-  showPointAt(indexForPointId(preserveId), { fly: panelOpen });
+  $('pointCounter').textContent = `${index + 1} / ${rows.length}`;
+  $('pointPrev').disabled = index <= 0;
+  $('pointNext').disabled = index >= rows.length - 1;
+
+  setBestPointId(row.p.id);
+  renderMarkers(pointsRef);
+  if (fly && isOpen()) flyToPoint(row.p);
 }
 
-function goNowFromPoint(point) {
-  if (!point) return;
-  setSelected(point);
+function step(delta) {
+  if (!rows.length) return;
+  showAt(index + delta, { fly: true });
+}
 
+export function renderList(points) {
+  rows = rankPoints(points, state.userPos, state.filter, state.weather);
+  $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
+
+  const preserve = lastId && rows.some((r) => r.p.id === lastId) ? lastId : rows[0]?.p?.id;
+  showAt(idxOf(preserve), { fly: isOpen() });
+}
+
+function goNow(point) {
+  setSelected(point);
   if (state.userPos) {
     drawRoute(state.userPos, point);
     $('navTitle').textContent = point.name;
@@ -245,9 +212,10 @@ function goNowFromPoint(point) {
     renderMarkers(pointsRef);
   } else {
     toast('Ative a localização para ver a rota.');
+    return;
   }
-
-  closePanel();
+  closeSpots();
+  els().entry?.classList.add('hidden');
   window.open(mapsUrl(point), '_blank', 'noopener');
 }
 
@@ -256,8 +224,9 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
-  hidePoints();
-  showFab();
+  setPointsRevealed(false);
+  renderMarkers(pointsRef);
+  setEntryVisible(true);
 }
 
 export function onUserMoved() {
@@ -267,3 +236,7 @@ export function onUserMoved() {
     $('navMeta').textContent = `${fmtKm(km(state.userPos, state.selected))} · rota no mapa`;
   }
 }
+
+// compat — app.js antigo
+export function onSheetSnap() {}
+export function initSheet() {}

@@ -6,9 +6,6 @@
 <meta name="theme-color" content="#07141a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Meira Fishing</title>
 <script src="js/boot-cache.js"></script>
 <link rel="preconnect" href="https://unpkg.com">
@@ -16,55 +13,52 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div id="map"></div>
 
-<div class="topbar">
-  <div class="status" id="statusLine">Achando você…</div>
-  <button class="icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
+<div id="map"></div>
+<div class="map-dim" id="mapDim" aria-hidden="true"></div>
+
+<header class="topbar">
+  <p class="status" id="statusLine">Achando você…</p>
+  <button class="btn-icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
+</header>
+
+<!-- Gatilho: mapa limpo -->
+<div class="spots-entry" id="spotsEntry">
+  <button class="spots-entry-btn" id="openPoints" type="button">
+    <span class="entry-pulse"></span>
+    Ver pontos de pesca
+  </button>
 </div>
 
-<section class="panel" id="sheet" data-snap="hidden">
-  <div class="panel-head">
-    <div>
-      <p class="panel-title" id="listSub">Pontos perto de você</p>
-      <p id="weatherNote" class="weather-note hidden">Condições estimadas</p>
+<!-- Card de pontos -->
+<aside class="spots-card" id="spotsCard" aria-hidden="true">
+  <div class="spots-bar"></div>
+
+  <div class="spots-filters" id="filters">
+    <button class="chip on" data-filter="todos" type="button">Todos</button>
+    <button class="chip" data-filter="terra" type="button">Terra</button>
+    <button class="chip" data-filter="barco" type="button">Barco</button>
+    <button class="chip" data-filter="lagoa" type="button">Lagoa</button>
+  </div>
+
+  <div class="spots-body" id="spotsBody">
+    <span class="spots-tag" id="cardRank">Melhor agora</span>
+    <div class="spots-head">
+      <h2 class="spots-name" id="cardName">—</h2>
+      <span class="pill ir" id="cardVerdict">—</span>
     </div>
-    <button class="panel-close" id="closePanel" type="button" aria-label="Fechar">✕</button>
+    <p class="spots-meta" id="cardMeta">—</p>
+    <p class="spots-why" id="cardWhy"></p>
   </div>
 
-  <div class="filters" id="filters">
-    <button class="chip on" data-filter="todos">Todos</button>
-    <button class="chip" data-filter="terra">Terra</button>
-    <button class="chip" data-filter="barco">Barco</button>
-    <button class="chip" data-filter="lagoa">Lagoa</button>
-  </div>
+  <button class="spots-go" id="cardGo" type="button">Ir agora</button>
 
-  <div class="panel-card is-best" id="panelCard">
-    <div class="card-top">
-      <div>
-        <span class="card-rank" id="cardRank">Melhor agora</span>
-        <b class="card-name" id="cardName">—</b>
-        <span class="card-meta" id="cardMeta">—</span>
-      </div>
-      <span class="verdict ir" id="cardVerdict">—</span>
-    </div>
-    <p class="card-why" id="cardWhy"></p>
-    <button class="card-go" id="cardGo" type="button">Ir agora</button>
-  </div>
-
-  <div class="panel-nav" id="pointsNav">
-    <button class="nav-btn" id="pointPrev" type="button">← Anterior</button>
-    <span class="nav-count" id="pointCounter">—</span>
-    <button class="nav-btn" id="pointNext" type="button">Próximo →</button>
-  </div>
-</section>
-
-<button class="fab hidden" id="openPoints" type="button" aria-label="Ver pontos">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/>
-    <circle cx="12" cy="11" r="2.5"/>
-  </svg>
-</button>
+  <nav class="spots-pager" id="pointsNav">
+    <button class="pager-btn" id="pointPrev" type="button" aria-label="Anterior">‹</button>
+    <span class="pager-count" id="pointCounter">—</span>
+    <button class="pager-btn" id="pointNext" type="button" aria-label="Próximo">›</button>
+  </nav>
+</aside>
 
 <div class="nav-strip" id="navStrip">
   <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
@@ -75,7 +69,7 @@
   <div class="bootbox">
     <div class="pulse">M</div>
     <h2>Achando você</h2>
-    <p>Autorize a localização para ver os pontos de pesca mais próximos.</p>
+    <p>Autorize a localização para ver os melhores pontos perto de você.</p>
   </div>
 </section>
 
@@ -87,6 +81,8 @@
     <button class="ghost" id="retryGps" type="button">Tentar GPS de novo</button>
   </div>
 </section>
+
+<p class="weather-hint hidden" id="weatherNote">Condições estimadas — sem dados ao vivo.</p>
 
 <div class="toast" id="toast"></div>
 
