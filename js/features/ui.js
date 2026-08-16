@@ -1,5 +1,5 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
-import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setFollowUser } from '../lib/state.js';
+import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
 import { POINTS } from '../data/points.js';
@@ -416,8 +416,17 @@ function syncLocHud() {
   if (!isRadarOn()) return;
   const label = $('hudLabel');
   const banner = $('locBanner');
-  const weakGps = state.userPos?.gps && !state.userPos?.approx && state.userPos.accuracy != null && state.userPos.accuracy > 40;
-  document.body.classList.toggle('loc-approx', !!state.userPos?.approx || weakGps);
+  const locBtn = $('openLocSettingsHud');
+
+  if (hasCapturedLocation()) {
+    document.body.classList.remove('loc-approx');
+    if (label) label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
+    banner?.classList.add('is-hidden');
+    locBtn?.classList.add('is-hidden');
+    return;
+  }
+
+  document.body.classList.toggle('loc-approx', !!state.userPos?.approx);
 
   if (state.userPos?.approx) {
     if (label) label.textContent = 'Local impreciso';
@@ -425,22 +434,13 @@ function syncLocHud() {
       banner.classList.remove('is-hidden');
       banner.textContent = 'Posição veio da internet (pode errar km). Toque ⌖ para GPS preciso.';
     }
-  } else if (weakGps) {
-    if (label) label.textContent = `GPS calibrando ±${Math.round(state.userPos.accuracy)} m`;
-    if (banner) {
-      banner.classList.remove('is-hidden');
-      banner.textContent = 'Aguardando GPS fino… fique ao ar livre ou toque ⌖ para forçar.';
-    }
-  } else if (state.userPos?.gps && state.userPos.accuracy != null) {
-    if (label) label.textContent = `GPS ±${Math.round(state.userPos.accuracy)} m`;
-    banner?.classList.add('is-hidden');
-  } else if (state.userPos) {
-    if (label) label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
-    banner?.classList.add('is-hidden');
+    locBtn?.classList.remove('is-hidden');
+    return;
   }
 
-  const showLocBtn = !!state.userPos?.approx || weakGps;
-  $('openLocSettingsHud')?.classList.toggle('is-hidden', !showLocBtn);
+  if (label) label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
+  banner?.classList.add('is-hidden');
+  locBtn?.classList.add('is-hidden');
 }
 
 function syncChrome() {

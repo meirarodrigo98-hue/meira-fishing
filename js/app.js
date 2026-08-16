@@ -19,7 +19,7 @@ import {
   showSearching,
   showLocationHelp,
 } from './features/ui.js';
-import { state, getPointWeather } from './lib/state.js';
+import { state, getPointWeather, hasCapturedLocation } from './lib/state.js';
 import { beginTracking, captureLocation, retryLocation, refreshGpsPosition, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
 import { initLogin } from './features/login.js';
 import { needsLocationPermission, promptLocationServicesOnEntry } from './lib/location-settings.js';
@@ -115,6 +115,7 @@ async function boot() {
 
 async function requestLocationOnEntry() {
   if (!window.isSecureContext || !navigator.geolocation) return;
+  if (hasCapturedLocation()) return;
 
   const needs = await needsLocationPermission();
   if (!needs) {
@@ -184,12 +185,6 @@ async function handleReady() {
   }
 
   if (estimated) toast('Alguns pontos usaram clima estimado.');
-
-  if (state.userPos?.approx) {
-    toast('Localização imprecisa — toque ⌖ no topo para corrigir com GPS.');
-  } else if (state.userPos?.gps && state.userPos.accuracy != null && state.userPos.accuracy > 40) {
-    toast('GPS ainda calibrando — toque ⌖ se a posição estiver errada.');
-  }
 
   renderList(allPoints(), { nearby: true });
   ready();

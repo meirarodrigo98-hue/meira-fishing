@@ -1,4 +1,4 @@
-import { state, setUserPos, getPointWeather, setFollowUser } from '../lib/state.js';
+import { state, setUserPos, getPointWeather, setFollowUser, hasCapturedLocation } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
 import { filterNearby, mapPointIds } from '../lib/utils.js';
 
@@ -100,6 +100,8 @@ export function setUser(pos, opts = {}) {
   }
 
   const acc = pos.accuracy;
+  const captured = hasCapturedLocation();
+
   if (acc != null && Number.isFinite(acc) && acc < 120) {
     if (!accuracyRing) {
       accuracyRing = L.circle([pos.lat, pos.lng], {
@@ -114,8 +116,10 @@ export function setUser(pos, opts = {}) {
       accuracyRing.setLatLng([pos.lat, pos.lng]);
       accuracyRing.setRadius(acc);
     }
-    const label = acc <= 15 ? `±${Math.round(acc)} m` : `±${Math.round(acc)} m (GPS)`;
-    userMarker.bindTooltip(`Você · ${label}`, { direction: 'top', offset: [0, -8] });
+    userMarker.bindTooltip(captured ? 'Você' : `Você · ±${Math.round(acc)} m`, {
+      direction: 'top',
+      offset: [0, -8],
+    });
   } else if (pos.approx) {
     if (accuracyRing && map) {
       map.removeLayer(accuracyRing);

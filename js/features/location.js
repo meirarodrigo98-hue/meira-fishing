@@ -123,20 +123,14 @@ function succeedGps(pos, onSuccess) {
   onSuccess(location);
 }
 
-function finishGpsSession(reading, onSuccess, { toastMsg } = {}) {
+function finishGpsSession(reading, onSuccess) {
   hideAwaitingPermission();
   showSearching();
   setUser(reading, { center: true, zoom: 18 });
   clearWatch();
   beginTracking();
   releaseLocating();
-  if (toastMsg) toast(toastMsg);
   onSuccess?.(reading);
-}
-
-function gpsToast(reading, prefix = 'Localização corrigida') {
-  const m = reading.accuracy != null ? `±${Math.round(reading.accuracy)} m` : '';
-  return `${prefix} ${m}`.trim();
 }
 
 /** Amostra GPS fino — escolhe a leitura mais precisa. Ignora timeouts transitórios do watch. */
@@ -215,8 +209,7 @@ export function refreshGpsPosition(onSuccess, onFail) {
   locating = true;
   showSearching();
 
-  const done = (reading) =>
-    finishGpsSession(reading, onSuccess, { toastMsg: gpsToast(reading) });
+  const done = (reading) => finishGpsSession(reading, onSuccess);
 
   const fail = () => {
     releaseLocating();

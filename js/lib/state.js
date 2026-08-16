@@ -57,7 +57,11 @@ export function setFollowUser(on) {
   const btn = document.getElementById('followBtn');
   if (btn) btn.classList.toggle('on', state.followUser);
   const label = document.getElementById('hudLabel');
-  if (label && document.body.classList.contains('app-ready') && !state.userPos?.approx) {
+  if (label && document.body.classList.contains('app-ready')) {
     label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
   }
+}
+
+export function hasCapturedLocation(pos = state.userPos) {
+  return !!pos && pos.gps && !pos.approx;
 }
