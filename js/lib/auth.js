@@ -48,10 +48,10 @@ export function logout() {
 export async function login(username, password, remember = true) {
   const user = (username || '').trim().toLowerCase();
   const cred = USERS[user];
-  if (!cred) return { ok: false, message: 'Usuário não encontrado.' };
+  if (!cred) return { ok: false, message: 'Usuário não encontrado.', code: 'user_not_found' };
 
   const hash = await hashPassword(password || '');
-  if (hash !== cred.hash) return { ok: false, message: 'Senha incorreta.' };
+  if (hash !== cred.hash) return { ok: false, message: 'SENHA INCORRETA', code: 'wrong_password' };
 
   const ms = remember ? REMEMBER_DAYS * 864e5 : SESSION_HOURS * 36e5;
   const session = {

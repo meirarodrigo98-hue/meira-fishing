@@ -54,6 +54,9 @@ export function initLogin(onReady) {
     togglePass.textContent = isPass ? '🙈' : '👁';
   });
 
+  passInput?.addEventListener('input', () => showError(''));
+  userInput?.addEventListener('input', () => showError(''));
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     showError('');
@@ -66,7 +69,7 @@ export function initLogin(onReady) {
     submitBtn.classList.remove('is-loading');
 
     if (!result.ok) {
-      showError(result.message);
+      showError(result.code === 'wrong_password' ? 'SENHA INCORRETA' : result.message);
       passInput.focus();
       passInput.select?.();
       return;
