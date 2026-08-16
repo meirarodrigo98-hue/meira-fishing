@@ -76,7 +76,22 @@
     <p class="spots-why" id="cardWhy"></p>
   </div>
 
-  <button class="spots-go" id="cardGo" type="button">Ir agora</button>
+  <div class="spots-actions">
+    <button class="spots-check" id="cardChecklist" type="button">Checklist</button>
+    <button class="spots-go" id="cardGo" type="button">Ir agora</button>
+  </div>
+
+  <div class="checklist-panel" id="checklistPanel" aria-hidden="true">
+    <div class="checklist-head">
+      <div>
+        <span class="checklist-tag">Estratégia do ponto</span>
+        <h3 class="checklist-title" id="checklistTitle">—</h3>
+      </div>
+      <button class="checklist-close" id="checklistClose" type="button" aria-label="Fechar">✕</button>
+    </div>
+    <p class="checklist-summary" id="checklistSummary"></p>
+    <ul class="checklist-list" id="checklistItems"></ul>
+  </div>
 
   <nav class="spots-pager" id="pointsNav">
     <button class="pager-btn" id="pointPrev" type="button" aria-label="Anterior">‹</button>

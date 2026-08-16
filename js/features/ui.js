@@ -1,6 +1,8 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
-import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
+import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setPointWeather } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
+import { buildPointChecklist } from '../lib/strategy.js';
+import { loadPointWeather } from '../lib/weather.js';
 import {
   clearRoute,
   drawRoute,
@@ -87,6 +89,7 @@ function openSpots() {
 
 function closeSpots() {
   if (state.navigating) return;
+  closeChecklist();
   document.body.classList.remove('spots-open');
   els().card?.setAttribute('aria-hidden', 'true');
   els().dim?.classList.remove('show');
@@ -120,6 +123,8 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
     const row = rows[index];
     if (row) goNow(row.p);
   };
+  $('cardChecklist').onclick = () => openChecklist();
+  $('checklistClose').onclick = closeChecklist;
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
@@ -284,6 +289,7 @@ function paint(row, i) {
   $('cardWhy').textContent = est ? `${v.why} (estimado)` : v.why;
   $('spotsBody').classList.toggle('is-best', i === 0);
   $('cardGo').disabled = false;
+  $('cardChecklist').disabled = false;
 }
 
 function paintEmpty() {
@@ -295,12 +301,14 @@ function paintEmpty() {
   $('cardVerdict').className = 'pill lendo';
   $('cardWhy').textContent = '';
   $('cardGo').disabled = true;
+  $('cardChecklist').disabled = true;
   $('pointCounter').textContent = '—';
   $('pointPrev').disabled = true;
   $('pointNext').disabled = true;
 }
 
 function showAt(i, { fly = true } = {}) {
+  closeChecklist();
   if (!rows.length) {
     paintEmpty();
     setBestPointId(null);
@@ -334,6 +342,55 @@ export function renderList(points, opts = {}) {
 
   const preserve = lastId && rows.some((r) => r.p.id === lastId) ? lastId : rows[0]?.p?.id;
   showAt(idxOf(preserve), { fly: isOpen() });
+}
+
+function closeChecklist() {
+  const panel = $('checklistPanel');
+  panel?.classList.remove('show');
+  panel?.setAttribute('aria-hidden', 'true');
+}
+
+async function openChecklist() {
+  const row = rows[index];
+  if (!row) return;
+
+  const panel = $('checklistPanel');
+  panel?.classList.remove('show');
+  panel?.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => panel?.classList.add('show'));
+
+  $('checklistTitle').textContent = row.p.name;
+  $('checklistSummary').textContent = 'Lendo ponto e condições…';
+  $('checklistItems').innerHTML = '<li class="checklist-item info"><div><span class="checklist-label">Montando estratégia…</span></div></li>';
+
+  let wx = getPointWeather(row.p.id);
+  if (!wx) {
+    try {
+      const { data, estimated } = await loadPointWeather(row.p);
+      setPointWeather(row.p.id, data, estimated);
+      wx = data;
+    } catch {
+      toast('Não foi possível ler o clima deste ponto.');
+    }
+  }
+
+  renderChecklist(row.p, row.distance);
+}
+
+function renderChecklist(point, distance) {
+  const wx = getPointWeather(point.id);
+  const estimated = isPointWeatherEstimated(point.id);
+  const plan = buildPointChecklist(point, { weather: wx, distance, estimated });
+
+  $('checklistTitle').textContent = point.name;
+  $('checklistSummary').textContent = plan.headline;
+
+  $('checklistItems').innerHTML = plan.items
+    .map(
+      (it) =>
+        `<li class="checklist-item ${it.status}"><div><span class="checklist-label">${it.label}</span>${it.detail ? `<span class="checklist-detail">${it.detail}</span>` : ''}</div></li>`,
+    )
+    .join('');
 }
 
 function goNow(point) {
