@@ -4,6 +4,7 @@ import { clamp } from './utils.js';
 export function scores(point, data) {
   const w = data?.weather?.current || {};
   const m = data?.marine?.current || {};
+  const tide = data?.tide;
   let safe = 100;
   let fish = 50 + point.confidence * 0.35;
   const wind = w.wind_speed_10m ?? 12;
@@ -24,6 +25,12 @@ export function scores(point, data) {
   if (point.type === 'Lagoa') {
     safe = clamp(safe + 18);
     fish += wind <= 14 ? 4 : 0;
+  } else if (tide?.trend === 'rising') {
+    fish += point.mode === 'land' ? 7 : 4;
+  } else if (tide?.trend === 'falling' && (point.type === 'Costão' || point.type === 'Pedra')) {
+    fish += 3;
+  } else if (tide?.trend === 'slack') {
+    fish -= 2;
   }
 
   fish += wave >= 0.3 && wave <= 1.1 ? 8 : -4;
@@ -35,9 +42,40 @@ export function scores(point, data) {
   return { safe: Math.round(clamp(safe)), fish: Math.round(clamp(fish)) };
 }
 
+export function formatConditions(data) {
+  if (!data) return '';
+  const w = data.weather?.current || {};
+  const m = data.marine?.current || {};
+  const parts = [];
+
+  if (w.wind_speed_10m != null) parts.push(`Vento ${Math.round(w.wind_speed_10m)} km/h`);
+  if (m.wave_height != null) parts.push(`Onda ${m.wave_height.toFixed(1)} m`);
+  if ((w.precipitation ?? 0) > 0.2) parts.push(`Chuva ${w.precipitation.toFixed(1)} mm`);
+  if (data.tide?.label) parts.push(data.tide.label);
+
+  return parts.join(' · ');
+}
+
+function whyFor(point, data, s) {
+  const wave = data.marine?.current?.wave_height;
+  const wind = data.weather?.current?.wind_speed_10m;
+  const tide = data.tide?.label;
+  const bits = [];
+
+  if (wind != null) bits.push(`vento ${Math.round(wind)} km/h`);
+  if (wave != null) bits.push(`onda ${wave.toFixed(1)} m`);
+  if (tide && point.type !== 'Lagoa') bits.push(tide.toLowerCase());
+
+  const cond = bits.length ? bits.join(', ') : 'condição local';
+
+  if (s.fish >= 70 && s.safe >= 60) return `Boa janela: ${cond}.`;
+  if (s.fish >= 55) return `Dá para ir: ${cond}.`;
+  return `Condição morna: ${cond}.`;
+}
+
 export function verdict(point, data) {
   if (!data) {
-    return { key: 'lendo', label: 'Lendo…', why: 'Buscando condição da região.', fish: null, safe: null };
+    return { key: 'lendo', label: 'Lendo…', why: 'Consultando clima neste ponto.', fish: null, safe: null };
   }
 
   const s = scores(point, data);
@@ -45,23 +83,28 @@ export function verdict(point, data) {
   const rock = point.type === 'Costão' || point.type === 'Pedra';
 
   if (rock && wave > 1.4) {
-    return { key: 'evitar', label: 'Evitar', why: 'Mar alto no costão. Melhor outro ponto.', ...s };
+    return { key: 'evitar', label: 'Evitar', why: 'Mar alto no costão — onda forte aqui.', ...s };
   }
   if (s.safe < 50) {
-    return { key: 'evitar', label: 'Evitar', why: 'Condição insegura agora.', ...s };
+    return { key: 'evitar', label: 'Evitar', why: 'Condição insegura neste ponto.', ...s };
   }
   if (s.fish >= 70 && s.safe >= 60) {
-    return { key: 'ir', label: 'Ir agora', why: 'Boa janela perto de você.', ...s };
+    return { key: 'ir', label: 'Ir agora', why: whyFor(point, data, s), ...s };
   }
   if (s.fish >= 55) {
-    return { key: 'esperar', label: 'Esperar', why: 'Dá para ir, mas não é o pico.', ...s };
+    return { key: 'esperar', label: 'Esperar', why: whyFor(point, data, s), ...s };
   }
-  return { key: 'esperar', label: 'Esperar', why: 'Condição morna nesta região.', ...s };
+  return { key: 'esperar', label: 'Esperar', why: whyFor(point, data, s), ...s };
+}
+
+function resolveWeather(point, getWeather) {
+  if (typeof getWeather === 'function') return getWeather(point);
+  return getWeather ?? null;
 }
 
 /** Prioriza perto + vale agora; evita pontos "Evitar" no topo. */
-export function rankPoints(points, userPos, filter, weather) {
-  return points
+export function rankPoints(points, userPos, filter, getWeather) {
+  const rows = points
     .filter((p) => {
       if (filter === 'terra') return p.mode === 'land' && p.type !== 'Lagoa';
       if (filter === 'barco') return p.mode === 'boat';
@@ -69,18 +112,22 @@ export function rankPoints(points, userPos, filter, weather) {
       return true;
     })
     .map((p) => {
-      const v = verdict(p, weather);
+      const v = verdict(p, resolveWeather(p, getWeather));
       const distance = userPos ? kmBetween(userPos, p) : null;
       const rank =
         v.key === 'ir' ? 0 : v.key === 'esperar' ? 1 : v.key === 'lendo' ? 2 : 3;
       return { p, distance, v, rank };
-    })
-    .sort((a, b) => {
-      if (a.distance == null || b.distance == null) return 0;
-      if (a.rank !== b.rank) return a.rank - b.rank;
-      if (Math.abs(a.distance - b.distance) > 0.3) return a.distance - b.distance;
-      return (b.v.fish ?? 0) - (a.v.fish ?? 0);
     });
+
+  const hasScores = rows.some((r) => r.v.key !== 'lendo');
+
+  return rows.sort((a, b) => {
+    if (a.distance == null || b.distance == null) return 0;
+    if (!hasScores) return a.distance - b.distance;
+    if (a.rank !== b.rank) return a.rank - b.rank;
+    if (Math.abs(a.distance - b.distance) > 0.3) return a.distance - b.distance;
+    return (b.v.fish ?? 0) - (a.v.fish ?? 0);
+  });
 }
 
 function kmBetween(a, b) {

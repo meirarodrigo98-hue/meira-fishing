@@ -3,9 +3,8 @@ export const state = {
   userPos: null,
   filter: 'todos',
   selected: null,
-  weather: null,
+  weatherByPoint: new Map(),
   weatherEstimated: false,
-  pointsRevealed: false,
   navigating: false,
 };
 
@@ -13,13 +12,22 @@ export function setUserPos(pos) {
   state.userPos = pos ? { lat: pos.lat, lng: pos.lng } : null;
 }
 
-export function setWeather(data, estimated = false) {
-  state.weather = data;
-  state.weatherEstimated = estimated;
+export function clearPointWeather() {
+  state.weatherByPoint.clear();
+  state.weatherEstimated = false;
 }
 
-export function setPointsRevealed(revealed) {
-  state.pointsRevealed = revealed;
+export function setPointWeather(id, data, estimated = false) {
+  state.weatherByPoint.set(id, { data, estimated });
+  if (estimated) state.weatherEstimated = true;
+}
+
+export function getPointWeather(id) {
+  return state.weatherByPoint.get(id)?.data ?? null;
+}
+
+export function isPointWeatherEstimated(id) {
+  return state.weatherByPoint.get(id)?.estimated ?? false;
 }
 
 export function setSelected(point) {

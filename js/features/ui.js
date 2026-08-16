@@ -1,6 +1,6 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
-import { state, setFilter, setNavigating, setSelected } from '../lib/state.js';
-import { rankPoints, verdict } from '../lib/scoring.js';
+import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
+import { rankPoints, verdict, formatConditions } from '../lib/scoring.js';
 import {
   clearRoute,
   drawRoute,
@@ -22,13 +22,15 @@ let index = 0;
 let lastId = null;
 let shouldAutoOpen = true;
 
-const LOADING_HINTS = [
-  'Ligando radar…',
-  'Capturando sua posição…',
-  'Escaneando pontos próximos…',
-  'Calculando o melhor agora…',
-];
-let loadingTimer = null;
+export function setRadarProgress(done, total, name) {
+  const hint = $('bootLoadingHint');
+  if (!hint) return;
+  if (name) {
+    hint.textContent = `Ponto ${done}/${total} · ${name.split('—')[0].trim()}`;
+    return;
+  }
+  hint.textContent = `Consultando ${done}/${total}…`;
+}
 let radarSafetyTimer = null;
 
 const els = () => ({
@@ -47,7 +49,7 @@ function isOpen() {
 }
 
 function rankAll(points) {
-  return rankPoints(points, state.userPos, state.filter, state.weather);
+  return rankPoints(points, state.userPos, state.filter, (p) => getPointWeather(p.id));
 }
 
 function applyRows(points, { nearby = isRadarOn() } = {}) {
@@ -149,14 +151,28 @@ function clearRadarSafety() {
 }
 
 function stopLoadingHints() {
-  if (loadingTimer != null) {
-    clearInterval(loadingTimer);
-    loadingTimer = null;
-  }
   clearRadarSafety();
 }
 
-export function showAwaitingPermission() {
+export function showSearching() {
+  stopLoadingHints();
+  hideAwaitingPermission();
+  $('radarScan')?.classList.remove('is-hidden');
+  setRadarDockVisible(false);
+  setTopbarVisible(false);
+  $('recover')?.classList.add('is-hidden');
+  setEntryVisible(false);
+
+  const hint = $('bootLoadingHint');
+  if (hint) hint.textContent = 'Consultando clima de cada ponto…';
+
+  clearRadarSafety();
+  radarSafetyTimer = setTimeout(() => {
+    if (!$('radarScan')?.classList.contains('is-hidden')) {
+      toast('Radar demorou — tentando concluir…');
+    }
+  }, 20000);
+}
   $('permWait')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
   setTopbarVisible(false);
@@ -169,32 +185,7 @@ export function hideAwaitingPermission() {
   $('permWait')?.classList.add('is-hidden');
 }
 
-export function showSearching() {
-  stopLoadingHints();
-  hideAwaitingPermission();
-  $('radarScan')?.classList.remove('is-hidden');
-  setRadarDockVisible(false);
-  setTopbarVisible(false);
-  $('recover')?.classList.add('is-hidden');
-  setEntryVisible(false);
-
-  let i = 0;
-  const hint = $('bootLoadingHint');
-  if (hint) hint.textContent = LOADING_HINTS[0];
-  loadingTimer = setInterval(() => {
-    i = (i + 1) % LOADING_HINTS.length;
-    if (hint) hint.textContent = LOADING_HINTS[i];
-  }, 1600);
-
-  clearRadarSafety();
-  radarSafetyTimer = setTimeout(() => {
-    if (!$('radarScan')?.classList.contains('is-hidden')) {
-      toast('Radar demorou — tentando concluir…');
-    }
-  }, 18000);
-}
-
-export function showPermissionDenied() {
+export function showAwaitingPermission() {
   stopLoadingHints();
   hideAwaitingPermission();
   setTopbarVisible(false);
@@ -275,12 +266,16 @@ function idxOf(id) {
 
 function paint(row, i) {
   const { p, distance, v } = row;
+  const wx = getPointWeather(p.id);
+  const est = isPointWeatherEstimated(p.id);
+
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
   $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}`;
+  $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';
   $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
   $('cardVerdict').className = `pill ${v.key}`;
-  $('cardWhy').textContent = state.weatherEstimated ? `${v.why} (estimado)` : v.why;
+  $('cardWhy').textContent = est ? `${v.why} (estimado)` : v.why;
   $('spotsBody').classList.toggle('is-best', i === 0);
   $('cardGo').disabled = false;
 }
@@ -289,6 +284,7 @@ function paintEmpty() {
   $('cardRank').textContent = '—';
   $('cardName').textContent = 'Nenhum ponto';
   $('cardMeta').textContent = 'Mude o filtro acima';
+  $('cardConditions').textContent = '';
   $('cardVerdict').textContent = '—';
   $('cardVerdict').className = 'pill lendo';
   $('cardWhy').textContent = '';

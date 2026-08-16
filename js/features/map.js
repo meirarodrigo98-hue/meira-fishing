@@ -1,4 +1,4 @@
-import { state, setUserPos } from '../lib/state.js';
+import { state, setUserPos, getPointWeather } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
 import { filterNearby } from '../lib/utils.js';
 
@@ -87,7 +87,9 @@ export function fitNearby(points, subset = null) {
   if (!map || !state.userPos) return;
   const pool = subset?.length
     ? subset
-    : filterNearby(rankPoints(points, state.userPos, state.filter, state.weather)).map((r) => r.p);
+    : filterNearby(rankPoints(points, state.userPos, state.filter, (p) => getPointWeather(p.id))).map(
+        (r) => r.p,
+      );
   const bounds = L.latLngBounds([[state.userPos.lat, state.userPos.lng]]);
   pool.forEach((p) => bounds.extend([p.lat, p.lng]));
   if (pool.length) {
@@ -105,7 +107,11 @@ export function renderMarkers(points, visibleIds = null) {
   if (visibleIds) {
     showIds = new Set(visibleIds);
   } else if (radarOn && state.userPos) {
-    showIds = new Set(filterNearby(rankPoints(points, state.userPos, state.filter, state.weather)).map((r) => r.p.id));
+    showIds = new Set(
+      filterNearby(rankPoints(points, state.userPos, state.filter, (p) => getPointWeather(p.id))).map(
+        (r) => r.p.id,
+      ),
+    );
   } else {
     showIds = new Set(points.map((p) => p.id));
   }
