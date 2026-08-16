@@ -44,6 +44,11 @@ export function matchesFilter(point, filter) {
   return true;
 }
 
+/** IDs de todos os pontos visíveis no mapa (filtro ativo, sem limite de distância). */
+export function mapPointIds(points, filter) {
+  return points.filter((p) => matchesFilter(p, filter)).map((p) => p.id);
+}
+
 export function travelModeFor(point) {
   return point.mode === 'boat' ? 'driving' : 'walking';
 }

@@ -6,4 +6,5 @@ export const PLACES = [
   {name:'Urca',lat:-22.952,lng:-43.166},
   {name:'Centro',lat:-22.906,lng:-43.173},
   {name:'Barra',lat:-23.011,lng:-43.366},
+  {name:'Niterói',lat:-22.903,lng:-43.108},
 ];

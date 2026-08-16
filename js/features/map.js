@@ -1,6 +1,6 @@
 import { state, setUserPos, getPointWeather } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
-import { filterNearby } from '../lib/utils.js';
+import { filterNearby, mapPointIds } from '../lib/utils.js';
 
 /** Mapa Leaflet — marcadores, rota, destaque do melhor ponto. */
 let map = null;
@@ -101,20 +101,10 @@ export function fitNearby(points, subset = null) {
 
 export function renderMarkers(points, visibleIds = null) {
   if (!map) return;
-  const radarOn = document.body.classList.contains('app-ready');
 
-  let showIds;
-  if (visibleIds) {
-    showIds = new Set(visibleIds);
-  } else if (radarOn && state.userPos) {
-    showIds = new Set(
-      filterNearby(rankPoints(points, state.userPos, state.filter, (p) => getPointWeather(p.id))).map(
-        (r) => r.p.id,
-      ),
-    );
-  } else {
-    showIds = new Set(points.map((p) => p.id));
-  }
+  const showIds = new Set(
+    visibleIds ?? mapPointIds(points, state.filter),
+  );
 
   points.forEach((p) => {
     const marker = markers.get(p.id);

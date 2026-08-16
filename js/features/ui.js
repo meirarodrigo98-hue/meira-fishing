@@ -1,6 +1,7 @@
-import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
+import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
 import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
+import { loadMissingWeather } from '../lib/weather.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
@@ -56,6 +57,10 @@ function isRadarOn() {
 
 function isOpen() {
   return document.body.classList.contains('spots-open');
+}
+
+function renderMapMarkers() {
+  renderMarkers(pointsRef, mapPointIds(pointsRef, state.filter));
 }
 
 function rankAll(points) {
@@ -297,8 +302,36 @@ export function openPoint(point) {
   setSelected(point);
   lastId = point.id;
   if (!rows.length) renderList(pointsRef);
+
+  const all = rankAll(pointsRef);
+  const row = all.find((r) => r.p.id === point.id);
+  if (!row) return;
+
   openSpots();
-  showAt(idxOf(point.id), { fly: true });
+
+  const loadWx = getPointWeather(point.id)
+    ? Promise.resolve()
+    : loadMissingWeather([point], setRadarProgress).then(() => {
+        paint(row, rows.findIndex((r) => r.p.id === point.id));
+      });
+
+  loadWx.then(() => {
+    const idx = rows.findIndex((r) => r.p.id === point.id);
+    if (idx >= 0) showAt(idx, { fly: true });
+    else showPointDirect(row);
+  });
+}
+
+function showPointDirect(row) {
+  closeChecklist();
+  paint(row, -1);
+  $('cardRank').textContent = 'Ponto no mapa';
+  $('pointCounter').textContent = '—';
+  $('pointPrev').disabled = true;
+  $('pointNext').disabled = true;
+  setBestPointId(row.p.id);
+  renderMapMarkers();
+  if (isOpen()) flyToPoint(row.p);
 }
 
 function idxOf(id) {
@@ -349,7 +382,7 @@ function showAt(i, { fly = true } = {}) {
   if (!rows.length) {
     paintEmpty();
     setBestPointId(null);
-    renderMarkers(pointsRef, []);
+    renderMapMarkers();
     return;
   }
 
@@ -364,7 +397,7 @@ function showAt(i, { fly = true } = {}) {
   $('pointNext').disabled = index >= rows.length - 1;
 
   setBestPointId(row.p.id);
-  renderMarkers(pointsRef, rows.map((r) => r.p.id));
+  renderMapMarkers();
   if (fly && isOpen()) flyToPoint(row.p);
 }
 
@@ -615,7 +648,7 @@ function goNow(point) {
     $('navMeta').textContent = `${fmtKm(km(state.userPos, point))} · rota no mapa`;
     $('navStrip').classList.add('show');
     setNavigating(true);
-    renderMarkers(pointsRef, rows.map((r) => r.p.id));
+    renderMapMarkers();
   } else {
     toast('Ligue o radar para ver a rota.');
     return;
@@ -630,7 +663,7 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
-  renderMarkers(pointsRef, rows.map((r) => r.p.id));
+  renderMapMarkers();
   setEntryVisible(true);
 }
 

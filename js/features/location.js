@@ -10,12 +10,15 @@ import {
   showSearching,
 } from './ui.js';
 
-/** GPS — permissão primeiro, radar depois. */
+/** GPS — pede posição no clique (sem await antes, senão o navegador bloqueia o popup). */
 let watchId = null;
 let locating = false;
 
-const GEO_FAST = { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 };
-const GEO_PRECISE = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 };
+const GEO_ATTEMPTS = [
+  { enableHighAccuracy: false, timeout: 18000, maximumAge: 600000 },
+  { enableHighAccuracy: false, timeout: 22000, maximumAge: 60000 },
+  { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 },
+];
 
 function clearWatch() {
   if (watchId != null) {
@@ -30,11 +33,14 @@ export function beginTracking() {
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
       if (!pos.coords) return;
-      setUser({ lat: pos.coords.latitude, lng: pos.coords.longitude }, false);
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      setUser({ lat, lng }, false);
       onUserMoved();
     },
     () => {},
-    { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 },
+    { enableHighAccuracy: false, maximumAge: 30000, timeout: 25000 },
   );
 }
 
@@ -46,7 +52,7 @@ function errorKind(err) {
   return 'unknown';
 }
 
-function readPosition(options, hardMs = 16000) {
+function readPosition(options, hardMs) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject({ code: 3, message: 'hard timeout' }), hardMs);
     navigator.geolocation.getCurrentPosition(
@@ -63,84 +69,71 @@ function readPosition(options, hardMs = 16000) {
   });
 }
 
-async function queryGeoPermission() {
-  if (!navigator.permissions?.query) return null;
-  try {
-    return await navigator.permissions.query({ name: 'geolocation' });
-  } catch {
-    return null;
-  }
+function validCoords(pos) {
+  const lat = pos?.coords?.latitude;
+  const lng = pos?.coords?.longitude;
+  return Number.isFinite(lat) && Number.isFinite(lng);
 }
 
-async function requestPosition(onSuccess, onFallback) {
-  try {
-    const pos = await readPosition(GEO_FAST, 14000);
-    onSuccess(pos);
-    return;
-  } catch (err) {
-    if (errorKind(err) === 'timeout') {
-      try {
-        const pos = await readPosition(GEO_PRECISE, 18000);
-        onSuccess(pos);
-        return;
-      } catch (retryErr) {
-        err = retryErr;
-      }
-    }
-
+function attemptGeo(onSuccess, onFallback, index = 0) {
+  if (index >= GEO_ATTEMPTS.length) {
     hideAwaitingPermission();
-    const kind = errorKind(err);
-    if (kind === 'denied') showPermissionDenied();
-    else showRecover(kind);
-    onFallback(kind);
+    showRecover('timeout');
+    onFallback('timeout');
+    locating = false;
+    return;
   }
+
+  const opt = GEO_ATTEMPTS[index];
+  readPosition(opt, opt.timeout + 3000)
+    .then((pos) => {
+      if (!validCoords(pos)) {
+        attemptGeo(onSuccess, onFallback, index + 1);
+        return;
+      }
+      hideAwaitingPermission();
+      showSearching();
+      const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setUser(location, true);
+      locating = false;
+      onSuccess(location);
+    })
+    .catch((err) => {
+      const kind = errorKind(err);
+      if (kind === 'denied') {
+        hideAwaitingPermission();
+        showPermissionDenied();
+        onFallback('denied');
+        locating = false;
+        return;
+      }
+      attemptGeo(onSuccess, onFallback, index + 1);
+    });
 }
 
-export async function captureLocation(onSuccess, onFallback) {
+export function captureLocation(onSuccess, onFallback) {
   if (locating) return;
   locating = true;
 
-  try {
-    if (!window.isSecureContext) {
-      toast('Abra pelo link https:// para usar localização.');
-      showRecover('insecure');
-      onFallback('insecure');
-      return;
-    }
-
-    if (!navigator.geolocation) {
-      toast('Seu navegador não suporta localização.');
-      showRecover('unsupported');
-      onFallback('unsupported');
-      return;
-    }
-
-    const perm = await queryGeoPermission();
-    if (perm?.state === 'denied') {
-      showPermissionDenied();
-      onFallback('denied');
-      return;
-    }
-
-    hideRecover();
-    showAwaitingPermission();
-
-    await requestPosition(
-      (pos) => {
-        hideAwaitingPermission();
-        showSearching();
-        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setUser(location, true);
-        onSuccess(location);
-      },
-      (kind) => {
-        hideAwaitingPermission();
-        onFallback(kind);
-      },
-    );
-  } finally {
+  if (!window.isSecureContext) {
+    toast('Abra pelo link https:// para usar localização.');
+    showRecover('insecure');
+    onFallback('insecure');
     locating = false;
+    return;
   }
+
+  if (!navigator.geolocation) {
+    toast('Seu navegador não suporta localização.');
+    showRecover('unsupported');
+    onFallback('unsupported');
+    locating = false;
+    return;
+  }
+
+  hideRecover();
+  showAwaitingPermission();
+  attemptGeo(onSuccess, onFallback);
 }
 
 export function retryLocation(onSuccess, onFallback) {
