@@ -24,9 +24,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare site
         run: |
-          mkdir _site
+          mkdir -p _site/css _site/js/data _site/js/lib _site/js/features
           cp index.html _site/index.html
-          touch _site/.nojekyll
+          cp css/app.css _site/css/app.css
+          cp js/boot-cache.js _site/js/boot-cache.js
+          cp js/app.js _site/js/app.js
+          cp js/data/*.js _site/js/data/
+          cp js/lib/*.js _site/js/lib/
+          cp js/features/*.js _site/js/features/
+          cp .nojekyll _site/.nojekyll
           printf '{"id":"%s","at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _site/version.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
