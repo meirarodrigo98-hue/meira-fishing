@@ -1,6 +1,6 @@
 import { state, setUserPos } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
-import { km, NEARBY_KM } from '../lib/utils.js';
+import { filterNearby } from '../lib/utils.js';
 
 /** Mapa Leaflet — marcadores, rota, destaque do melhor ponto. */
 let map = null;
@@ -9,19 +9,19 @@ let routeLine = null;
 let bestPointId = null;
 const markers = new Map();
 
-function markerIcon(point, isBest, far = false) {
+function markerIcon(point, isBest) {
+  const mode = point.mode === 'boat' ? 'boat' : 'land';
   const best = isBest ? ' best' : '';
-  const dim = far ? ' far' : '';
   return L.divIcon({
     className: '',
-    html: `<div class="marker ${point.mode}${best}${dim}"></div>`,
+    html: `<div class="marker ${mode}${best}"></div>`,
     iconSize: [22, 30],
     iconAnchor: [11, 30],
   });
 }
 
 export function createMap(points, onPointClick) {
-  map = L.map('map', { zoomControl: false, attributionControl: true }).setView([-22.98, -43.2], 12);
+  map = L.map('map', { zoomControl: false, attributionControl: true }).setView([-22.98, -43.2], 11);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OSM',
@@ -30,15 +30,18 @@ export function createMap(points, onPointClick) {
 
   points.forEach((p) => {
     const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p, false) })
-      .bindTooltip(p.name, { direction: 'top', offset: [0, -24] })
-      .on('click', () => onPointClick(p));
+      .bindTooltip(p.name, { direction: 'top', offset: [0, -28] })
+      .on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        onPointClick(p);
+      });
     markers.set(p.id, marker);
     marker.addTo(map);
   });
 
   if (points.length) {
     const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
-    map.fitBounds(bounds.pad(0.08));
+    map.fitBounds(bounds.pad(0.1));
   }
 
   return map;
@@ -60,51 +63,61 @@ export function setUser(pos, center = false) {
 
   if (!userMarker) {
     userMarker = L.circleMarker([pos.lat, pos.lng], {
-      radius: 8,
+      radius: 9,
       color: '#fff',
-      weight: 2,
+      weight: 2.5,
       fillColor: '#38bdf8',
       fillOpacity: 1,
     })
       .addTo(map)
-      .bindTooltip('Você');
+      .bindTooltip('Você', { direction: 'top', offset: [0, -8] });
   } else {
     userMarker.setLatLng([pos.lat, pos.lng]);
   }
 
-  if (center) map.setView([pos.lat, pos.lng], 13);
+  if (center) map.setView([pos.lat, pos.lng], 13, { animate: true });
 }
 
 export function flyToPoint(point) {
   if (!map) return;
-  map.flyTo([point.lat, point.lng], 14, { duration: 0.5 });
+  map.flyTo([point.lat, point.lng], 14, { duration: 0.45 });
 }
 
-export function fitNearby(points, maxKm = NEARBY_KM) {
+export function fitNearby(points, subset = null) {
   if (!map || !state.userPos) return;
-  const near = points.filter((p) => km(state.userPos, p) <= maxKm);
+  const pool = subset?.length
+    ? subset
+    : filterNearby(rankPoints(points, state.userPos, state.filter, state.weather)).map((r) => r.p);
   const bounds = L.latLngBounds([[state.userPos.lat, state.userPos.lng]]);
-  near.forEach((p) => bounds.extend([p.lat, p.lng]));
-  map.fitBounds(bounds.pad(0.18), { duration: 0.6 });
+  pool.forEach((p) => bounds.extend([p.lat, p.lng]));
+  if (pool.length) {
+    map.fitBounds(bounds.pad(0.2), { animate: true, duration: 0.5 });
+  } else {
+    map.setView([state.userPos.lat, state.userPos.lng], 13, { animate: true });
+  }
 }
 
-export function renderMarkers(points) {
+export function renderMarkers(points, visibleIds = null) {
   if (!map) return;
-  const ranked = rankPoints(points, state.userPos, state.filter, state.weather);
   const radarOn = document.body.classList.contains('app-ready');
+
+  let showIds;
+  if (visibleIds) {
+    showIds = new Set(visibleIds);
+  } else if (radarOn && state.userPos) {
+    showIds = new Set(filterNearby(rankPoints(points, state.userPos, state.filter, state.weather)).map((r) => r.p.id));
+  } else {
+    showIds = new Set(points.map((p) => p.id));
+  }
 
   points.forEach((p) => {
     const marker = markers.get(p.id);
     if (!marker) return;
 
-    const row = ranked.find((r) => r.p.id === p.id);
-    const distance = row?.distance ?? (state.userPos ? km(state.userPos, p) : null);
-    const isNear = !radarOn || distance == null || distance <= NEARBY_KM;
     const isBest = p.id === bestPointId;
+    marker.setIcon(markerIcon(p, isBest));
 
-    marker.setIcon(markerIcon(p, isBest, radarOn && !isNear));
-
-    if (!radarOn || isNear) {
+    if (showIds.has(p.id)) {
       if (!map.hasLayer(marker)) marker.addTo(map);
     } else if (map.hasLayer(marker)) {
       map.removeLayer(marker);
@@ -145,5 +158,5 @@ export function clearRoute() {
 }
 
 export function recenterUser() {
-  if (map && state.userPos) map.setView([state.userPos.lat, state.userPos.lng], 13);
+  if (map && state.userPos) map.setView([state.userPos.lat, state.userPos.lng], 13, { animate: true });
 }

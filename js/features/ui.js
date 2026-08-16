@@ -20,37 +20,7 @@ let pointsRef = [];
 let rows = [];
 let index = 0;
 let lastId = null;
-
-const els = () => ({
-  body: document.body,
-  card: $('spotsCard'),
-  dim: $('mapDim'),
-  entry: $('spotsEntry'),
-  entryBtn: $('openPoints'),
-});
-
-function isOpen() {
-  return els().body.classList.contains('spots-open');
-}
-
-function openSpots() {
-  els().body.classList.add('spots-open');
-  els().card?.setAttribute('aria-hidden', 'false');
-  els().dim?.classList.add('show');
-  els().entry?.classList.add('hidden');
-  invalidateMapSize();
-  if (rows.length) showAt(index, { fly: true });
-  else renderList(pointsRef);
-}
-
-function closeSpots() {
-  if (state.navigating) return;
-  els().body.classList.remove('spots-open');
-  els().card?.setAttribute('aria-hidden', 'true');
-  els().dim?.classList.remove('show');
-  els().entry?.classList.remove('hidden');
-  invalidateMapSize();
-}
+let shouldAutoOpen = true;
 
 const LOADING_HINTS = [
   'Ligando radar…',
@@ -60,8 +30,64 @@ const LOADING_HINTS = [
 ];
 let loadingTimer = null;
 
+const els = () => ({
+  body: document.body,
+  card: $('spotsCard'),
+  dim: $('mapDim'),
+  entry: $('spotsEntry'),
+});
+
+function isRadarOn() {
+  return document.body.classList.contains('app-ready');
+}
+
+function isOpen() {
+  return document.body.classList.contains('spots-open');
+}
+
+function rankAll(points) {
+  return rankPoints(points, state.userPos, state.filter, state.weather);
+}
+
+function applyRows(points, { nearby = isRadarOn() } = {}) {
+  const all = rankAll(points);
+  rows = nearby && state.userPos ? filterNearby(all) : all;
+  return rows;
+}
+
+function syncChrome() {
+  if (!isRadarOn()) return;
+  const count = rows.length;
+  $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
+  $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
+  $('weatherNote')?.classList.toggle('is-hidden', !state.weatherEstimated);
+}
+
+function openSpots() {
+  if (!isRadarOn()) {
+    toast('Ligue o radar para ver os pontos.');
+    return;
+  }
+  document.body.classList.add('spots-open');
+  els().card?.setAttribute('aria-hidden', 'false');
+  els().dim?.classList.add('show');
+  els().entry?.classList.add('is-hidden');
+  invalidateMapSize();
+  if (rows.length) showAt(index, { fly: true });
+  else renderList(pointsRef);
+}
+
+function closeSpots() {
+  if (state.navigating) return;
+  document.body.classList.remove('spots-open');
+  els().card?.setAttribute('aria-hidden', 'true');
+  els().dim?.classList.remove('show');
+  if (isRadarOn()) els().entry?.classList.remove('is-hidden');
+  invalidateMapSize();
+}
+
 export function bindUi({ onCapture, onRelocate }) {
-  onRefresh = () => renderList(pointsRef, { nearby: document.body.classList.contains('app-ready') });
+  onRefresh = () => renderList(pointsRef);
 
   $('captureLocation').onclick = onCapture;
 
@@ -87,8 +113,6 @@ export function bindUi({ onCapture, onRelocate }) {
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
-
-  return { showFallback, hideOverlays, ready, renderList: () => renderList(pointsRef) };
 }
 
 export function setPoints(points) {
@@ -96,18 +120,20 @@ export function setPoints(points) {
 }
 
 export function renderPlaces(places, onPick) {
-  $('places').innerHTML = places.map((p) => `<button type="button" data-place="${p.name}">${p.name}</button>`).join('');
+  $('places').innerHTML = places
+    .map((p) => `<button type="button" data-place="${p.name}">${p.name}</button>`)
+    .join('');
   $('places').querySelectorAll('[data-place]').forEach((btn) => {
     btn.onclick = () => onPick(places.find((x) => x.name === btn.dataset.place));
   });
 }
 
 function setEntryVisible(show) {
-  els().entry?.classList.toggle('hidden', !show);
+  els().entry?.classList.toggle('is-hidden', !show);
 }
 
 function setRadarDockVisible(show) {
-  $('radarDock')?.classList.toggle('hidden', !show);
+  $('radarDock')?.classList.toggle('is-hidden', !show);
 }
 
 function stopLoadingHints() {
@@ -119,9 +145,9 @@ function stopLoadingHints() {
 
 export function showSearching() {
   stopLoadingHints();
-  $('radarScan')?.classList.remove('hidden');
+  $('radarScan')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
-  $('fallback')?.classList.add('hidden');
+  $('fallback')?.classList.add('is-hidden');
   $('statusLine').textContent = 'Radar ativo…';
   setEntryVisible(false);
 
@@ -136,33 +162,38 @@ export function showSearching() {
 
 export function showFallback() {
   stopLoadingHints();
-  $('radarScan')?.classList.add('hidden');
-  setRadarDockVisible(true);
-  $('fallback')?.classList.remove('hidden');
+  $('radarScan')?.classList.add('is-hidden');
+  setRadarDockVisible(false);
+  $('fallback')?.classList.remove('is-hidden');
   setEntryVisible(false);
 }
 
 export function hideOverlays() {
   stopLoadingHints();
-  $('radarScan')?.classList.add('hidden');
-  $('fallback')?.classList.add('hidden');
+  $('radarScan')?.classList.add('is-hidden');
+  $('fallback')?.classList.add('is-hidden');
 }
 
 export function ready() {
   hideOverlays();
   document.body.classList.add('app-ready');
   setRadarDockVisible(false);
-
-  const count = rows.length;
-  $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
-  $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
-  $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
+  syncChrome();
   setEntryVisible(true);
-  fitNearby(pointsRef);
-  openSpots();
+
+  fitNearby(pointsRef, rows.map((r) => r.p));
+
+  if (shouldAutoOpen) {
+    shouldAutoOpen = false;
+    requestAnimationFrame(() => openSpots());
+  }
 }
 
 export function openPoint(point) {
+  if (!isRadarOn()) {
+    toast('Ligue o radar para ver os pontos.');
+    return;
+  }
   setSelected(point);
   lastId = point.id;
   if (!rows.length) renderList(pointsRef);
@@ -180,7 +211,7 @@ function paint(row, i) {
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
   $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}`;
-  $('cardVerdict').textContent = v.label;
+  $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
   $('cardVerdict').className = `pill ${v.key}`;
   $('cardWhy').textContent = state.weatherEstimated ? `${v.why} (estimado)` : v.why;
   $('spotsBody').classList.toggle('is-best', i === 0);
@@ -204,7 +235,7 @@ function showAt(i, { fly = true } = {}) {
   if (!rows.length) {
     paintEmpty();
     setBestPointId(null);
-    renderMarkers(pointsRef);
+    renderMarkers(pointsRef, []);
     return;
   }
 
@@ -219,7 +250,7 @@ function showAt(i, { fly = true } = {}) {
   $('pointNext').disabled = index >= rows.length - 1;
 
   setBestPointId(row.p.id);
-  renderMarkers(pointsRef);
+  renderMarkers(pointsRef, rows.map((r) => r.p.id));
   if (fly && isOpen()) flyToPoint(row.p);
 }
 
@@ -228,16 +259,9 @@ function step(delta) {
   showAt(index + delta, { fly: true });
 }
 
-export function renderList(points, { nearby = false } = {}) {
-  const all = rankPoints(points, state.userPos, state.filter, state.weather);
-  rows = nearby && state.userPos ? filterNearby(all) : all;
-  $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
-
-  if (document.body.classList.contains('app-ready')) {
-    const count = rows.length;
-    $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
-    $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
-  }
+export function renderList(points, opts = {}) {
+  applyRows(points, opts);
+  syncChrome();
 
   const preserve = lastId && rows.some((r) => r.p.id === lastId) ? lastId : rows[0]?.p?.id;
   showAt(idxOf(preserve), { fly: isOpen() });
@@ -251,13 +275,13 @@ function goNow(point) {
     $('navMeta').textContent = `${fmtKm(km(state.userPos, point))} · rota no mapa`;
     $('navStrip').classList.add('show');
     setNavigating(true);
-    renderMarkers(pointsRef);
+    renderMarkers(pointsRef, rows.map((r) => r.p.id));
   } else {
-    toast('Ative a localização para ver a rota.');
+    toast('Ligue o radar para ver a rota.');
     return;
   }
   closeSpots();
-  els().entry?.classList.add('hidden');
+  els().entry?.classList.add('is-hidden');
   window.open(mapsUrl(point), '_blank', 'noopener');
 }
 
@@ -266,7 +290,7 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
-  renderMarkers(pointsRef);
+  renderMarkers(pointsRef, rows.map((r) => r.p.id));
   setEntryVisible(true);
 }
 
@@ -278,6 +302,6 @@ export function onUserMoved() {
   }
 }
 
-// compat — app.js antigo
+// compat
 export function onSheetSnap() {}
 export function initSheet() {}

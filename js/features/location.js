@@ -63,5 +63,5 @@ export function retryLocation(onSuccess, onFallback) {
 export function useManualPlace(place, onReady) {
   clearWatch();
   setUser(place, true);
-  onReady(place, `Perto de ${place.name}`);
+  onReady();
 }
