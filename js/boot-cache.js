@@ -3,7 +3,7 @@
   var KEY = 'mf_build';
   var CHECK_MS = 45000;
   var SCROLL_ALLOW =
-    '.leaflet-container,#map,.sheet-panel,.gear-scroll,.my-points-list,.users-list,.recover-box,.spots-filters,.login-screen,.login-panel,.checklist-panel';
+    '.leaflet-container,#map,.sheet-panel,.gear-scroll,.my-points-list,.users-list,.recover-box,.spots-filters,.spots-scroll,.login-screen,.login-panel,.checklist-panel';
 
   function canScroll(el) {
     if (!el || el === document.body || el === document.documentElement) return false;

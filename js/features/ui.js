@@ -1,6 +1,6 @@
-import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds, pointModeLabel } from '../lib/utils.js';
-import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
-import { rankPoints, formatConditions } from '../lib/scoring.js';
+import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
+import { getPointWeather, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
+import { rankPoints } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
 import { POINTS } from '../data/points.js';
 import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint, exportMyPointsFile, importMyPointsFromJson, exportAdminPointsSnippet, listSnapshots, restoreSnapshot, isAdmin, enableAdmin } from '../lib/mypoints.js';
@@ -20,8 +20,6 @@ import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '.
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
 import { STYLE, LEVEL, loadProfile, saveProfile, profileSummary } from '../lib/profile.js';
-import { coastLabel } from '../lib/coast.js';
-import { catalogSpeciesLabel, pointInsights, pointStrategyExtras } from '../lib/iscabox-enrich.js';
 import {
   clearRoute,
   drawRoute,
@@ -891,7 +889,7 @@ export function openPoint(point) {
   const loadWx = getPointWeather(point.id)
     ? Promise.resolve()
     : loadMissingWeather([point], setRadarProgress).then(() => {
-        paint(row, rows.findIndex((r) => r.p.id === point.id));
+        paint(row);
       });
 
   loadWx.then(() => {
@@ -903,8 +901,7 @@ export function openPoint(point) {
 
 function showPointDirect(row) {
   closeChecklist();
-  paint(row, -1);
-  $('cardRank').textContent = 'Ponto no mapa';
+  paint(row);
   $('pointCounter').textContent = '—';
   $('pointPrev').disabled = true;
   $('pointNext').disabled = true;
@@ -918,53 +915,29 @@ function idxOf(id) {
   return i >= 0 ? i : 0;
 }
 
-function paint(row, i) {
-  const { p, distance, v } = row;
-  const wx = getPointWeather(p.id);
-  const est = isPointWeatherEstimated(p.id);
+function paint(row) {
+  const { p, distance } = row;
 
-  $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.type} · ${pointModeLabel(p)} · ${catalogSpeciesLabel(p)}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.area}`;
   const accessEl = $('cardAccess');
   if (accessEl) {
-    accessEl.textContent = p.access
-      ? `📍 ${p.access}${!p.personal && !p.reference ? ' — local catalogado' : ''}`
+    const text = p.access
+      ? `📍 ${p.access}`
       : p.reference
-        ? 'Referência aproximada para pesca de barco'
-        : '';
-    accessEl.classList.toggle('is-hidden', !p.access);
+        ? '📍 Referência aproximada para pesca de barco'
+        : `📍 ${p.area}`;
+    accessEl.textContent = text;
+    accessEl.classList.remove('is-hidden');
   }
-  const insightEl = $('cardInsight');
-  if (insightEl) {
-    const extra = pointInsights(p);
-    if (extra?.lines?.length) {
-      insightEl.textContent = extra.lines.join(' · ');
-      insightEl.classList.remove('is-hidden');
-    } else {
-      insightEl.textContent = '';
-      insightEl.classList.add('is-hidden');
-    }
-  }
-  $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';
-  $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
-  $('cardVerdict').className = `pill ${v.key}`;
-  $('cardWhy').textContent = est ? `${v.why} (estimado)` : v.why;
-  $('spotsBody').classList.toggle('is-best', i === 0);
   $('cardGo').disabled = false;
   $('cardChecklist').disabled = false;
 }
 
 function paintEmpty() {
-  $('cardRank').textContent = '—';
   $('cardName').textContent = 'Nenhum ponto';
   $('cardMeta').textContent = 'Mude o filtro acima';
   $('cardAccess')?.classList.add('is-hidden');
-  $('cardInsight')?.classList.add('is-hidden');
-  $('cardConditions').textContent = '';
-  $('cardVerdict').textContent = '—';
-  $('cardVerdict').className = 'pill lendo';
-  $('cardWhy').textContent = '';
   $('cardGo').disabled = true;
   $('cardChecklist').disabled = true;
   $('pointCounter').textContent = '—';
@@ -985,7 +958,7 @@ function showAt(i, { fly = true } = {}) {
   const row = rows[index];
   lastId = row.p.id;
   setSelected(row.p);
-  paint(row, index);
+  paint(row);
 
   $('pointCounter').textContent = `${index + 1} / ${rows.length}`;
   $('pointPrev').disabled = index <= 0;
@@ -1015,7 +988,7 @@ export function renderList(points, opts = {}) {
     const idx = lastId ? rows.findIndex((r) => r.p.id === lastId) : -1;
     const at = idx >= 0 ? idx : 0;
     index = at;
-    paint(rows[at], at);
+    paint(rows[at]);
     $('pointCounter').textContent = `${at + 1} / ${rows.length}`;
     $('pointPrev').disabled = at <= 0;
     $('pointNext').disabled = at >= rows.length - 1;
@@ -1241,7 +1214,6 @@ function updateStrategy(point) {
   }
 
   const plan = buildLiveStrategy(point, gear, checklistObs);
-  const extras = pointStrategyExtras(point);
   box?.classList.toggle('pending', !plan.ready);
 
   headline.textContent = plan.headline;
@@ -1252,12 +1224,8 @@ function updateStrategy(point) {
   if (plan.setup) rows.push(`<li><b>Montagem:</b> ${plan.setup}</li>`);
   if (plan.technique) rows.push(`<li><b>Técnica:</b> ${plan.technique}</li>`);
   if (plan.position) rows.push(`<li><b>Posição:</b> ${plan.position}</li>`);
-  if (extras.gearNote) rows.push(`<li><b>Equipamento sugerido:</b> ${extras.gearNote}</li>`);
-  for (const step of extras.steps) rows.push(`<li>${step}</li>`);
   steps.innerHTML = rows.join('');
-
-  const warnRows = [...plan.warnings, ...extras.warnings.map((w) => `⚠ ${w}`)];
-  warns.innerHTML = warnRows.map((w) => `<li>${w}</li>`).join('');
+  warns.innerHTML = plan.warnings.map((w) => `<li>${w}</li>`).join('');
 }
 
 function openChecklist() {
