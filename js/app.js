@@ -19,7 +19,7 @@ import {
   showSearching,
 } from './features/ui.js';
 import { state, getPointWeather } from './lib/state.js';
-import { beginTracking, captureLocation, retryLocation, tryAutoLocateIfGranted, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
+import { beginTracking, captureLocation, retryLocation, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
 
 const MIN_RADAR_MS = 1600;
 const MAX_RADAR_MS = 22000;
@@ -91,12 +91,6 @@ async function boot() {
   if (isInAppBrowser()) {
     toast('Abra no Chrome ou Safari para GPS preciso.');
   }
-
-  const autoStarted = await tryAutoLocateIfGranted(
-    () => startRadar(() => finishRadar()),
-    () => endRadar(),
-  );
-  if (!autoStarted) endRadar();
 }
 
 async function finishRadar() {

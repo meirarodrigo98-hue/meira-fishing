@@ -308,7 +308,8 @@ export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilt
     onRelocate();
   };
   $('retryGps').onclick = onRelocate;
-  $('useApprox')?.onclick = onApprox;
+  const approxBtn = $('useApprox');
+  if (approxBtn && onApprox) approxBtn.onclick = onApprox;
   $('markFab').onclick = openMarkPointSheet;
   $('openMyPoints').onclick = openMyPointsPanel;
   $('markHereFromMenu').onclick = openMarkPointSheet;

@@ -11,12 +11,12 @@ import {
   showSearching,
 } from './ui.js';
 
-/** GPS — pede no clique; auto se já permitido; fallback IP se bloquear. */
+/** GPS no clique → fallback IP automático se bloquear ou falhar. */
 let watchId = null;
 let locating = false;
 
 const GEO_ATTEMPTS = [
-  { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+  { enableHighAccuracy: true, timeout: 14000, maximumAge: 0 },
   { enableHighAccuracy: false, timeout: 18000, maximumAge: 120000 },
   { enableHighAccuracy: false, timeout: 22000, maximumAge: 600000 },
 ];
@@ -32,6 +32,10 @@ function clearWatch() {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
+}
+
+function releaseLocating() {
+  locating = false;
 }
 
 export function beginTracking() {
@@ -87,31 +91,30 @@ function succeedGps(pos, onSuccess) {
   showSearching();
   const location = { lat: pos.coords.latitude, lng: pos.coords.longitude, gps: true };
   setUser(location, { center: true });
-  locating = false;
+  releaseLocating();
   onSuccess(location);
 }
 
 async function tryApprox(onSuccess, onFallback, reason) {
+  showSearching();
+  hideAwaitingPermission();
+
   const approx = await fetchApproxLocation();
   if (approx) {
-    hideAwaitingPermission();
     hideRecover();
-    showSearching();
     const location = { lat: approx.lat, lng: approx.lng, gps: false, approx: true };
     setUser(location, { center: true });
-    locating = false;
+    releaseLocating();
     const city = approx.city ? ` (${approx.city})` : '';
     toast(`Localização aproximada${city}. Permita GPS para precisão no mapa.`);
     onSuccess(location);
-    return true;
+    return;
   }
 
-  locating = false;
-  hideAwaitingPermission();
+  releaseLocating();
   if (reason === 'denied') showPermissionDenied();
-  else showRecover(reason === 'denied' ? 'denied' : reason);
+  else showRecover(reason);
   onFallback(reason);
-  return false;
 }
 
 function attemptGeo(onSuccess, onFallback, index = 0, lastErr = 'timeout') {
@@ -139,33 +142,8 @@ function attemptGeo(onSuccess, onFallback, index = 0, lastErr = 'timeout') {
     });
 }
 
-/** Dispara getCurrentPosition na mesma tick do clique — antes de qualquer await. */
-function startGeoImmediate(onSuccess, onFallback) {
-  if (!navigator.geolocation) return false;
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      if (!validCoords(pos)) {
-        attemptGeo(onSuccess, onFallback, 1, 'unavailable');
-        return;
-      }
-      succeedGps(pos, onSuccess);
-    },
-    (err) => {
-      const kind = errorKind(err);
-      if (kind === 'denied') {
-        tryApprox(onSuccess, onFallback, 'denied');
-        return;
-      }
-      attemptGeo(onSuccess, onFallback, 0, kind);
-    },
-    GEO_ATTEMPTS[0],
-  );
-  return true;
-}
-
 export function captureLocation(onSuccess, onFallback) {
-  if (locating) return;
+  releaseLocating();
   locating = true;
 
   if (!window.isSecureContext) {
@@ -181,19 +159,17 @@ export function captureLocation(onSuccess, onFallback) {
 
   hideRecover();
   showAwaitingPermission();
-  startGeoImmediate(onSuccess, onFallback);
+  attemptGeo(onSuccess, onFallback);
 }
 
 export function retryLocation(onSuccess, onFallback) {
   captureLocation(onSuccess, onFallback);
 }
 
-/** Fallback manual — botão na tela de recuperação. */
 export function useApproxLocation(onSuccess, onFallback) {
-  if (locating) return;
+  releaseLocating();
   locating = true;
   hideRecover();
-  showSearching();
   tryApprox(onSuccess, onFallback, 'unavailable');
 }
 
@@ -201,26 +177,9 @@ export function useManualPlace(place, onReady) {
   clearWatch();
   hideRecover();
   hideAwaitingPermission();
+  releaseLocating();
   setUser(place, { center: true });
   onReady();
-}
-
-/** Se o cliente já permitiu antes, liga o radar sozinho ao abrir o app. */
-export async function tryAutoLocateIfGranted(onSuccess, onFallback) {
-  if (locating || !window.isSecureContext || !navigator.geolocation) return false;
-
-  let state = 'prompt';
-  try {
-    const perm = await navigator.permissions?.query({ name: 'geolocation' });
-    if (perm?.state) state = perm.state;
-  } catch {
-    return false;
-  }
-
-  if (state !== 'granted') return false;
-
-  captureLocation(onSuccess, onFallback);
-  return true;
 }
 
 export function isInAppBrowser() {
