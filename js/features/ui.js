@@ -3,7 +3,8 @@ import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigati
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
 import { POINTS } from '../data/points.js';
-import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint } from '../lib/mypoints.js';
+import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint, exportMyPointsFile, importMyPointsFromJson, exportAdminPointsSnippet, listSnapshots, restoreSnapshot, isAdmin, enableAdmin } from '../lib/mypoints.js';
+import { logout, getSession, sessionLabel } from '../lib/auth.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
@@ -205,7 +206,7 @@ async function saveMarkedPoint() {
   $('filters')?.querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c.dataset.filter === 'meus'));
   renderList(pointsRef, { nearby: isRadarOn() });
   openPoint(result.point);
-  toast('Ponto salvo na posição exata.');
+  toast('Ponto salvo com backup automático.');
 }
 
 function closeMarkPointSheet() {
@@ -219,6 +220,29 @@ function renderMyPointsList() {
   const root = $('myPointsList');
   if (!root) return;
   const list = loadMyPoints();
+  const snaps = $('myPointsSnaps');
+  if (snaps) {
+    listSnapshots().then((items) => {
+      if (!items.length) {
+        snaps.innerHTML = '<p class="checklist-hint">Backup automático ativo a cada salvamento.</p>';
+        return;
+      }
+      snaps.innerHTML = `<p class="checklist-hint">Backups: ${items.slice(0, 3).map((s) => `<button type="button" class="snap-restore" data-snap-at="${s.at}">${s.count} pts · ${s.at.slice(0, 16).replace('T', ' ')}</button>`).join(' ')}</p>`;
+      snaps.querySelectorAll('[data-snap-at]').forEach((btn) => {
+        btn.onclick = async () => {
+          if (!confirm('Restaurar este backup? Seus pontos atuais serão mesclados (nada se perde).')) return;
+          const merged = await restoreSnapshot(btn.dataset.snapAt);
+          if (!merged) {
+            toast('Backup indisponível.');
+            return;
+          }
+          reloadAllPoints();
+          renderMyPointsList();
+          toast(`${merged.length} pontos após restaurar backup.`);
+        };
+      });
+    });
+  }
   if (!list.length) {
     root.innerHTML = '<p class="checklist-hint">Nenhum ponto ainda — marque onde você pesca.</p>';
     return;
@@ -244,13 +268,76 @@ function renderMyPointsList() {
   });
   root.querySelectorAll('[data-del-id]').forEach((btn) => {
     btn.onclick = () => {
-      removeMyPoint(btn.dataset.delId);
-      removeMapMarker(btn.dataset.delId);
+      const id = btn.dataset.delId;
+      const first = removeMyPoint(id);
+      if (first.needsConfirm) {
+        if (!confirm('Remover este ponto? Ele ainda existe nos backups automáticos.')) return;
+        const second = removeMyPoint(id, { confirmed: true });
+        if (!second.ok) {
+          toast(second.message);
+          return;
+        }
+      } else if (!first.ok) {
+        toast(first.message);
+        return;
+      }
+      removeMapMarker(id);
       reloadAllPoints();
       renderMyPointsList();
-      toast('Ponto removido.');
+      toast('Ponto removido (backup guardado).');
     };
   });
+}
+
+function downloadMyPointsBackup() {
+  const n = exportMyPointsFile();
+  toast(n ? `Backup baixado (${n} pontos).` : 'Nada para exportar.');
+}
+
+function importMyPointsBackup() {
+  const input = $('myPointsImport');
+  if (!input) return;
+  input.value = '';
+  input.click();
+}
+
+function handleMyPointsImport(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const replace = confirm('Mesclar com os pontos atuais?\n\nOK = mesclar (recomendado)\nCancelar = substituir tudo pelo arquivo');
+    const result = importMyPointsFromJson(String(reader.result || ''), { replace: !replace });
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
+    reloadAllPoints();
+    renderMyPointsList();
+    toast(`${result.count} pontos após importar.`);
+  };
+  reader.readAsText(file);
+}
+
+function copyAdminPointsSnippet() {
+  if (!isAdmin()) {
+    const ok = confirm('Ativar modo admin neste aparelho? Seus pontos poderão ir para o repo permanente.');
+    if (!ok) return;
+    enableAdmin();
+  }
+  const snippet = exportAdminPointsSnippet();
+  navigator.clipboard
+    .writeText(snippet)
+    .then(() => toast('Código copiado — cole em js/data/admin-points.js e faça push.'))
+    .catch(() => {
+      const blob = new Blob([snippet], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'admin-points.js';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Arquivo admin-points.js baixado.');
+    });
 }
 
 function openMyPointsPanel() {
@@ -274,12 +361,34 @@ function setTopbarVisible(show) {
   $('topbar')?.classList.toggle('is-hidden', !show);
 }
 
+function syncLocHud() {
+  if (!isRadarOn()) return;
+  const label = $('hudLabel');
+  const banner = $('locBanner');
+  document.body.classList.toggle('loc-approx', !!state.userPos?.approx);
+
+  if (state.userPos?.approx) {
+    if (label) label.textContent = 'Local impreciso';
+    if (banner) {
+      banner.classList.remove('is-hidden');
+      banner.textContent = 'Posição veio da internet (pode errar km). Toque ⌖ para GPS preciso.';
+    }
+  } else if (state.userPos?.gps && state.userPos.accuracy != null) {
+    if (label) label.textContent = `GPS ±${Math.round(state.userPos.accuracy)} m`;
+    banner?.classList.add('is-hidden');
+  } else if (state.userPos) {
+    if (label) label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
+    banner?.classList.add('is-hidden');
+  }
+}
+
 function syncChrome() {
   if (!isRadarOn()) return;
   const count = rows.length;
   $('hudCount').textContent = count ? `${count} pontos próximos` : 'Buscando…';
   $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
   $('weatherNote')?.classList.toggle('is-hidden', !state.weatherEstimated);
+  syncLocHud();
 }
 
 function openSpots() {
@@ -306,7 +415,7 @@ function closeSpots() {
   invalidateMapSize();
 }
 
-export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilter }) {
+export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilterChange: onFilter }) {
   onRefresh = () => renderList(pointsRef, { soft: true });
   onFilterChange = onFilter;
 
@@ -366,9 +475,8 @@ export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilt
   };
   $('relocate').onclick = () => {
     setFollowUser(true);
-    if (state.userPos && isRadarOn()) {
-      recenterUser();
-      toast('Centralizado em você');
+    if (isRadarOn() && onRefreshGps) {
+      onRefreshGps();
       return;
     }
     onRelocate();
@@ -394,7 +502,17 @@ export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilt
   $('myPointsClose').onclick = () => {
     hideSheet('myPointsPanel');
     if (sheetOrigin === 'menu') showSheet('optionsMenu');
+    sheetOrigin = null;
   };
+  $('myPointsExport')?.addEventListener('click', downloadMyPointsBackup);
+  $('myPointsImportBtn')?.addEventListener('click', importMyPointsBackup);
+  $('myPointsImport')?.addEventListener('change', (e) => handleMyPointsImport(e.target.files?.[0]));
+  $('myPointsAdminExport')?.addEventListener('click', copyAdminPointsSnippet);
+  $('logoutBtn')?.addEventListener('click', () => {
+    if (!confirm('Sair da conta neste aparelho?')) return;
+    logout();
+    location.reload();
+  });
   $('markFromList').onclick = openMarkPointSheet;
   $('stopNav').onclick = stopNav;
 }
@@ -488,11 +606,11 @@ export function showRecover(reason = 'unknown') {
   $('recoverGps')?.classList.remove('is-hidden');
 
   const hints = {
-    timeout: 'GPS demorou — use localização automática abaixo ou escolha sua região.',
-    unavailable: 'Sem sinal GPS — use localização automática ou escolha sua região.',
-    denied: 'GPS bloqueado — use localização automática ou libere nas configurações.',
+    timeout: 'GPS demorou — tente de novo ou use localização pela rede (pode errar km).',
+    unavailable: 'Sem sinal GPS — saia de prédios, tente de novo ou use localização pela rede.',
+    denied: 'GPS bloqueado — libere nas configurações do celular ou escolha sua região.',
     insecure: 'Abra pelo link https:// do GitHub Pages.',
-    unsupported: 'Navegador sem GPS — use localização automática ou escolha região.',
+    unsupported: 'Navegador sem GPS — use localização pela rede ou escolha região.',
   };
   const el = $('recoverHint');
   if (el) el.textContent = hints[reason] || 'Escolha sua região para ligar o radar.';
@@ -715,9 +833,11 @@ function openOptionsMenu() {
 function syncMenuMeta() {
   const profile = loadProfile();
   const gear = loadGear();
+  const session = getSession();
   $('menuProfileMeta').textContent = profileSummary(profile);
   $('menuGearMeta').textContent = isGearReady(gear) ? gearSummary(gear) : 'Cadastre vara, linha e iscas';
   $('menuMyPointsMeta').textContent = myPointsSummary();
+  $('menuSessionMeta').textContent = session ? sessionLabel(session) : '—';
 }
 
 function showProfileEditor() {
@@ -932,6 +1052,7 @@ let moveTimer = null;
 export function onUserMoved() {
   clearTimeout(moveTimer);
   moveTimer = setTimeout(() => {
+    syncLocHud();
     if (onRefresh) onRefresh();
     if (state.navigating && state.selected && state.userPos) {
       updateRoute(state.userPos, state.selected);

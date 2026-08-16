@@ -12,11 +12,46 @@
 <script src="js/boot-cache.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
+<body class="login-pending">
+
+<section class="login-screen" id="loginScreen" aria-label="Entrar">
+  <div class="login-bg">
+    <div class="login-wave login-wave--1"></div>
+    <div class="login-wave login-wave--2"></div>
+    <div class="login-wave login-wave--3"></div>
+    <div class="login-glow"></div>
+  </div>
+  <div class="login-card">
+    <img class="login-logo" src="assets/logo.png?v=2" width="280" height="280" alt="Meira Fishing">
+    <div class="login-brand-lines" aria-hidden="true"><span></span><span>FISHING RADAR</span><span></span></div>
+    <p class="login-sub">Pontos · clima · estratégia no Rio</p>
+    <form class="login-form" id="loginForm">
+      <label class="login-field">
+        <span class="login-label">Usuário</span>
+        <input class="login-input" id="loginUser" type="text" name="username" autocomplete="username" placeholder="Seu usuário" required>
+      </label>
+      <label class="login-field login-field--pass">
+        <span class="login-label">Senha</span>
+        <input class="login-input" id="loginPass" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+        <button class="login-eye" id="loginTogglePass" type="button" aria-label="Mostrar senha">👁</button>
+      </label>
+      <label class="login-remember">
+        <input type="checkbox" id="loginRemember" checked>
+        <span>Manter conectado</span>
+      </label>
+      <p class="login-error is-hidden" id="loginError" role="alert"></p>
+      <button class="login-submit" id="loginSubmit" type="submit">
+        <span class="login-submit-text">Entrar</span>
+        <span class="login-spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+    <p class="login-foot">Acesso exclusivo · dados salvos no seu aparelho</p>
+  </div>
+</section>
 
 <div id="map"></div>
 <div class="map-dim" id="mapDim" aria-hidden="true"></div>
@@ -149,6 +184,10 @@
       <span class="menu-item-label">Material de pesca</span>
       <span class="menu-item-meta" id="menuGearMeta">—</span>
     </button>
+    <button class="menu-item menu-item--danger" id="logoutBtn" type="button">
+      <span class="menu-item-label">Sair da conta</span>
+      <span class="menu-item-meta" id="menuSessionMeta">—</span>
+    </button>
   </div>
 </div>
 
@@ -187,8 +226,15 @@
     </div>
     <button class="checklist-close" id="myPointsClose" type="button" aria-label="Fechar">✕</button>
   </div>
-  <p class="checklist-hint">Toque para abrir no mapa · ✕ remove</p>
+  <p class="checklist-hint">Salvos no aparelho + backup automático · toque para abrir · ✕ remove</p>
+  <div class="my-points-backup">
+    <button class="gear-save secondary" id="myPointsExport" type="button">Baixar backup</button>
+    <button class="gear-save secondary" id="myPointsImportBtn" type="button">Restaurar arquivo</button>
+    <input type="file" id="myPointsImport" accept="application/json,.json" hidden>
+  </div>
+  <div id="myPointsSnaps"></div>
   <div class="my-points-list" id="myPointsList"></div>
+  <button class="gear-save secondary" id="myPointsAdminExport" type="button">Copiar para o repo (admin)</button>
   <button class="gear-save" id="markFromList" type="button">＋ Marcar onde estou agora</button>
 </div>
 
@@ -264,7 +310,7 @@
       <h2>GPS indisponível</h2>
       <p id="recoverHint">Escolha sua região para ligar o radar.</p>
     </div>
-    <button class="ghost primary" id="useApprox" type="button">Usar localização automática (rede)</button>
+    <button class="ghost primary" id="useApprox" type="button">Usar localização pela rede (imprecisa)</button>
     <p class="recover-or">ou escolha sua região</p>
     <div class="places" id="places"></div>
     <button class="ghost" id="retryGps" type="button">Tentar localização de novo</button>
@@ -272,6 +318,7 @@
 </section>
 
 <p class="weather-hint is-hidden" id="weatherNote">Condições estimadas — sem dados ao vivo.</p>
+<p class="loc-banner is-hidden" id="locBanner"></p>
 
 <div class="toast" id="toast"></div>
 

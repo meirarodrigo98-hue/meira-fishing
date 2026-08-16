@@ -1,6 +1,6 @@
 import { toast } from './lib/utils.js';
 import { POINTS } from './data/points.js';
-import { mergePoints } from './lib/mypoints.js';
+import { mergePoints, initMyPoints } from './lib/mypoints.js';
 import { PLACES } from './data/places.js';
 import { loadWeatherBatch, loadMissingWeather } from './lib/weather.js';
 import { filterNearby } from './lib/utils.js';
@@ -19,7 +19,8 @@ import {
   showSearching,
 } from './features/ui.js';
 import { state, getPointWeather } from './lib/state.js';
-import { beginTracking, captureLocation, retryLocation, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
+import { beginTracking, captureLocation, retryLocation, refreshGpsPosition, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
+import { initLogin } from './features/login.js';
 
 const MIN_RADAR_MS = 1600;
 const MAX_RADAR_MS = 22000;
@@ -45,7 +46,12 @@ function nearbyPoints() {
   return filterNearby(ranked).map((r) => r.p);
 }
 
+async function startApp() {
+  await boot();
+}
+
 async function boot() {
+  await initMyPoints();
   const points = allPoints();
   setPoints(points);
   createMap(points, openPoint);
@@ -69,6 +75,16 @@ async function boot() {
       startRadar(() =>
         useApproxLocation(
           () => finishRadar(),
+          () => endRadar(),
+        ),
+      ),
+    onRefreshGps: () =>
+      startRadar(() =>
+        refreshGpsPosition(
+          () => {
+            renderList(allPoints(), { nearby: true });
+            endRadar();
+          },
           () => endRadar(),
         ),
       ),
@@ -139,9 +155,13 @@ async function handleReady() {
 
   if (estimated) toast('Alguns pontos usaram clima estimado.');
 
+  if (state.userPos?.approx) {
+    toast('Localização imprecisa — toque ⌖ no topo para corrigir com GPS.');
+  }
+
   renderList(allPoints(), { nearby: true });
   ready();
   beginTracking();
 }
 
-boot();
+initLogin(startApp);

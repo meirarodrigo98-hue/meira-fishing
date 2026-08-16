@@ -26,9 +26,10 @@ jobs:
       - name: Prepare site
         run: |
           V="${GITHUB_SHA:0:12}"
-          mkdir -p _site/css _site/js/data _site/js/lib _site/js/features
+          mkdir -p _site/css _site/js/data _site/js/lib _site/js/features _site/assets
           cp index.html _site/index.html
           cp css/app.css _site/css/app.css
+          cp -r assets/* _site/assets/ 2>/dev/null || true
           cp js/boot-cache.js _site/js/boot-cache.js
           cp js/app.js _site/js/app.js
           cp js/data/*.js _site/js/data/
