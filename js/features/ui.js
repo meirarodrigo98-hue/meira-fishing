@@ -34,14 +34,15 @@ import {
   getLocationPlatform,
   openAndroidLocationSettings,
   openLocationSettings,
-  tryOpenIosSettings,
 } from '../lib/location-settings.js';
 
 let onRelocateRef = null;
 
 function syncLocSettingsButtons() {
   const guide = getLocationSettingsGuide();
-  const label = guide.openLabel || 'Liberar localização';
+  const label = getLocationPlatform().isIOS
+    ? 'Como liberar localização'
+    : guide.openLabel || 'Como liberar localização';
   ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud', 'locSettingsOpen'].forEach((id) => {
     const el = $(id);
     if (el) el.textContent = label;
@@ -535,9 +536,8 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
     $(id)?.addEventListener('click', handleOpenLocationSettings);
   });
   $('locSettingsOpen')?.addEventListener('click', () => {
-    const { isAndroid } = getLocationPlatform();
-    if (isAndroid) openAndroidLocationSettings();
-    else tryOpenIosSettings();
+    if (getLocationPlatform().isAndroid) openAndroidLocationSettings();
+    else toast('Abra Ajustes manualmente — veja os passos acima.');
   });
   $('locSettingsClose')?.addEventListener('click', () => hideSheet('locSettingsPanel'));
   $('locSettingsDone')?.addEventListener('click', () => {
@@ -656,7 +656,7 @@ export function showPermissionDenied() {
   const hint = $('recoverDeniedHint');
   if (hint) {
     hint.textContent = getLocationPlatform().isIOS
-      ? 'Toque no botão abaixo para ver como liberar no iPhone.'
+      ? 'No iPhone, toque no botão abaixo para ver o passo a passo nos Ajustes.'
       : 'Toque no botão abaixo para abrir as configurações do navegador.';
   }
   setEntryVisible(false);
