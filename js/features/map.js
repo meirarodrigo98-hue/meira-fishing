@@ -76,7 +76,6 @@ export function renderMarkers(points) {
   if (!map) return;
   const ranked = rankPoints(points, state.userPos, state.filter, state.weather);
   const visible = new Set(ranked.map((x) => x.p.id));
-  const showAll = state.pointsRevealed || state.navigating;
 
   points.forEach((p) => {
     const marker = markers.get(p.id);
@@ -85,17 +84,16 @@ export function renderMarkers(points) {
     const isBest = p.id === bestPointId;
     marker.setIcon(markerIcon(p, isBest));
 
-    const shouldShow =
-      showAll && visible.has(p.id)
-        ? true
-        : state.navigating && state.selected?.id === p.id;
-
-    if (shouldShow) {
+    if (visible.has(p.id)) {
       if (!map.hasLayer(marker)) marker.addTo(map);
     } else if (map.hasLayer(marker)) {
       map.removeLayer(marker);
     }
   });
+}
+
+export function onMapBackgroundClick(fn) {
+  map?.on('click', fn);
 }
 
 export function drawRoute(from, to) {

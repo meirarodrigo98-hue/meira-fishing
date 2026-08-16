@@ -1,5 +1,5 @@
 import { $, fmtKm, km, mapsUrl, toast } from '../lib/utils.js';
-import { state, setFilter, setNavigating, setPointsRevealed, setSelected } from '../lib/state.js';
+import { state, setFilter, setNavigating, setSelected } from '../lib/state.js';
 import { rankPoints, verdict } from '../lib/scoring.js';
 import {
   clearRoute,
@@ -10,6 +10,7 @@ import {
   renderMarkers,
   setBestPointId,
   updateRoute,
+  onMapBackgroundClick,
 } from './map.js';
 
 /** Card de pontos estilo mapa nativo — abrir, navegar, ir. */
@@ -32,7 +33,6 @@ function isOpen() {
 }
 
 function openSpots() {
-  setPointsRevealed(true);
   els().body.classList.add('spots-open');
   els().card?.setAttribute('aria-hidden', 'false');
   els().dim?.classList.add('show');
@@ -44,12 +44,10 @@ function openSpots() {
 
 function closeSpots() {
   if (state.navigating) return;
-  setPointsRevealed(false);
   els().body.classList.remove('spots-open');
   els().card?.setAttribute('aria-hidden', 'true');
   els().dim?.classList.remove('show');
   els().entry?.classList.remove('hidden');
-  renderMarkers(pointsRef);
   invalidateMapSize();
 }
 
@@ -66,6 +64,9 @@ export function bindUi({ onRelocate }) {
 
   $('openPoints').onclick = openSpots;
   $('mapDim').onclick = closeSpots;
+  onMapBackgroundClick(() => {
+    if (isOpen()) closeSpots();
+  });
   $('pointPrev').onclick = () => step(-1);
   $('pointNext').onclick = () => step(1);
   $('cardGo').onclick = () => {
@@ -224,7 +225,6 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
-  setPointsRevealed(false);
   renderMarkers(pointsRef);
   setEntryVisible(true);
 }
