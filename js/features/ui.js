@@ -240,7 +240,7 @@ function closeSpots() {
   invalidateMapSize();
 }
 
-export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
+export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilter }) {
   onRefresh = () => renderList(pointsRef, { soft: true });
   onFilterChange = onFilter;
 
@@ -308,6 +308,7 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
     onRelocate();
   };
   $('retryGps').onclick = onRelocate;
+  $('useApprox')?.onclick = onApprox;
   $('markFab').onclick = openMarkPointSheet;
   $('openMyPoints').onclick = openMyPointsPanel;
   $('markHereFromMenu').onclick = openMarkPointSheet;
@@ -413,10 +414,11 @@ export function showRecover(reason = 'unknown') {
   $('recoverGps')?.classList.remove('is-hidden');
 
   const hints = {
-    timeout: 'Demorou demais — escolha sua região ou tente de novo.',
-    unavailable: 'Não achamos sinal de GPS — escolha sua região.',
-    insecure: 'Localização só funciona em HTTPS.',
-    unsupported: 'Seu navegador não suporta GPS.',
+    timeout: 'GPS demorou — use localização automática abaixo ou escolha sua região.',
+    unavailable: 'Sem sinal GPS — use localização automática ou escolha sua região.',
+    denied: 'GPS bloqueado — use localização automática ou libere nas configurações.',
+    insecure: 'Abra pelo link https:// do GitHub Pages.',
+    unsupported: 'Navegador sem GPS — use localização automática ou escolha região.',
   };
   const el = $('recoverHint');
   if (el) el.textContent = hints[reason] || 'Escolha sua região para ligar o radar.';

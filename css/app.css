@@ -566,6 +566,10 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
   border:1px solid var(--line);background:rgba(255,255,255,.05)
 }
 .ghost{width:100%;margin-top:4px}
+.ghost.primary{
+  margin-top:0;margin-bottom:4px;
+  border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.12);color:#9ef0d0
+}
 
 .toast{
   position:fixed;z-index:2000;left:50%;top:max(70px,calc(var(--safe-t) + 56px));

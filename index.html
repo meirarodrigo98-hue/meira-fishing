@@ -39,16 +39,16 @@
     <p class="radar-tag">Meira Fishing</p>
     <button class="radar-btn" id="captureLocation" type="button">
       <span class="radar-icon" aria-hidden="true"></span>
-      Ligar radar de pontos
+      Usar minha localização
     </button>
-    <p class="radar-note">Permita a localização quando o navegador pedir</p>
+    <p class="radar-note">Toque em <strong>Permitir</strong> quando o celular pedir</p>
   </div>
 </div>
 
 <div class="perm-wait is-hidden" id="permWait" aria-live="polite">
   <div class="perm-wait-box">
     <span class="perm-dot" aria-hidden="true"></span>
-    <p id="permWaitText">Toque em <strong>Permitir</strong> no popup do navegador</p>
+    <p id="permWaitText">Toque em <strong>Permitir</strong> no popup — ou <strong>Permitir ao usar o site</strong> no iPhone</p>
   </div>
 </div>
 
@@ -254,13 +254,14 @@
     <div id="recoverDenied" class="recover-panel is-hidden">
       <span class="recover-icon">⌖</span>
       <h2>Localização bloqueada</h2>
-      <p>Toque no ícone de cadeado ou <strong>ⓘ</strong> na barra de endereço e permita a localização deste site.</p>
+      <p id="recoverDeniedHint">No Chrome: toque no cadeado → Localização → Permitir. No iPhone: Ajustes → Safari → Localização.</p>
     </div>
     <div id="recoverGps" class="recover-panel is-hidden">
       <span class="recover-icon">◎</span>
       <h2>GPS indisponível</h2>
       <p id="recoverHint">Escolha sua região para ligar o radar.</p>
     </div>
+    <button class="ghost primary" id="useApprox" type="button">Usar localização automática (rede)</button>
     <p class="recover-or">ou escolha sua região</p>
     <div class="places" id="places"></div>
     <button class="ghost" id="retryGps" type="button">Tentar localização de novo</button>
