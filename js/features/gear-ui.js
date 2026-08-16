@@ -104,9 +104,12 @@ function renderSection(group) {
 function updateProgress() {
   const essentials = [draft.rod, draft.line, draft.baits?.length].filter(Boolean).length;
   const pct = Math.round((essentials / 3) * 100);
-  $('gearProgressFill')?.style.setProperty('width', `${pct}%`);
-  $('gearProgressLabel')?.textContent = `${essentials}/3 essencial · ${draft.baits?.length || 0} iscas`;
-  $('gearPanel')?.classList.toggle('is-complete', isGearReady(draft));
+  const fill = $('gearProgressFill');
+  const label = $('gearProgressLabel');
+  const panel = $('gearPanel');
+  if (fill) fill.style.width = `${pct}%`;
+  if (label) label.textContent = `${essentials}/3 essencial · ${draft.baits?.length || 0} iscas`;
+  if (panel) panel.classList.toggle('is-complete', isGearReady(draft));
 }
 
 export function saveGearDraft() {
