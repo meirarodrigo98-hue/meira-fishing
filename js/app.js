@@ -1,3 +1,4 @@
+import { toast } from './lib/utils.js';
 import { POINTS } from './data/points.js';
 import { PLACES } from './data/places.js';
 import { loadWeather } from './lib/weather.js';

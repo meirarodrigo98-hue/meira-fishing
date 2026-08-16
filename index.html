@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
-<body class="map-full">
+<body>
 <div id="map"></div>
 
 <div class="topbar">
@@ -23,55 +23,47 @@
   <button class="icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
 </div>
 
-<section class="sheet collapsed" id="sheet" data-snap="hidden">
-  <div class="sheet-drag"><div class="handle"></div></div>
-
-  <div class="sheet-body">
-    <div class="sheet-list" id="sheetList">
-      <div class="sheet-head">
-        <h1>Perto de você</h1>
-        <p id="listSub">Carregando pontos…</p>
-        <p id="weatherNote" class="weather-note hidden">Condições estimadas — sem dados ao vivo.</p>
-      </div>
-      <div class="filters" id="filters">
-        <button class="chip on" data-filter="todos">Todos</button>
-        <button class="chip" data-filter="terra">Terra</button>
-        <button class="chip" data-filter="barco">Barco</button>
-        <button class="chip" data-filter="lagoa">Lagoa</button>
-      </div>
-      <div class="points-nav" id="pointsNav">
-        <button class="point-step" id="pointPrev" type="button" aria-label="Ponto anterior">↑</button>
-        <span class="point-counter" id="pointCounter">—</span>
-        <button class="point-step" id="pointNext" type="button" aria-label="Próximo ponto">↓</button>
-      </div>
-      <div class="point-stage" id="list"></div>
+<section class="panel" id="sheet" data-snap="hidden">
+  <div class="panel-head">
+    <div>
+      <p class="panel-title" id="listSub">Pontos perto de você</p>
+      <p id="weatherNote" class="weather-note hidden">Condições estimadas</p>
     </div>
-
-    <div class="sheet-detail" id="sheetDetail">
-      <button class="detail-back" id="closeDetail" type="button">← Voltar</button>
-      <h2 class="detail-name" id="dName">Ponto</h2>
-      <p class="detail-line" id="dLine">—</p>
-      <p class="detail-why" id="dWhy"></p>
-    </div>
+    <button class="panel-close" id="closePanel" type="button" aria-label="Fechar">✕</button>
   </div>
 
-  <div class="sheet-footer" id="sheetFooter">
-    <button class="go" id="goNow" type="button">Ir agora</button>
+  <div class="filters" id="filters">
+    <button class="chip on" data-filter="todos">Todos</button>
+    <button class="chip" data-filter="terra">Terra</button>
+    <button class="chip" data-filter="barco">Barco</button>
+    <button class="chip" data-filter="lagoa">Lagoa</button>
+  </div>
+
+  <div class="panel-card is-best" id="panelCard">
+    <div class="card-top">
+      <div>
+        <span class="card-rank" id="cardRank">Melhor agora</span>
+        <b class="card-name" id="cardName">—</b>
+        <span class="card-meta" id="cardMeta">—</span>
+      </div>
+      <span class="verdict ir" id="cardVerdict">—</span>
+    </div>
+    <p class="card-why" id="cardWhy"></p>
+    <button class="card-go" id="cardGo" type="button">Ir agora</button>
+  </div>
+
+  <div class="panel-nav" id="pointsNav">
+    <button class="nav-btn" id="pointPrev" type="button">← Anterior</button>
+    <span class="nav-count" id="pointCounter">—</span>
+    <button class="nav-btn" id="pointNext" type="button">Próximo →</button>
   </div>
 </section>
 
-<button class="fab-points hidden" id="openPoints" type="button" aria-label="Pontos próximos">
-  <span class="fab-icon fab-icon-open" aria-hidden="true">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/>
-      <circle cx="12" cy="11" r="2.5"/>
-    </svg>
-  </span>
-  <span class="fab-icon fab-icon-close" aria-hidden="true">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <path d="M6 6l12 12M18 6L6 18"/>
-    </svg>
-  </span>
+<button class="fab hidden" id="openPoints" type="button" aria-label="Ver pontos">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/>
+    <circle cx="12" cy="11" r="2.5"/>
+  </svg>
 </button>
 
 <div class="nav-strip" id="navStrip">
