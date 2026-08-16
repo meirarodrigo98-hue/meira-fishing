@@ -39,15 +39,29 @@ export function filterNearby(rows, maxKm = NEARBY_KM, limit = NEARBY_LIMIT) {
 
 export function matchesFilter(point, filter) {
   if (filter === 'meus') return point.personal === true;
-  if (filter === 'terra') return point.mode === 'land' && point.type !== 'Lagoa';
+  if (filter === 'costa' || filter === 'terra') return point.mode === 'land' && point.type !== 'Lagoa';
   if (filter === 'barco') return point.mode === 'boat';
   if (filter === 'lagoa') return point.type === 'Lagoa';
   return true;
 }
 
-/** IDs de todos os pontos visíveis no mapa (filtro ativo, sem limite de distância). */
+/** Pontos de referência (barco/offshore) só aparecem no filtro Barco. */
+export function isReferencePoint(point) {
+  return !!point.reference;
+}
+
 export function mapPointIds(points, filter) {
-  return points.filter((p) => matchesFilter(p, filter)).map((p) => p.id);
+  return points
+    .filter((p) => matchesFilter(p, filter))
+    .filter((p) => filter === 'barco' || !isReferencePoint(p))
+    .map((p) => p.id);
+}
+
+export function pointModeLabel(point) {
+  if (point.personal) return 'Seu ponto';
+  if (point.type === 'Lagoa') return 'Lagoa';
+  if (point.mode === 'boat') return point.reference ? 'Referência barco' : 'Barco';
+  return 'Costa';
 }
 
 export function travelModeFor(point) {

@@ -1,4 +1,4 @@
-import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
+import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds, pointModeLabel } from '../lib/utils.js';
 import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
@@ -141,7 +141,11 @@ function isOpen() {
 }
 
 function renderMapMarkers() {
-  renderMarkers(pointsRef, mapPointIds(pointsRef, state.filter));
+  const ids =
+    isRadarOn() && state.userPos && rows.length
+      ? rows.map((r) => r.p.id)
+      : mapPointIds(pointsRef, state.filter);
+  renderMarkers(pointsRef, ids);
 }
 
 function reloadAllPoints() {
@@ -920,10 +924,14 @@ function paint(row, i) {
 
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}${p.personal ? ' · seu ponto' : ''}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.type} · ${pointModeLabel(p)} · ${p.species.slice(0, 2).join(', ')}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
   const accessEl = $('cardAccess');
   if (accessEl) {
-    accessEl.textContent = p.access ? `📍 ${p.access}` : '';
+    accessEl.textContent = p.access
+      ? `📍 ${p.access}${!p.personal && !p.reference ? ' — local catalogado' : ''}`
+      : p.reference
+        ? 'Referência aproximada para pesca de barco'
+        : '';
     accessEl.classList.toggle('is-hidden', !p.access);
   }
   $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';

@@ -48,13 +48,6 @@ export function createMap(points, onPointClick) {
 
   map.on('dragstart', () => setFollowUser(false));
 
-  points.forEach((p) => attachMarker(p));
-
-  if (points.length) {
-    const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
-    map.fitBounds(bounds.pad(0.1));
-  }
-
   return map;
 }
 
@@ -218,6 +211,11 @@ export function renderMarkers(points, visibleIds = null) {
   const showIds = new Set(
     visibleIds ?? mapPointIds(points, state.filter),
   );
+
+  showIds.forEach((id) => {
+    const p = points.find((x) => x.id === id);
+    if (p) attachMarker(p);
+  });
 
   points.forEach((p) => {
     const marker = markers.get(p.id);

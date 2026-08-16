@@ -3,7 +3,7 @@ const KEY = 'mf_profile';
 
 export const STYLE = [
   { id: 'todos', label: 'Todos' },
-  { id: 'terra', label: 'Terra' },
+  { id: 'terra', label: 'Costa' },
   { id: 'barco', label: 'Barco' },
   { id: 'lagoa', label: 'Lagoa' },
 ];

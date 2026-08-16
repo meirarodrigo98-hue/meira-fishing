@@ -1,6 +1,6 @@
-/** Fonte dos pontos de pesca — edite aqui para adicionar/alterar pontos. */
-/** coast (terra): exposure baixa|media|alta, facing° pro mar, bottom, bestTide, water bay|ocean|lagoon|canal */
-/** access: instrução curta de chegada — pin cai no Google Maps exatamente aí */
+/** Fonte dos pontos de pesca — locais reais com nome e instrução de acesso (Google Maps). */
+/** coast: exposure baixa|media|alta, facing° pro mar, bottom, bestTide, water bay|ocean|lagoon|canal */
+/** mode land = pesca de costa (orla/pedra/pier); boat = barco; reference = setor aproximado no mar */
 export const POINTS = [
   // ── Baía — Centro / Porto ──
   {id:'C001',mode:'land',name:'Praça XV — mureta da orla',area:'Centro / RJ',lat:-22.9034,lng:-43.1718,type:'Orla',confidence:58,species:['Robalo','Xaréu'],access:'Calçada da Praça XV, mureta voltada pra baía',coast:{exposure:'baixa',facing:95,bottom:'misto',bestTide:'rising',water:'bay'}},
@@ -110,19 +110,19 @@ export const POINTS = [
   {id:'B001',mode:'boat',name:'Entorno das Ilhas Cagarras',area:'Mar de Ipanema / RJ',lat:-23.03028,lng:-43.20028,type:'Ilhas',confidence:78,species:['Xaréu','Olho-de-boi']},
   {id:'B002',mode:'boat',name:'Ilhas Tijucas',area:'Barra da Tijuca / RJ',lat:-23.03083,lng:-43.29222,type:'Ilhas',confidence:84,species:['Garoupa','Xaréu']},
   {id:'B003',mode:'boat',name:'Ilha Rasa — entorno',area:'Ao largo da Barra / RJ',lat:-23.06333,lng:-43.14583,type:'Ilha',confidence:77,species:['Anchova','Olho-de-boi']},
-  {id:'B004',mode:'boat',name:'Boca da Barra — referência',area:'Entrada da Baía / RJ',lat:-22.9558,lng:-43.1298,type:'Canal',confidence:62,species:['Xaréu','Robalo']},
-  {id:'B005',mode:'boat',name:'Mar aberto — sul de Cagarras',area:'Costa do Rio / RJ',lat:-23.075,lng:-43.208,type:'Mar aberto',confidence:55,species:['Anchova']},
-  {id:'B006',mode:'boat',name:'Setor externo das Tijucas',area:'Barra da Tijuca / RJ',lat:-23.053,lng:-43.315,type:'Mar aberto',confidence:58,species:['Xaréu','Garoupa']},
+  {id:'B004',mode:'boat',name:'Boca da Barra — referência',area:'Entrada da Baía / RJ',lat:-22.9558,lng:-43.1298,type:'Canal',confidence:62,species:['Xaréu','Robalo'],reference:true},
+  {id:'B005',mode:'boat',name:'Mar aberto — sul de Cagarras',area:'Costa do Rio / RJ',lat:-23.075,lng:-43.208,type:'Mar aberto',confidence:55,species:['Anchova'],reference:true},
+  {id:'B006',mode:'boat',name:'Setor externo das Tijucas',area:'Barra da Tijuca / RJ',lat:-23.053,lng:-43.315,type:'Mar aberto',confidence:58,species:['Xaréu','Garoupa'],reference:true},
   {id:'B007',mode:'boat',name:'Canal central da Guanabara',area:'Baía de Guanabara / RJ',lat:-22.9090,lng:-43.1535,type:'Canal',confidence:57,species:['Robalo','Xaréu']},
   {id:'B008',mode:'boat',name:'Setor da Ilha Fiscal',area:'Baía de Guanabara / RJ',lat:-22.8978,lng:-43.1704,type:'Canal',confidence:56,species:['Robalo','Xaréu']},
-  {id:'O001',mode:'boat',name:'Quebra offshore 18 → 32 m',area:'Ao largo do Leme / RJ',lat:-22.9895,lng:-43.1150,type:'Offshore',confidence:72,species:['Anchova','Xaréu']},
-  {id:'O002',mode:'boat',name:'Cabeço submarino oeste',area:'Ao largo de Copacabana / RJ',lat:-23.0040,lng:-43.1450,type:'Offshore',confidence:74,species:['Xaréu','Olho-de-boi']},
-  {id:'O003',mode:'boat',name:'Borda externa das Cagarras',area:'Costa do Rio / RJ',lat:-23.0540,lng:-43.1900,type:'Offshore',confidence:76,species:['Anchova','Xaréu']},
-  {id:'O004',mode:'boat',name:'Canal profundo sul',area:'Sul das Cagarras / RJ',lat:-23.0810,lng:-43.2250,type:'Offshore',confidence:71,species:['Olho-de-boi','Anchova']},
-  {id:'O005',mode:'boat',name:'Quebra 22 → 41 m',area:'Ao largo do Arpoador / RJ',lat:-23.0260,lng:-43.1720,type:'Offshore',confidence:77,species:['Anchova','Xaréu']},
-  {id:'O006',mode:'boat',name:'Alto fundo costeiro',area:'Leste das Cagarras / RJ',lat:-23.0300,lng:-43.1450,type:'Offshore',confidence:73,species:['Xaréu','Olho-de-boi']},
-  {id:'O007',mode:'boat',name:'Borda de canal norte',area:'Entrada oceânica da Guanabara / RJ',lat:-22.9450,lng:-43.0850,type:'Offshore',confidence:69,species:['Xaréu','Robalo']},
-  {id:'O008',mode:'boat',name:'Laje isolada offshore',area:'Entre Cagarras e Tijucas / RJ',lat:-23.0390,lng:-43.2450,type:'Offshore',confidence:75,species:['Garoupa','Xaréu']},
-  {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,species:['Garoupa','Xaréu']},
-  {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,species:['Olho-de-boi','Anchova']},
+  {id:'O001',mode:'boat',name:'Quebra offshore 18 → 32 m',area:'Ao largo do Leme / RJ',lat:-22.9895,lng:-43.1150,type:'Offshore',confidence:72,species:['Anchova','Xaréu'],reference:true},
+  {id:'O002',mode:'boat',name:'Cabeço submarino oeste',area:'Ao largo de Copacabana / RJ',lat:-23.0040,lng:-43.1450,type:'Offshore',confidence:74,species:['Xaréu','Olho-de-boi'],reference:true},
+  {id:'O003',mode:'boat',name:'Borda externa das Cagarras',area:'Costa do Rio / RJ',lat:-23.0540,lng:-43.1900,type:'Offshore',confidence:76,species:['Anchova','Xaréu'],reference:true},
+  {id:'O004',mode:'boat',name:'Canal profundo sul',area:'Sul das Cagarras / RJ',lat:-23.0810,lng:-43.2250,type:'Offshore',confidence:71,species:['Olho-de-boi','Anchova'],reference:true},
+  {id:'O005',mode:'boat',name:'Quebra 22 → 41 m',area:'Ao largo do Arpoador / RJ',lat:-23.0260,lng:-43.1720,type:'Offshore',confidence:77,species:['Anchova','Xaréu'],reference:true},
+  {id:'O006',mode:'boat',name:'Alto fundo costeiro',area:'Leste das Cagarras / RJ',lat:-23.0300,lng:-43.1450,type:'Offshore',confidence:73,species:['Xaréu','Olho-de-boi'],reference:true},
+  {id:'O007',mode:'boat',name:'Borda de canal norte',area:'Entrada oceânica da Guanabara / RJ',lat:-22.9450,lng:-43.0850,type:'Offshore',confidence:69,species:['Xaréu','Robalo'],reference:true},
+  {id:'O008',mode:'boat',name:'Laje isolada offshore',area:'Entre Cagarras e Tijucas / RJ',lat:-23.0390,lng:-43.2450,type:'Offshore',confidence:75,species:['Garoupa','Xaréu'],reference:true},
+  {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,species:['Garoupa','Xaréu'],reference:true},
+  {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,species:['Olho-de-boi','Anchova'],reference:true},
 ];

@@ -150,7 +150,7 @@ function resolveWeather(point, getWeather) {
 export function rankPoints(points, userPos, filter, getWeather) {
   const rows = points
     .filter((p) => {
-      if (filter === 'terra') return p.mode === 'land' && p.type !== 'Lagoa';
+      if (filter === 'costa' || filter === 'terra') return p.mode === 'land' && p.type !== 'Lagoa';
       if (filter === 'barco') return p.mode === 'boat';
       if (filter === 'lagoa') return p.type === 'Lagoa';
       return true;
