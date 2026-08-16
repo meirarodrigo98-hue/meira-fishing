@@ -2,7 +2,7 @@
 import { hashPassword } from './password.js';
 import { getUsersMap } from './user-store.js';
 import { isSupabaseEnabled, getSupabase, usernameToEmail } from './supabase-client.js';
-import { fetchRemoteProfile, profileToSession } from './supabase-sync.js';
+import { fetchRemoteProfile, profileToSession, usernameExistsRemote } from './supabase-sync.js';
 
 const SESSION_KEY = 'mf_session';
 const REMEMBER_DAYS = 30;
@@ -85,14 +85,25 @@ async function loginLocal(username, password, remember) {
 
 async function loginSupabase(username, password, remember) {
   const sb = getSupabase();
-  const email = usernameToEmail(username);
+  const user = (username || '').trim().toLowerCase();
+  const email = usernameToEmail(user);
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
   if (error) {
     const msg = error.message?.toLowerCase() || '';
-    if (msg.includes('invalid') || msg.includes('credentials')) {
+    const exists = await usernameExistsRemote(user);
+
+    if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+      return {
+        ok: false,
+        message: 'Conta pendente — desative confirmação de e-mail no Supabase ou confirme o cadastro.',
+        code: 'email_not_confirmed',
+      };
+    }
+    if (exists) {
       return { ok: false, message: 'SENHA INCORRETA', code: 'wrong_password' };
     }
-    if (msg.includes('not found') || msg.includes('user')) {
+    if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
       return { ok: false, message: 'Usuário não encontrado.', code: 'user_not_found' };
     }
     return { ok: false, message: error.message, code: 'auth_error' };
@@ -116,15 +127,22 @@ async function loginSupabase(username, password, remember) {
 }
 
 export async function login(username, password, remember = true) {
+  const user = (username || '').trim().toLowerCase();
+
   if (isSupabaseEnabled()) {
     try {
-      const cloud = await loginSupabase(username, password, remember);
+      const cloud = await loginSupabase(user, password, remember);
       if (cloud.ok) return cloud;
+
+      const local = await loginLocal(user, password, remember);
+      if (local.ok) return local;
+
+      return cloud.code === 'wrong_password' ? cloud : local.code ? local : cloud;
     } catch {
-      /* rede ou Supabase indisponível — tenta login local */
+      /* rede ou Supabase indisponível */
     }
   }
-  return loginLocal(username, password, remember);
+  return loginLocal(user, password, remember);
 }
 
 export function sessionLabel(session) {

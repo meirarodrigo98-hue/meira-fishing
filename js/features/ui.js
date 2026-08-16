@@ -496,7 +496,7 @@ async function saveNewUser() {
   $('newUserAdmin').checked = false;
   renderUsersList();
   syncMenuMeta();
-  toast(`Usuário @${result.user} cadastrado.`);
+  toast(`Usuário @${result.user} cadastrado.${isSupabaseEnabled() ? ' Já pode entrar em qualquer aparelho.' : ' Exporte users.js e faça push para outros aparelhos.'}`);
 }
 
 function copyUsersSnippet() {

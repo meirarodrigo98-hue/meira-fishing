@@ -126,25 +126,64 @@ export async function saveRemoteProfile({ name, style, level, gear }) {
 export async function createRemoteUser({ username, password, name, admin = false }) {
   const sb = getSupabase();
   if (!sb) return { ok: false, message: 'Nuvem desligada.' };
+
+  const email = usernameToEmail(username);
+  const { data: before } = await sb.auth.getSession();
+  const adminSession = before?.session ?? null;
+
   const { data, error } = await sb.auth.signUp({
-    email: usernameToEmail(username),
+    email,
     password,
     options: {
       data: {
         username,
         display_name: name || username,
-        is_admin: admin,
+        is_admin: !!admin,
       },
     },
   });
-  if (error) return { ok: false, message: error.message };
-  if (data.user) {
-    await sb
-      .from('profiles')
-      .update({ username, display_name: name || username, is_admin: admin })
-      .eq('id', data.user.id);
+
+  if (error) {
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('already') || msg.includes('registered')) {
+      return { ok: false, message: 'Usuário já existe na nuvem.' };
+    }
+    return { ok: false, message: error.message };
   }
+
+  if (data.user?.identities?.length === 0) {
+    return { ok: false, message: 'Usuário já cadastrado na nuvem.' };
+  }
+
+  // signUp pode trocar a sessão para o usuário novo — restaura admin
+  if (adminSession) {
+    await sb.auth.setSession({
+      access_token: adminSession.access_token,
+      refresh_token: adminSession.refresh_token,
+    });
+  } else if (data.session) {
+    await sb.auth.signOut();
+  }
+
+  if (data.user && !data.session) {
+    return {
+      ok: false,
+      message:
+        'Conta criada na nuvem, mas o login está bloqueado. Desative confirmação de e-mail em Supabase → Authentication → Email.',
+    };
+  }
+
   return { ok: true, user: username };
+}
+
+export async function usernameExistsRemote(username) {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc('check_username_exists', {
+    p_username: (username || '').trim().toLowerCase(),
+  });
+  if (error) return null;
+  return !!data;
 }
 
 export function profileToSession(profile, authUser) {

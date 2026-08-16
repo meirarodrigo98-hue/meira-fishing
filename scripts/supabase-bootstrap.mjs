@@ -104,6 +104,7 @@ async function main() {
   console.log('Meira Fishing — bootstrap Supabase');
   await runSqlFile('supabase/migrations/20260816120000_initial_schema.sql');
   await runSqlFile('supabase/migrations/20260816130000_public_catalog_read.sql');
+  await runSqlFile('supabase/migrations/20260816140000_login_helpers.sql');
   await ensureAdmin();
   await seedPoints();
   console.log('Pronto! Login: rd /', adminPass);
