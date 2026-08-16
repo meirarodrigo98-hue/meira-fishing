@@ -12,9 +12,10 @@ import {
 
 /** GPS — permissão primeiro, radar depois. */
 let watchId = null;
+let locating = false;
 
-const GEO_FAST = { enableHighAccuracy: false, timeout: 18000, maximumAge: 120000 };
-const GEO_PRECISE = { enableHighAccuracy: true, timeout: 22000, maximumAge: 30000 };
+const GEO_FAST = { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 };
+const GEO_PRECISE = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 };
 
 function clearWatch() {
   if (watchId != null) {
@@ -23,7 +24,8 @@ function clearWatch() {
   }
 }
 
-function startWatching() {
+export function beginTracking() {
+  if (!navigator.geolocation) return;
   clearWatch();
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
@@ -32,7 +34,7 @@ function startWatching() {
       onUserMoved();
     },
     () => {},
-    { enableHighAccuracy: true, maximumAge: 30000, timeout: 30000 },
+    { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 },
   );
 }
 
@@ -44,18 +46,20 @@ function errorKind(err) {
   return 'unknown';
 }
 
-function applyPosition(pos, onSuccess) {
-  hideAwaitingPermission();
-  showSearching();
-  const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-  setUser(location, true);
-  startWatching();
-  onSuccess(location);
-}
-
-function readPosition(options) {
+function readPosition(options, hardMs = 16000) {
   return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    const timer = setTimeout(() => reject({ code: 3, message: 'hard timeout' }), hardMs);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        clearTimeout(timer);
+        resolve(pos);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+      options,
+    );
   });
 }
 
@@ -68,50 +72,75 @@ async function queryGeoPermission() {
   }
 }
 
-async function requestPosition(onSuccess, onFallback, { precise = false } = {}) {
+async function requestPosition(onSuccess, onFallback) {
   try {
-    const pos = await readPosition(precise ? GEO_PRECISE : GEO_FAST);
-    applyPosition(pos, onSuccess);
-    return true;
+    const pos = await readPosition(GEO_FAST, 14000);
+    onSuccess(pos);
+    return;
   } catch (err) {
-    const kind = errorKind(err);
-    if (!precise && kind === 'timeout') {
-      showSearching();
-      return requestPosition(onSuccess, onFallback, { precise: true });
+    if (errorKind(err) === 'timeout') {
+      try {
+        const pos = await readPosition(GEO_PRECISE, 18000);
+        onSuccess(pos);
+        return;
+      } catch (retryErr) {
+        err = retryErr;
+      }
     }
+
     hideAwaitingPermission();
+    const kind = errorKind(err);
     if (kind === 'denied') showPermissionDenied();
     else showRecover(kind);
     onFallback(kind);
-    return false;
   }
 }
 
 export async function captureLocation(onSuccess, onFallback) {
-  if (!window.isSecureContext) {
-    toast('Abra pelo link https:// para usar localização.');
-    showRecover('insecure');
-    onFallback('insecure');
-    return;
-  }
+  if (locating) return;
+  locating = true;
 
-  if (!navigator.geolocation) {
-    toast('Seu navegador não suporta localização.');
-    showRecover('unsupported');
-    onFallback('unsupported');
-    return;
-  }
+  try {
+    if (!window.isSecureContext) {
+      toast('Abra pelo link https:// para usar localização.');
+      showRecover('insecure');
+      onFallback('insecure');
+      return;
+    }
 
-  const perm = await queryGeoPermission();
-  if (perm?.state === 'denied') {
-    showPermissionDenied();
-    onFallback('denied');
-    return;
-  }
+    if (!navigator.geolocation) {
+      toast('Seu navegador não suporta localização.');
+      showRecover('unsupported');
+      onFallback('unsupported');
+      return;
+    }
 
-  hideRecover();
-  showAwaitingPermission();
-  await requestPosition(onSuccess, onFallback);
+    const perm = await queryGeoPermission();
+    if (perm?.state === 'denied') {
+      showPermissionDenied();
+      onFallback('denied');
+      return;
+    }
+
+    hideRecover();
+    showAwaitingPermission();
+
+    await requestPosition(
+      (pos) => {
+        hideAwaitingPermission();
+        showSearching();
+        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUser(location, true);
+        onSuccess(location);
+      },
+      (kind) => {
+        hideAwaitingPermission();
+        onFallback(kind);
+      },
+    );
+  } finally {
+    locating = false;
+  }
 }
 
 export function retryLocation(onSuccess, onFallback) {

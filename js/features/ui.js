@@ -29,6 +29,7 @@ const LOADING_HINTS = [
   'Calculando o melhor agora…',
 ];
 let loadingTimer = null;
+let radarSafetyTimer = null;
 
 const els = () => ({
   body: document.body,
@@ -136,11 +137,19 @@ function setRadarDockVisible(show) {
   $('radarDock')?.classList.toggle('is-hidden', !show);
 }
 
+function clearRadarSafety() {
+  if (radarSafetyTimer != null) {
+    clearTimeout(radarSafetyTimer);
+    radarSafetyTimer = null;
+  }
+}
+
 function stopLoadingHints() {
   if (loadingTimer != null) {
     clearInterval(loadingTimer);
     loadingTimer = null;
   }
+  clearRadarSafety();
 }
 
 export function showAwaitingPermission() {
@@ -172,6 +181,13 @@ export function showSearching() {
     i = (i + 1) % LOADING_HINTS.length;
     if (hint) hint.textContent = LOADING_HINTS[i];
   }, 1600);
+
+  clearRadarSafety();
+  radarSafetyTimer = setTimeout(() => {
+    if (!$('radarScan')?.classList.contains('is-hidden')) {
+      toast('Radar demorou — tentando concluir…');
+    }
+  }, 18000);
 }
 
 export function showPermissionDenied() {
