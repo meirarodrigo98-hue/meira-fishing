@@ -705,19 +705,15 @@ body.login-done .login-screen{display:none!important}
 }
 
 .login-brand-lines{
-  display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 6px
+  display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 26px
 }
 .login-brand-lines span:first-child,
 .login-brand-lines span:last-child{
-  flex:1;max-width:52px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--login-teal),transparent)
+  flex:1;max-width:64px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--login-teal),transparent)
 }
 .login-brand-lines span:nth-child(2){
   font-family:"Barlow Condensed",sans-serif;font-style:italic;font-weight:800;
-  font-size:11px;letter-spacing:2.8px;color:var(--login-teal);white-space:nowrap
-}
-
-.login-sub{
-  margin:0 0 22px;text-align:center;font-size:13px;color:#5a7a8a;line-height:1.4
+  font-size:18px;letter-spacing:4px;color:var(--login-teal);white-space:nowrap
 }
 
 .login-form{display:flex;flex-direction:column;gap:14px}
@@ -776,10 +772,6 @@ body.login-done .login-screen{display:none!important}
 }
 .login-submit.is-loading .login-spinner{opacity:1;animation:login-spin .7s linear infinite}
 @keyframes login-spin{to{transform:rotate(360deg)}}
-
-.login-foot{
-  margin:18px 0 0;text-align:center;font-size:11px;color:#8aa3b0;line-height:1.4
-}
 
 .menu-item--danger .menu-item-label{color:#fca5a5}
 .menu-item--danger .menu-item-meta{color:#f87171}
