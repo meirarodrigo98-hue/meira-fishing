@@ -21,6 +21,7 @@ import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
 import { STYLE, LEVEL, loadProfile, saveProfile, profileSummary } from '../lib/profile.js';
 import { coastLabel } from '../lib/coast.js';
+import { iscaboxCardExtra, iscaboxSpeciesLabel, iscaboxStrategyExtras } from '../lib/iscabox-enrich.js';
 import {
   clearRoute,
   drawRoute,
@@ -924,7 +925,7 @@ function paint(row, i) {
 
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.type} · ${pointModeLabel(p)} · ${p.species.slice(0, 2).join(', ')}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.type} · ${pointModeLabel(p)} · ${iscaboxSpeciesLabel(p)}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
   const accessEl = $('cardAccess');
   if (accessEl) {
     accessEl.textContent = p.access
@@ -933,6 +934,20 @@ function paint(row, i) {
         ? 'Referência aproximada para pesca de barco'
         : '';
     accessEl.classList.toggle('is-hidden', !p.access);
+  }
+  const iscaEl = $('cardIscabox');
+  if (iscaEl) {
+    const extra = iscaboxCardExtra(p);
+    if (extra?.lines?.length) {
+      iscaEl.innerHTML = `${extra.lines.join(' · ')} · <a href="${extra.guideUrl}" target="_blank" rel="noopener">Guia iscabox</a>`;
+      iscaEl.classList.remove('is-hidden');
+    } else if (extra?.guideUrl) {
+      iscaEl.innerHTML = `<a href="${extra.guideUrl}" target="_blank" rel="noopener">Ver guia iscabox — ${extra.guideTitle}</a>`;
+      iscaEl.classList.remove('is-hidden');
+    } else {
+      iscaEl.textContent = '';
+      iscaEl.classList.add('is-hidden');
+    }
   }
   $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';
   $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
@@ -948,6 +963,7 @@ function paintEmpty() {
   $('cardName').textContent = 'Nenhum ponto';
   $('cardMeta').textContent = 'Mude o filtro acima';
   $('cardAccess')?.classList.add('is-hidden');
+  $('cardIscabox')?.classList.add('is-hidden');
   $('cardConditions').textContent = '';
   $('cardVerdict').textContent = '—';
   $('cardVerdict').className = 'pill lendo';
@@ -1228,6 +1244,7 @@ function updateStrategy(point) {
   }
 
   const plan = buildLiveStrategy(point, gear, checklistObs);
+  const isca = iscaboxStrategyExtras(point);
   box?.classList.toggle('pending', !plan.ready);
 
   headline.textContent = plan.headline;
@@ -1238,8 +1255,13 @@ function updateStrategy(point) {
   if (plan.setup) rows.push(`<li><b>Montagem:</b> ${plan.setup}</li>`);
   if (plan.technique) rows.push(`<li><b>Técnica:</b> ${plan.technique}</li>`);
   if (plan.position) rows.push(`<li><b>Posição:</b> ${plan.position}</li>`);
+  if (isca.gearNote) rows.push(`<li><b>iscabox:</b> ${isca.gearNote}</li>`);
+  for (const step of isca.steps) rows.push(`<li>${step}</li>`);
   steps.innerHTML = rows.join('');
-  warns.innerHTML = plan.warnings.map((w) => `<li>${w}</li>`).join('');
+
+  const warnRows = [...plan.warnings, ...isca.warnings.map((w) => `⚠ ${w}`)];
+  if (isca.guideUrl) warnRows.push(`Fonte: <a href="${isca.guideUrl}" target="_blank" rel="noopener">iscabox.com</a>`);
+  warns.innerHTML = warnRows.map((w) => `<li>${w}</li>`).join('');
 }
 
 function openChecklist() {
