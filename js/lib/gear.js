@@ -3,39 +3,39 @@ const KEY = 'mf_gear';
 
 export const GEAR = {
   rod: [
-    { id: 'leve', label: 'Leve', detail: '1,6–2,1 m' },
-    { id: 'media', label: 'Média', detail: '2,1–2,7 m' },
-    { id: 'pesada', label: 'Pesada', detail: '2,7–3,6 m' },
-    { id: 'surf', label: 'Surf', detail: '3,0 m+' },
+    { id: 'leve', label: 'Leve', detail: '1,6–2,1 m', icon: '〰' },
+    { id: 'media', label: 'Média', detail: '2,1–2,7 m', icon: '🎣' },
+    { id: 'pesada', label: 'Pesada', detail: '2,7–3,6 m', icon: '⚓' },
+    { id: 'surf', label: 'Surf', detail: '3,0 m+', icon: '🌊' },
   ],
   reel: [
-    { id: '1000-3000', label: '1000–3000' },
-    { id: '3000-5000', label: '3000–5000' },
-    { id: '5000+', label: '5000+' },
+    { id: '1000-3000', label: '1000–3000', detail: 'Leve / lagoa', icon: '◎' },
+    { id: '3000-5000', label: '3000–5000', detail: 'Versátil', icon: '◉' },
+    { id: '5000+', label: '5000+', detail: 'Mar / pesado', icon: '●' },
   ],
   line: [
-    { id: 'leve', label: 'Leve', detail: 'até 0,28 mm' },
-    { id: 'media', label: 'Média', detail: '0,30–0,40 mm' },
-    { id: 'pesada', label: 'Pesada', detail: '0,45 mm+' },
+    { id: 'leve', label: 'Leve', detail: 'até 0,28 mm', icon: '─' },
+    { id: 'media', label: 'Média', detail: '0,30–0,40 mm', icon: '═' },
+    { id: 'pesada', label: 'Pesada', detail: '0,45 mm+', icon: '▬' },
   ],
   baits: [
-    { id: 'camarao', label: 'Camarão' },
-    { id: 'minhoca', label: 'Minhoca' },
-    { id: 'sabiki', label: 'Sabiki' },
-    { id: 'sardinha', label: 'Sardinha' },
-    { id: 'milho', label: 'Milho / massa' },
-    { id: 'jig', label: 'Jig' },
-    { id: 'minnow', label: 'Minnow / plug' },
-    { id: 'spinner', label: 'Spinner' },
+    { id: 'camarao', label: 'Camarão', icon: '🦐' },
+    { id: 'minhoca', label: 'Minhoca', icon: '🪱' },
+    { id: 'sabiki', label: 'Sabiki', icon: '🪝' },
+    { id: 'sardinha', label: 'Sardinha', icon: '🐟' },
+    { id: 'milho', label: 'Milho', icon: '🌽' },
+    { id: 'jig', label: 'Jig', icon: '🔻' },
+    { id: 'minnow', label: 'Minnow', icon: '🐠' },
+    { id: 'spinner', label: 'Spinner', icon: '✦' },
   ],
   sinkers: [
-    { id: 'leve', label: 'Chumbo leve' },
-    { id: 'medio', label: 'Chumbo médio' },
-    { id: 'pesado', label: 'Chumbo pesado' },
+    { id: 'leve', label: 'Leve', icon: '·' },
+    { id: 'medio', label: 'Médio', icon: '●' },
+    { id: 'pesado', label: 'Pesado', icon: '⬤' },
   ],
   extras: [
-    { id: 'leader', label: 'Leader flúor/aço' },
-    { id: 'boat', label: 'Tenho barco' },
+    { id: 'leader', label: 'Leader', icon: '🔗' },
+    { id: 'boat', label: 'Barco', icon: '🚤' },
   ],
 };
 
@@ -70,8 +70,9 @@ export function labelFor(group, id) {
 
 export function gearSummary(gear) {
   if (!isGearReady(gear)) return 'Material não cadastrado';
-  const baits = gear.baits.map((id) => labelFor('baits', id)).join(', ');
-  return `${labelFor('rod', gear.rod)} · ${labelFor('line', gear.line)} · ${baits}`;
+  const baits = gear.baits.slice(0, 2).map((id) => labelFor('baits', id)).join(', ');
+  const more = gear.baits.length > 2 ? ` +${gear.baits.length - 2}` : '';
+  return `${labelFor('rod', gear.rod)} · ${labelFor('line', gear.line)} · ${baits}${more}`;
 }
 
 export function gearPower(gear) {

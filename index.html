@@ -163,17 +163,24 @@
   <button class="gear-save" id="profileSave" type="button">Salvar perfil</button>
 </div>
 
-<div class="sheet-panel" id="gearPanel" aria-hidden="true">
-  <div class="checklist-head">
-    <div>
-      <span class="checklist-tag">Cadastro</span>
-      <h3 class="checklist-title">Material de pesca</h3>
+<div class="sheet-panel gear-sheet" id="gearPanel" aria-hidden="true">
+  <div class="sheet-top">
+    <div class="checklist-head">
+      <div>
+        <span class="checklist-tag">Mochila</span>
+        <h3 class="checklist-title">Material de pesca</h3>
+      </div>
+      <button class="checklist-close" id="gearEditorClose" type="button" aria-label="Voltar">✕</button>
     </div>
-    <button class="checklist-close" id="gearEditorClose" type="button" aria-label="Fechar">✕</button>
+    <div class="gear-progress">
+      <div class="gear-progress-track"><div class="gear-progress-fill" id="gearProgressFill"></div></div>
+      <span class="gear-progress-label" id="gearProgressLabel">0/3 essencial</span>
+    </div>
   </div>
-  <p class="checklist-hint">Salvo no seu aparelho — usado para montar a estratégia.</p>
-  <div class="gear-form" id="gearForm"></div>
-  <button class="gear-save" id="gearSave" type="button">Salvar material</button>
+  <div class="gear-scroll" id="gearForm"></div>
+  <div class="gear-footer">
+    <button class="gear-save" id="gearSave" type="button">Salvar material</button>
+  </div>
 </div>
 
 <div class="nav-strip" id="navStrip">

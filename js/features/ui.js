@@ -2,7 +2,8 @@ import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
 import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
-import { GEAR, loadGear, saveGear, isGearReady, gearSummary } from '../lib/gear.js';
+import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
+import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
 import { STYLE, LEVEL, loadProfile, saveProfile, profileSummary } from '../lib/profile.js';
 import {
   clearRoute,
@@ -27,7 +28,6 @@ let lastId = null;
 let shouldAutoOpen = true;
 let checklistObs = emptyObservations();
 let checklistPoint = null;
-let draftGear = loadGear();
 let draftProfile = loadProfile();
 let sheetOrigin = null;
 
@@ -133,17 +133,28 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   $('checklistClose').onclick = closeChecklist;
   $('editGearFromChecklist').onclick = () => showGearEditor({ fromChecklist: true });
   $('gearEditorClose').onclick = () => hideGearEditor();
-  $('gearSave').onclick = saveGearDraft;
+  $('gearSave').onclick = () => {
+    const result = persistGearDraft();
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
+    syncGearBar();
+    syncMenuMeta();
+    toast('Material salvo.');
+    hideGearEditor();
+    if (checklistPoint) updateStrategy(checklistPoint);
+  };
+  initGearUi();
+  renderProfileForm();
+  syncGearBar();
+  syncMenuMeta();
   $('gearBtn').onclick = openOptionsMenu;
   $('optionsMenuClose').onclick = closeAllSheets;
   $('openProfile').onclick = () => showProfileEditor();
   $('openGearFromMenu').onclick = () => showGearEditor({ fromMenu: true });
   $('profileClose').onclick = () => hideProfileEditor();
   $('profileSave').onclick = saveProfileDraft;
-  renderGearForm();
-  renderProfileForm();
-  syncGearBar();
-  syncMenuMeta();
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
@@ -462,8 +473,7 @@ function showGearEditor({ fromChecklist = false, fromMenu = false } = {}) {
   if (fromChecklist) sheetOrigin = 'checklist';
   else if (fromMenu) sheetOrigin = 'menu';
 
-  draftGear = loadGear();
-  renderGearForm();
+  loadGearDraft();
   if (fromChecklist) $('checklistObserve')?.classList.add('is-hidden');
 
   hideSheet('optionsMenu');
@@ -501,62 +511,6 @@ function syncGearBar() {
   if (!text || !bar) return;
   text.textContent = gearSummary(gear);
   bar.classList.toggle('missing', !isGearReady(gear));
-}
-
-function renderGearForm() {
-  const form = $('gearForm');
-  if (!form) return;
-
-  const singleGroups = ['rod', 'reel', 'line'];
-  const multiGroups = ['baits', 'sinkers', 'extras'];
-
-  form.innerHTML = [
-    ...singleGroups.map((group) => renderGearField(group, GEAR[group], false)),
-    ...multiGroups.map((group) => renderGearField(group, GEAR[group], true)),
-  ].join('');
-
-  form.querySelectorAll('[data-gear-group]').forEach((chip) => {
-    chip.onclick = () => {
-      const group = chip.dataset.gearGroup;
-      const id = chip.dataset.gearId;
-      const multi = chip.dataset.gearMulti === '1';
-
-      if (multi) {
-        const set = new Set(draftGear[group] || []);
-        if (set.has(id)) set.delete(id);
-        else set.add(id);
-        draftGear[group] = [...set];
-      } else {
-        draftGear[group] = draftGear[group] === id ? null : id;
-      }
-      renderGearForm();
-    };
-  });
-}
-
-function renderGearField(group, options, multi) {
-  const labels = { rod: 'Vara', reel: 'Molinete', line: 'Linha', baits: 'Iscas', sinkers: 'Chumbos', extras: 'Extras' };
-  const chips = options
-    .map((opt) => {
-      const on = multi ? draftGear[group]?.includes(opt.id) : draftGear[group] === opt.id;
-      const detail = opt.detail ? ` (${opt.detail})` : '';
-      return `<button type="button" class="gear-chip${on ? ' on' : ''}" data-gear-group="${group}" data-gear-id="${opt.id}" data-gear-multi="${multi ? 1 : 0}">${opt.label}${detail}</button>`;
-    })
-    .join('');
-  return `<div class="gear-field"><p class="gear-field-label">${labels[group]}</p><div class="gear-options">${chips}</div></div>`;
-}
-
-function saveGearDraft() {
-  if (!draftGear.rod || !draftGear.line || !draftGear.baits?.length) {
-    toast('Marque vara, linha e ao menos uma isca.');
-    return;
-  }
-  saveGear(draftGear);
-  syncGearBar();
-  syncMenuMeta();
-  toast('Material salvo.');
-  hideGearEditor();
-  if (checklistPoint) updateStrategy(checklistPoint);
 }
 
 function renderObsGroups() {
