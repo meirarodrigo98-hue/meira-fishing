@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
-<body>
+<body class="map-full">
 <div id="map"></div>
 
 <div class="topbar">
@@ -23,7 +23,7 @@
   <button class="icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
 </div>
 
-<section class="sheet" id="sheet" data-snap="mini">
+<section class="sheet collapsed" id="sheet" data-snap="hidden">
   <div class="sheet-drag"><div class="handle"></div></div>
 
   <div class="sheet-body">
@@ -49,15 +49,17 @@
     </div>
   </div>
 
-  <div class="nav-strip" id="navStrip">
-    <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
-    <button class="nav-stop" id="stopNav" type="button">Parar</button>
-  </div>
-
   <div class="sheet-footer" id="sheetFooter">
     <button class="go" id="goNow" type="button">Ir agora</button>
   </div>
 </section>
+
+<button class="open-points hidden" id="openPoints" type="button">Pontos próximos a você</button>
+
+<div class="nav-strip" id="navStrip">
+  <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
+  <button class="nav-stop" id="stopNav" type="button">Parar</button>
+</div>
 
 <section id="boot">
   <div class="bootbox">

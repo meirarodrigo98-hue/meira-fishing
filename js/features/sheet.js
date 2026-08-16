@@ -1,11 +1,11 @@
 import { $ } from '../lib/utils.js';
 import { invalidateMapSize } from './map.js';
 
-/** Faixa arrastável — mini / meio / cheio. */
-const SNAPS = { mini: 0.34, mid: 0.52, full: 0.88 };
-const SNAP_ORDER = ['mini', 'mid', 'full'];
+/** Faixa arrastável — escondida / mini / meio / cheio. */
+const SNAPS = { hidden: 0, mini: 0.38, mid: 0.55, full: 0.88 };
+const SNAP_ORDER = ['hidden', 'mini', 'mid', 'full'];
 
-let currentSnap = 'mini';
+let currentSnap = 'hidden';
 let dragging = false;
 let startY = 0;
 let startH = 0;
@@ -14,14 +14,20 @@ let onSnapChange = null;
 function applyHeight(ratio) {
   document.documentElement.style.setProperty('--sheet-h', `${ratio * 100}vh`);
   const map = $('map');
-  if (map) map.style.bottom = `${ratio * 100}vh`;
+  const open = ratio > 0.05;
+  if (map) {
+    map.style.bottom = open ? `${ratio * 100}vh` : '0';
+    map.classList.toggle('has-sheet', open);
+  }
+  document.body.classList.toggle('map-full', !open);
   invalidateMapSize();
 }
 
 function nearestSnap(ratio) {
-  let best = SNAP_ORDER[0];
+  if (ratio < 0.12) return 'hidden';
+  let best = 'mini';
   let bestDist = Infinity;
-  for (const name of SNAP_ORDER) {
+  for (const name of ['mini', 'mid', 'full']) {
     const dist = Math.abs(SNAPS[name] - ratio);
     if (dist < bestDist) {
       bestDist = dist;
@@ -31,12 +37,17 @@ function nearestSnap(ratio) {
   return best;
 }
 
+function setCollapsed(collapsed) {
+  $('sheet')?.classList.toggle('collapsed', collapsed);
+}
+
 export function initSheet(callback) {
   onSnapChange = callback;
   const sheet = $('sheet');
   const dragZone = sheet.querySelector('.sheet-drag');
 
   const onStart = (clientY) => {
+    if (currentSnap === 'hidden') return;
     dragging = true;
     startY = clientY;
     startH = SNAPS[currentSnap];
@@ -48,8 +59,9 @@ export function initSheet(callback) {
     if (!dragging) return;
     const vh = window.innerHeight / 100;
     const delta = (startY - clientY) / vh / 100;
-    const next = Math.max(0.28, Math.min(0.92, startH + delta));
+    const next = Math.max(0, Math.min(0.92, startH + delta));
     applyHeight(next);
+    setCollapsed(next < 0.05);
   };
 
   const onEnd = (clientY) => {
@@ -60,7 +72,7 @@ export function initSheet(callback) {
 
     const vh = window.innerHeight / 100;
     const delta = (startY - clientY) / vh / 100;
-    const finalRatio = Math.max(0.28, Math.min(0.92, startH + delta));
+    const finalRatio = Math.max(0, Math.min(0.92, startH + delta));
     snapTo(nearestSnap(finalRatio));
   };
 
@@ -80,18 +92,30 @@ export function initSheet(callback) {
     window.addEventListener('mouseup', up);
   });
 
-  applyHeight(SNAPS.mini);
+  collapseSheet();
   return { snapTo, getSnap: () => currentSnap };
 }
 
 export function snapTo(name) {
-  if (!SNAPS[name]) return;
+  if (!SNAPS[name] && name !== 'hidden') return;
   currentSnap = name;
-  applyHeight(SNAPS[name]);
+  const ratio = SNAPS[name];
+  applyHeight(ratio);
   $('sheet').dataset.snap = name;
+  setCollapsed(name === 'hidden');
   onSnapChange?.(name);
 }
 
+export function collapseSheet() {
+  snapTo('hidden');
+}
+
+export function openSheet() {
+  setCollapsed(false);
+  snapTo('mini');
+}
+
 export function expandFull() {
+  setCollapsed(false);
   snapTo('full');
 }

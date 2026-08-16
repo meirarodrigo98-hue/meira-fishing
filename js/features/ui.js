@@ -11,7 +11,7 @@ import {
   setBestPointId,
   updateRoute,
 } from './map.js';
-import { expandFull, snapTo } from './sheet.js';
+import { collapseSheet, expandFull, openSheet, snapTo } from './sheet.js';
 
 /** Lista, detalhe na faixa e navegação — mobile first. */
 let onRefresh = null;
@@ -29,6 +29,12 @@ export function bindUi({ onRelocate }) {
     };
   });
 
+  $('openPoints').onclick = () => {
+    openSheet();
+    $('openPoints').classList.add('hidden');
+    renderList(pointsRef);
+  };
+
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('closeDetail').onclick = closeDetail;
@@ -39,7 +45,17 @@ export function bindUi({ onRelocate }) {
 }
 
 export function onSheetSnap(name) {
-  if (detailOpen && name === 'mini') closeDetail();
+  if (name === 'hidden') {
+    resetDetailView();
+    if (!state.navigating) $('openPoints').classList.remove('hidden');
+  }
+}
+
+function resetDetailView() {
+  detailOpen = false;
+  $('sheetDetail').classList.remove('show');
+  $('sheetList').classList.remove('hide');
+  $('sheetFooter').classList.remove('show');
 }
 
 export function setPoints(points) {
@@ -59,11 +75,13 @@ export function showBoot() {
   $('boot').classList.remove('hidden');
   $('fallback').classList.add('hidden');
   $('statusLine').textContent = 'Achando você…';
+  $('openPoints').classList.add('hidden');
 }
 
 export function showFallback() {
   $('boot').classList.add('hidden');
   $('fallback').classList.remove('hidden');
+  $('openPoints').classList.add('hidden');
 }
 
 export function hideOverlays() {
@@ -75,16 +93,19 @@ export function hideOverlays() {
 export function ready(label) {
   hideOverlays();
   $('statusLine').textContent = label;
+  $('openPoints').classList.remove('hidden');
   if (onRefresh) onRefresh();
 }
 
 export function openPoint(point) {
+  openSheet();
   setSelected(point);
   detailOpen = true;
   refreshDetail(point);
   $('sheetList').classList.add('hide');
   $('sheetDetail').classList.add('show');
   $('sheetFooter').classList.add('show');
+  $('openPoints').classList.add('hidden');
   snapTo('mid');
   flyToPoint(point);
 }
@@ -107,10 +128,8 @@ function refreshDetail(point = state.selected) {
 }
 
 export function closeDetail() {
-  detailOpen = false;
-  $('sheetDetail').classList.remove('show');
-  $('sheetList').classList.remove('hide');
-  if (!state.navigating) $('sheetFooter').classList.remove('show');
+  resetDetailView();
+  $('openPoints').classList.add('hidden');
   snapTo('mini');
 }
 
@@ -128,8 +147,9 @@ function goNowFromPoint(point) {
     toast('Ative a localização para ver a rota.');
   }
 
-  closeDetail();
-  snapTo('mini');
+  resetDetailView();
+  collapseSheet();
+  $('openPoints').classList.add('hidden');
   window.open(mapsUrl(point), '_blank', 'noopener');
 }
 
@@ -142,6 +162,7 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
+  $('openPoints').classList.remove('hidden');
 }
 
 function bindPointActions(container, points) {
@@ -155,9 +176,7 @@ function bindPointActions(container, points) {
     };
   });
   const seeMore = container.querySelector('[data-see-more]');
-  if (seeMore) {
-    seeMore.onclick = () => expandFull();
-  }
+  if (seeMore) seeMore.onclick = () => expandFull();
 }
 
 export function renderList(points) {
