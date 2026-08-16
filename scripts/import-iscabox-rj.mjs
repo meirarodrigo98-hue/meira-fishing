@@ -77,6 +77,13 @@ function decodeHtml(s) {
     .replace(/&gt;/g, '>');
 }
 
+function sanitizeIntro(text) {
+  return decodeHtml(text || '')
+    .replace(/^Com base em informações compiladas pela iscabox[^,]*,\s*/i, '')
+    .replace(/^Com base em informações compiladas pela iscabox,\s*/i, '')
+    .trim();
+}
+
 function sectionAfter(html, headingPart) {
   const re = new RegExp(
     `<h2[^>]*>[\\s\\S]*?${headingPart.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?</h2>([\\s\\S]*?)(?=<h2|<section class="mt-16"|$)`,
@@ -179,7 +186,7 @@ function parseGuide(html, url) {
       ? { lat: Number(attraction.geo.latitude), lng: Number(attraction.geo.longitude) }
       : null,
     locality,
-    intro: intro || undefined,
+    intro: sanitizeIntro(intro) || undefined,
     species: parseSpecies(html),
     techniques: parseTechniques(html),
     spots: parseSpots(html),
@@ -219,14 +226,9 @@ async function main() {
   }
 
   const outPath = join(ROOT, 'js', 'data', 'iscabox-guides.js');
-  const body = `/** Guias iscabox (RJ) — gerado por scripts/import-iscabox-rj.mjs. Fonte: https://www.iscabox.com */
-export const ISCABOX_GUIDES = ${JSON.stringify(guides, null, 2)};
-
-export const ISCABOX_ATTRIBUTION = {
-  name: 'iscabox',
-  url: 'https://www.iscabox.com',
-  note: 'Dados compilados de guias públicos da iscabox.',
-};
+  const exportGuides = guides.map(({ url, source, ...rest }) => rest);
+  const body = `/** Guias regionais (RJ) — gerado por scripts/import-iscabox-rj.mjs */
+export const ISCABOX_GUIDES = ${JSON.stringify(exportGuides, null, 2)};
 `;
   writeFileSync(outPath, body, 'utf8');
   console.log(`Salvo ${guides.length} guias em ${outPath}`);

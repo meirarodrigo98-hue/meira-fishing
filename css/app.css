@@ -260,8 +260,7 @@ body.spots-open .spots-card{transform:translateY(0)}
 }
 .spots-meta{margin:6px 0 0;font-size:13px;color:var(--muted)}
 .spots-access{margin:4px 0 0;font-size:12px;line-height:1.4;color:#8ec8d8}
-.spots-iscabox{margin:4px 0 0;font-size:12px;line-height:1.45;color:#9ab89a}
-.spots-iscabox a{color:#b8e0b8;text-decoration:underline;text-underline-offset:2px}
+.spots-insight{margin:4px 0 0;font-size:12px;line-height:1.45;color:#9ab89a}
 .spots-conditions{
   margin:8px 0 0;font-size:12px;font-weight:600;line-height:1.4;
   color:#9ef0d0;letter-spacing:-.1px

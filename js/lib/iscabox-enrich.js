@@ -1,8 +1,8 @@
-import { ISCABOX_GUIDES, ISCABOX_ATTRIBUTION } from '../data/iscabox-guides.js';
+import { ISCABOX_GUIDES } from '../data/iscabox-guides.js';
 
 const GUIDE_BY_ID = Object.fromEntries(ISCABOX_GUIDES.map((g) => [g.id, g]));
 
-/** Área do catálogo → guia iscabox principal */
+/** Área do catálogo → guia regional */
 const AREA_GUIDE = {
   'Centro / RJ': 'baia-guanabara',
   'Aterro / RJ': 'baia-guanabara',
@@ -54,7 +54,7 @@ const KEYWORD_GUIDE = [
   [/arraial|cabo frio|búzios|saquarema|maricá|lagoa de araruama/i, 'regiao-dos-lagos'],
 ];
 
-/** Espécies iscabox → rótulo curto do app */
+/** Espécies do guia → rótulo curto do app */
 const SPECIES_SHORT = {
   'robalo-peva': 'Robalo',
   robalo: 'Robalo',
@@ -150,7 +150,7 @@ function pickSpotGuide(point, primary) {
   return { guide: primary, spot: null };
 }
 
-/** Dados iscabox aplicáveis a um ponto do catálogo */
+/** Dados de guia aplicáveis a um ponto do catálogo */
 export function enrichPoint(point) {
   const primary = pickGuide(point);
   if (!primary) return null;
@@ -174,43 +174,36 @@ export function enrichPoint(point) {
     species: mergedSpecies,
     technique,
     tips,
-    intro: primary.intro,
-    attribution: ISCABOX_ATTRIBUTION,
   };
 }
 
-export function iscaboxSpeciesLabel(point) {
+export function catalogSpeciesLabel(point) {
   const e = enrichPoint(point);
   if (!e?.species?.length) return point.species?.slice(0, 3).join(', ') || '';
   return e.species.slice(0, 4).join(', ');
 }
 
-export function iscaboxCardExtra(point) {
+export function pointInsights(point) {
   const e = enrichPoint(point);
   if (!e) return null;
 
-  const parts = [];
-  if (e.spot?.bestTime) parts.push(`⏱ ${e.spot.bestTime}`);
-  if (e.spot?.depth) parts.push(`🌊 ${e.spot.depth}`);
-  if (!e.spot && e.tips.dos[0]) parts.push(`💡 ${e.tips.dos[0]}`);
+  const lines = [];
+  if (e.spot?.bestTime) lines.push(`⏱ ${e.spot.bestTime}`);
+  if (e.spot?.depth) lines.push(`🌊 ${e.spot.depth}`);
+  if (!e.spot && e.tips.dos[0]) lines.push(`💡 ${e.tips.dos[0]}`);
 
-  const linkGuide = e.spot ? e.spotGuide || e.guide : e.guide;
-  return {
-    lines: parts,
-    guideTitle: linkGuide.title,
-    guideUrl: linkGuide.url,
-  };
+  return lines.length ? { lines } : null;
 }
 
-export function iscaboxStrategyExtras(point) {
+export function pointStrategyExtras(point) {
   const e = enrichPoint(point);
   if (!e) return { steps: [], warnings: [], gearNote: null };
 
-  const steps = e.technique?.steps?.slice(0, 4) || [];
-  const warnings = e.tips.donts?.slice(0, 3) || [];
-  const gearNote = e.technique?.gear || null;
-
-  return { steps, warnings, gearNote, guideUrl: e.guide.url };
+  return {
+    steps: e.technique?.steps?.slice(0, 4) || [],
+    warnings: e.tips.donts?.slice(0, 3) || [],
+    gearNote: e.technique?.gear || null,
+  };
 }
 
-export { ISCABOX_GUIDES, ISCABOX_ATTRIBUTION, GUIDE_BY_ID };
+export { GUIDE_BY_ID };

@@ -106,7 +106,7 @@ export const POINTS = [
   {id:'N013',mode:'land',name:'Niterói — cais turístico',area:'Centro / Niterói',lat:-22.8945,lng:-43.1205,type:'Pier',confidence:58,species:['Robalo','Xaréu'],access:'Cais turístico de Niterói, ponta do pier',coast:{exposure:'baixa',facing:285,bottom:'misto',bestTide:'rising',water:'bay'}},
   {id:'N014',mode:'land',name:'Santa Rosa — mureta',area:'Niterói / RJ',lat:-22.9185,lng:-43.0955,type:'Orla',confidence:59,species:['Robalo','Corvina'],access:'Mureta da orla de Santa Rosa',coast:{exposure:'baixa',facing:275,bottom:'areia',bestTide:'rising',water:'bay'}},
 
-  // ── iscabox — pontos destacados Baía ──
+  // ── Baía — pontos destacados ──
   {id:'C064',mode:'land',name:'Prainha — Urca (pedras)',area:'Urca / RJ',lat:-22.9492,lng:-43.1635,type:'Pedra',confidence:76,species:['Robalo','Xaréu','Carapeba'],access:'Prainha da Urca, pedras na calçada ao lado da praia',coast:{exposure:'media',facing:82,bottom:'rocha',bestTide:'rising',water:'bay'}},
   {id:'I001',mode:'boat',name:'Ilha de Paquetá — costões',area:'Baía de Guanabara / RJ',lat:-22.7618,lng:-43.1072,type:'Ilha',confidence:80,species:['Robalo','Carapeba','Tainha'],access:'Ferry até Paquetá; pesca nos costões e pedras da ilha'},
   {id:'B009',mode:'boat',name:'Ponte Rio-Niterói — pilares',area:'Baía de Guanabara / RJ',lat:-22.8715,lng:-43.1330,type:'Estrutura',confidence:74,species:['Robalo','Xaréu','Carapeba'],access:'Embarcação; pesca nos pilares e entorno da ponte'},

@@ -1,17 +1,16 @@
-/** Guias iscabox (RJ) — gerado por scripts/import-iscabox-rj.mjs. Fonte: https://www.iscabox.com */
+/** Guias regionais (RJ) — uso interno Meira Fishing */
 export const ISCABOX_GUIDES = [
   {
     "id": "pesqueiro-portal-aguas-duque-caxias",
     "title": "Pesqueiro Portal das Águas Duque de Caxias",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/baixada-fluminense/pesqueiro-portal-aguas-duque-caxias-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.785,
       "lng": -43.305
     },
     "locality": "Duque de Caxias",
-    "intro": "Com base em informações compiladas pela iscabox, o Pesqueiro Portal das Águas oferece estrutura familiar completa em Duque de Caxias, na Baixada Fluminense. Localizado a 30 km do Rio, é conhecido pelos lagos bem mantidos com tilápias, pacus e tambaquis. Popular entre pescadores da região metropolitana que buscam pesca acessível.",
+    "intro": "O Pesqueiro Portal das Águas oferece estrutura familiar completa em Duque de Caxias, na Baixada Fluminense. Localizado a 30 km do Rio, é conhecido pelos lagos bem mantidos com tilápias, pacus e tambaquis. Popular entre pescadores da região metropolitana que buscam pesca acessível.",
     "species": [
       {
         "name": "Tilápia",
@@ -87,7 +86,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-botas",
     "title": "Rio Botas: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/baixada-fluminense/rio-botas-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.74,
@@ -158,7 +156,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-meriti",
     "title": "Rio Meriti: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/baixada-fluminense/rio-meriti-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.79,
@@ -242,7 +239,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-pavuna",
     "title": "Rio Pavuna: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/baixada-fluminense/rio-pavuna-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.82,
@@ -313,7 +309,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-sarapui",
     "title": "Rio Sarapuí: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/baixada-fluminense/rio-sarapui-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.76,
@@ -406,14 +401,13 @@ export const ISCABOX_GUIDES = [
     "id": "angra-reis",
     "title": "Angra dos Reis: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/angra-reis-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -23.007,
       "lng": -44.318
     },
     "locality": "Angra dos Reis",
-    "intro": "Com base em informações compiladas pela iscabox de pescadores e guias locais, Angra dos Reis é um dos principais destinos de pesca costeira do Rio de Janeiro. Com mais de 365 ilhas e inúmeras lajes, a região oferece pesca embarcada de alto nível para robalos, badejos, garoupas e outras espécies nobres. A combinação de águas cristalinas, estruturas rochosas e forte corrente marítima criam condições ideais para pesca esportiva.",
+    "intro": "Angra dos Reis é um dos principais destinos de pesca costeira do Rio de Janeiro. Com mais de 365 ilhas e inúmeras lajes, a região oferece pesca embarcada de alto nível para robalos, badejos, garoupas e outras espécies nobres. A combinação de águas cristalinas, estruturas rochosas e forte corrente marítima criam condições ideais para pesca esportiva.",
     "species": [
       {
         "name": "Xaréu",
@@ -566,7 +560,6 @@ export const ISCABOX_GUIDES = [
     "id": "baia-da-ribeira",
     "title": "Baía da Ribeira: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/baia-da-ribeira-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -23.01,
@@ -679,14 +672,13 @@ export const ISCABOX_GUIDES = [
     "id": "baia-sepetiba",
     "title": "Baía de Sepetiba",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/baia-sepetiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -23.01,
       "lng": -43.75
     },
     "locality": "Rio de Janeiro",
-    "intro": "Com base em informações compiladas pela iscabox de pescadores locais, a Baía de Sepetiba é a segunda maior baía do Rio de Janeiro e um importante destino de pesca na Zona Oeste. Menos conhecida que a Baía de Guanabara, Sepetiba oferece águas mais preservadas e produtivas com boa população de robalos, corvinas, carapebas e pescadas. A proximidade com marinas de Itaguaí, Sepetiba e Guaratiba torna o acesso facilitado.",
+    "intro": "A Baía de Sepetiba é a segunda maior baía do Rio de Janeiro e um importante destino de pesca na Zona Oeste. Menos conhecida que a Baía de Guanabara, Sepetiba oferece águas mais preservadas e produtivas com boa população de robalos, corvinas, carapebas e pescadas. A proximidade com marinas de Itaguaí, Sepetiba e Guaratiba torna o acesso facilitado.",
     "species": [
       {
         "name": "Sororoca",
@@ -830,7 +822,6 @@ export const ISCABOX_GUIDES = [
     "id": "barra-de-guaratiba",
     "title": "Barra de Guaratiba: guia completo de pesca nos manguezais cariocas",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/barra-de-guaratiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -23.0456,
@@ -918,7 +909,6 @@ export const ISCABOX_GUIDES = [
     "id": "ilha-grande",
     "title": "Ilha Grande: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/ilha-grande-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -23.15,
@@ -1032,7 +1022,6 @@ export const ISCABOX_GUIDES = [
     "id": "mangaratiba",
     "title": "Mangaratiba: guia completo de pesca na Costa Verde",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/mangaratiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -22.9567,
@@ -1128,14 +1117,13 @@ export const ISCABOX_GUIDES = [
     "id": "paraty-pesca",
     "title": "Paraty: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/paraty-pesca-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -23.218,
       "lng": -44.713
     },
     "locality": "Angra dos Reis",
-    "intro": "Com base em informações compiladas pela iscabox de pescadores e guias locais, Paraty é um destino excepcional para pesca costeira no litoral fluminense. Localizada entre o mar e a Serra da Bocaina, a região oferece águas cristalinas, dezenas de ilhas e costões rochosos ideais para pesca de robalos, anchovas e badejos. O centro histórico colonial combina perfeitamente com a pesca esportiva, tornando Paraty um destino completo.",
+    "intro": "Paraty é um destino excepcional para pesca costeira no litoral fluminense. Localizada entre o mar e a Serra da Bocaina, a região oferece águas cristalinas, dezenas de ilhas e costões rochosos ideais para pesca de robalos, anchovas e badejos. O centro histórico colonial combina perfeitamente com a pesca esportiva, tornando Paraty um destino completo.",
     "species": [
       {
         "name": "Robalo-flecha",
@@ -1286,7 +1274,6 @@ export const ISCABOX_GUIDES = [
     "id": "restinga-da-marambaia",
     "title": "Restinga da Marambaia: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/restinga-da-marambaia-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -23.05,
@@ -1389,7 +1376,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-bracui",
     "title": "Rio Bracuí: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/rio-bracui-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.965,
@@ -1488,7 +1474,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-guandu",
     "title": "Rio Guandu: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/rio-guandu-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.78,
@@ -1581,7 +1566,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-mambucaba",
     "title": "Rio Mambucaba: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/litoral-sul-fluminense/rio-mambucaba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -23.025,
@@ -1681,7 +1665,6 @@ export const ISCABOX_GUIDES = [
     "id": "jurubatiba",
     "title": "Restinga de Jurubatiba: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/jurubatiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.25,
@@ -1777,7 +1760,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-da-imboassica",
     "title": "Lagoa da Imboassica: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/lagoa-da-imboassica-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.34,
@@ -1867,7 +1849,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-feia",
     "title": "Lagoa Feia: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/lagoa-feia-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.05,
@@ -1965,7 +1946,6 @@ export const ISCABOX_GUIDES = [
     "id": "macae-mar",
     "title": "Macaé (Mar): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/macae-mar-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.37,
@@ -2067,7 +2047,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-das-ostras-mar",
     "title": "Rio das Ostras (Mar): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/rio-das-ostras-mar-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.53,
@@ -2163,7 +2142,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-macae",
     "title": "Rio Macaé: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/rio-macae-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.38,
@@ -2260,7 +2238,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-muriae-rj",
     "title": "Rio Muriaé (RJ): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/rio-muriae-rj-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -21.43,
@@ -2352,7 +2329,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-paraiba-do-sul-norte",
     "title": "Rio Paraíba do Sul (Norte): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/norte-fluminense/rio-paraiba-do-sul-norte-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -21.76,
@@ -2450,14 +2426,13 @@ export const ISCABOX_GUIDES = [
     "id": "arraial-do-cabo",
     "title": "Arraial do Cabo: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/arraial-do-cabo-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-21",
     "geo": {
       "lat": -22.966,
       "lng": -42.028
     },
     "locality": "Arraial do Cabo",
-    "intro": "Com base em informações compiladas pela iscabox, Arraial do Cabo é considerado o paraíso da pesca costeira no Brasil, conhecido mundialmente por suas águas cristalinas e rica biodiversidade marinha. O fenômeno da ressurgência traz águas frias e nutrientes que atraem grande variedade de peixes, incluindo robalos, badejos, garoupas e anchovas. Oferece pesca de classe mundial em praias desertas, costões rochosos e ilhas paradisíacas, sendo destino obrigatório para pescadores esportivos.",
+    "intro": "Arraial do Cabo é considerado o paraíso da pesca costeira no Brasil, conhecido mundialmente por suas águas cristalinas e rica biodiversidade marinha. O fenômeno da ressurgência traz águas frias e nutrientes que atraem grande variedade de peixes, incluindo robalos, badejos, garoupas e anchovas. Oferece pesca de classe mundial em praias desertas, costões rochosos e ilhas paradisíacas, sendo destino obrigatório para pescadores esportivos.",
     "species": [
       {
         "name": "Robalo-peva",
@@ -2585,14 +2560,13 @@ export const ISCABOX_GUIDES = [
     "id": "buzios",
     "title": "Búzios: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/buzios-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-21",
     "geo": {
       "lat": -22.747,
       "lng": -41.881
     },
     "locality": "Armação dos Búzios",
-    "intro": "Com base em informações compiladas pela iscabox, Búzios é um dos destinos turísticos mais sofisticados do Brasil e oferece excelente pesca costeira em suas mais de 20 praias. A península rochosa cria diversos ambientes para pesca de praia, costão e embarcado, com destaque para robalos, anchovas, pampos e badejos. Combina pescaria esportiva de qualidade com infraestrutura turística de primeiro mundo, gastronomia refinada e vida noturna agitada, sendo ideal para viagens em família ou grupos que buscam pesca e lazer.",
+    "intro": "Búzios é um dos destinos turísticos mais sofisticados do Brasil e oferece excelente pesca costeira em suas mais de 20 praias. A península rochosa cria diversos ambientes para pesca de praia, costão e embarcado, com destaque para robalos, anchovas, pampos e badejos. Combina pescaria esportiva de qualidade com infraestrutura turística de primeiro mundo, gastronomia refinada e vida noturna agitada, sendo ideal para viagens em família ou grupos que buscam pesca e lazer.",
     "species": [
       {
         "name": "Robalo-peva",
@@ -2720,14 +2694,13 @@ export const ISCABOX_GUIDES = [
     "id": "cabo-frio",
     "title": "Cabo Frio: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/cabo-frio-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-21",
     "geo": {
       "lat": -22.89,
       "lng": -42.02
     },
     "locality": "Cabo Frio",
-    "intro": "Com base em informações compiladas pela iscabox, Cabo Frio é um dos principais destinos de pesca costeira do Rio de Janeiro, conhecida por suas águas frias e cristalinas devido ao fenômeno da ressurgência. Oferece excelente pesca de praia, costão e embarcado, com grande diversidade de espécies como robalos, anchovas, pampos, garoupas e badejos. A infraestrutura turística completa permite combinar pescaria esportiva com férias em família.",
+    "intro": "Cabo Frio é um dos principais destinos de pesca costeira do Rio de Janeiro, conhecida por suas águas frias e cristalinas devido ao fenômeno da ressurgência. Oferece excelente pesca de praia, costão e embarcado, com grande diversidade de espécies como robalos, anchovas, pampos, garoupas e badejos. A infraestrutura turística completa permite combinar pescaria esportiva com férias em família.",
     "species": [
       {
         "name": "Robalo-peva",
@@ -2852,7 +2825,6 @@ export const ISCABOX_GUIDES = [
     "id": "itaipuacu",
     "title": "Itaipuaçu: guia completo de pesca de arremesso na praia",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/itaipuacu-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -22.9567,
@@ -2944,7 +2916,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-araruama-rj",
     "title": "Lagoa de Araruama (Rio de Janeiro): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-araruama-rj-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-01",
     "geo": {
       "lat": -22.877008,
@@ -3067,7 +3038,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-de-guarapina",
     "title": "Lagoa de Guarapina: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-de-guarapina-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.935,
@@ -3156,7 +3126,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-de-guaratiba",
     "title": "Lagoa de Guaratiba: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-de-guaratiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.945,
@@ -3233,7 +3202,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-de-marica",
     "title": "Lagoa de Maricá: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-de-marica-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.94,
@@ -3333,7 +3301,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-de-saquarema",
     "title": "Lagoa de Saquarema: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-de-saquarema-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.92,
@@ -3435,7 +3402,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-de-urussanga-mombaca",
     "title": "Lagoa de Urussanga/Mombaça: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-de-urussanga-mombaca-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.91,
@@ -3530,7 +3496,6 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-juturnaiba",
     "title": "Lagoa Juturnaíba: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/lagoa-juturnaiba-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.63,
@@ -3628,7 +3593,6 @@ export const ISCABOX_GUIDES = [
     "id": "marica-mar",
     "title": "Maricá (Mar): guia completo de pesca no litoral de Maricá",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/marica-mar-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -22.9234,
@@ -3720,7 +3684,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-sao-joao-rj",
     "title": "Rio São João (RJ): guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-dos-lagos/rio-sao-joao-rj-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.55,
@@ -3821,14 +3784,13 @@ export const ISCABOX_GUIDES = [
     "id": "baia-guanabara",
     "title": "Baía de Guanabara",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-metropolitana-rio-de-janeiro/baia-guanabara-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.85,
       "lng": -43.15
     },
     "locality": "Rio de Janeiro",
-    "intro": "Com base em informações compiladas pela iscabox de pescadores urbanos e guias locais, a Baía de Guanabara é um dos principais pontos de pesca urbana do Brasil. Apesar dos desafios ambientais, a baía ainda abriga populações de robalos, carapebas, pescadas e tainhas. Localizada no coração do Rio de Janeiro, oferece acesso facilitado com diversas marinas e pontos de largada, sendo ideal para pescadores que buscam praticidade.",
+    "intro": "A Baía de Guanabara é um dos principais pontos de pesca urbana do Brasil. Apesar dos desafios ambientais, a baía ainda abriga populações de robalos, carapebas, pescadas e tainhas. Localizada no coração do Rio de Janeiro, oferece acesso facilitado com diversas marinas e pontos de largada, sendo ideal para pescadores que buscam praticidade.",
     "species": [
       {
         "name": "Robalo-peva",
@@ -3956,14 +3918,13 @@ export const ISCABOX_GUIDES = [
     "id": "lagoa-rodrigo-freitas",
     "title": "Lagoa Rodrigo de Freitas",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-metropolitana-rio-de-janeiro/lagoa-rodrigo-freitas-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.97,
       "lng": -43.21
     },
     "locality": "Rio de Janeiro",
-    "intro": "Com base em informações compiladas pela iscabox, a Lagoa Rodrigo de Freitas é o mais icônico espelho d'água do Rio de Janeiro, cercada pelos bairros nobres de Ipanema, Leblon, Jardim Botânico, Gávea e Lagoa. Com 2,2 milhões de m², a lagoa oferece pesca urbana para tilápias, traíras e outras espécies. Além da pesca, é famosa pela ciclovia de 7,5 km, clubes de remo, pedalinhos e o Cristo Redentor como pano de fundo. Ponto turístico e de lazer para cariocas e visitantes.",
+    "intro": "A Lagoa Rodrigo de Freitas é o mais icônico espelho d'água do Rio de Janeiro, cercada pelos bairros nobres de Ipanema, Leblon, Jardim Botânico, Gávea e Lagoa. Com 2,2 milhões de m², a lagoa oferece pesca urbana para tilápias, traíras e outras espécies. Além da pesca, é famosa pela ciclovia de 7,5 km, clubes de remo, pedalinhos e o Cristo Redentor como pano de fundo. Ponto turístico e de lazer para cariocas e visitantes.",
     "species": [
       {
         "name": "Tilápia",
@@ -4080,7 +4041,6 @@ export const ISCABOX_GUIDES = [
     "id": "niteroi",
     "title": "Niterói: guia completo de pesca na Baía de Guanabara",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-metropolitana-rio-de-janeiro/niteroi-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -22.8838,
@@ -4177,7 +4137,6 @@ export const ISCABOX_GUIDES = [
     "id": "pesca-mar-aberto-rio",
     "title": "Pescaria de mar aberto no Rio: guia completo de pesca oceânica",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/regiao-metropolitana-rio-de-janeiro/pesca-mar-aberto-rio-guia-completo",
-    "source": "iscabox.com",
     "updated": "2026-01-08",
     "geo": {
       "lat": -22.9068,
@@ -4265,7 +4224,6 @@ export const ISCABOX_GUIDES = [
     "id": "represa-de-paracambi",
     "title": "Represa de Paracambi: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/represa-de-paracambi-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.61,
@@ -4358,14 +4316,13 @@ export const ISCABOX_GUIDES = [
     "id": "represa-funil",
     "title": "Represa do Funil",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/represa-funil-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.54,
       "lng": -44.62
     },
     "locality": "Resende",
-    "intro": "Com base em informações compiladas pela iscabox, a Represa do Funil é uma represa hidrelétrica no Rio Paraíba do Sul, localizada entre Resende e Itatiaia, no Vale do Paraíba fluminense. Com 40 km² de espelho d'água, oferece pesca esportiva para tucunarés, traíras e tilápias. Com paisagem de Mata Atlântica e vista para o Parque Nacional de Itatiaia, é destino tradicional de pescadores do Rio de Janeiro, São Paulo e Minas Gerais que buscam pesca esportiva próxima aos grandes centros.",
+    "intro": "A Represa do Funil é uma represa hidrelétrica no Rio Paraíba do Sul, localizada entre Resende e Itatiaia, no Vale do Paraíba fluminense. Com 40 km² de espelho d'água, oferece pesca esportiva para tucunarés, traíras e tilápias. Com paisagem de Mata Atlântica e vista para o Parque Nacional de Itatiaia, é destino tradicional de pescadores do Rio de Janeiro, São Paulo e Minas Gerais que buscam pesca esportiva próxima aos grandes centros.",
     "species": [
       {
         "name": "Tucunaré",
@@ -4482,14 +4439,13 @@ export const ISCABOX_GUIDES = [
     "id": "represa-lajes",
     "title": "Represa de Lajes: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/represa-lajes-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.68,
       "lng": -43.99
     },
     "locality": "Piraí",
-    "intro": "Com base em informações compiladas pela iscabox, a Represa de Lajes está localizada na Serra dos Órgãos, no sul do estado do Rio de Janeiro, próxima aos municípios de Piraí e Barra do Piraí. Criada para geração de energia e abastecimento, a represa possui águas claras e boa profundidade, sendo conhecida pela pesca esportiva de traíras e tucunarés. Com acesso relativamente fácil a apenas 130 km da capital fluminense, é um destino popular entre pescadores urbanos, especialmente durante a seca (jun-dez) quando os peixes estão mais concentrados.",
+    "intro": "A Represa de Lajes está localizada na Serra dos Órgãos, no sul do estado do Rio de Janeiro, próxima aos municípios de Piraí e Barra do Piraí. Criada para geração de energia e abastecimento, a represa possui águas claras e boa profundidade, sendo conhecida pela pesca esportiva de traíras e tucunarés. Com acesso relativamente fácil a apenas 130 km da capital fluminense, é um destino popular entre pescadores urbanos, especialmente durante a seca (jun-dez) quando os peixes estão mais concentrados.",
     "species": [
       {
         "name": "Tucunaré",
@@ -4584,14 +4540,13 @@ export const ISCABOX_GUIDES = [
     "id": "rio-grande-rj",
     "title": "Rio Grande em Bom Jardim: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/rio-grande-rj-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.15,
       "lng": -42.42
     },
     "locality": "Bom Jardim",
-    "intro": "Com base em informações compiladas pela iscabox, o Rio Grande em Bom Jardim atravessa a Serra dos Órgãos no interior do estado do Rio de Janeiro, passando por municípios como Bom Jardim e Cantagalo. Com águas relativamente limpas e corredeiras rasas, o rio oferece pesca de traíras, lambaris e curimbatés, sendo uma opção tranquila para pescadores que buscam contato com a natureza serrana. Com acesso fácil a 140 km do Rio de Janeiro, é um destino popular para pescarias de fim de semana, especialmente no outono e inverno quando o rio está mais calmo.",
+    "intro": "O Rio Grande em Bom Jardim atravessa a Serra dos Órgãos no interior do estado do Rio de Janeiro, passando por municípios como Bom Jardim e Cantagalo. Com águas relativamente limpas e corredeiras rasas, o rio oferece pesca de traíras, lambaris e curimbatés, sendo uma opção tranquila para pescadores que buscam contato com a natureza serrana. Com acesso fácil a 140 km do Rio de Janeiro, é um destino popular para pescarias de fim de semana, especialmente no outono e inverno quando o rio está mais calmo.",
     "species": [
       {
         "name": "Traíra",
@@ -4688,14 +4643,13 @@ export const ISCABOX_GUIDES = [
     "id": "rio-paraiba-sul-rj",
     "title": "Rio Paraíba do Sul em Volta Redonda",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/rio-paraiba-sul-rj-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-11-05",
     "geo": {
       "lat": -22.52,
       "lng": -43.75
     },
     "locality": "Barra do Piraí",
-    "intro": "Com base em informações compiladas pela iscabox, o Rio Paraíba do Sul na região de Volta Redonda e Barra do Piraí oferece pesca esportiva de qualidade para espécies nativas. Com 1.145 km de extensão, este importante rio brasileiro atravessa São Paulo, Rio de Janeiro e Minas Gerais. No trecho fluminense, destaca-se pela pesca de dourados, surubins, traíras e piaparas. A região de Volta Redonda é ponto estratégico para pescadores que buscam estrutura urbana próxima a pontos produtivos de pesca de barranco e embarcada.",
+    "intro": "O Rio Paraíba do Sul na região de Volta Redonda e Barra do Piraí oferece pesca esportiva de qualidade para espécies nativas. Com 1.145 km de extensão, este importante rio brasileiro atravessa São Paulo, Rio de Janeiro e Minas Gerais. No trecho fluminense, destaca-se pela pesca de dourados, surubins, traíras e piaparas. A região de Volta Redonda é ponto estratégico para pescadores que buscam estrutura urbana próxima a pontos produtivos de pesca de barranco e embarcada.",
     "species": [
       {
         "name": "Piapara",
@@ -4831,7 +4785,6 @@ export const ISCABOX_GUIDES = [
     "id": "rio-pirai",
     "title": "Rio Piraí: guia completo de pesca",
     "url": "https://www.iscabox.com/blog/locais/brasil/rio-de-janeiro/serra-dos-orgaos/rio-pirai-guia-completo",
-    "source": "iscabox.com",
     "updated": "2025-12-21",
     "geo": {
       "lat": -22.63,
@@ -4922,9 +4875,3 @@ export const ISCABOX_GUIDES = [
     }
   }
 ];
-
-export const ISCABOX_ATTRIBUTION = {
-  name: 'iscabox',
-  url: 'https://www.iscabox.com',
-  note: 'Dados compilados de guias públicos da iscabox.',
-};
