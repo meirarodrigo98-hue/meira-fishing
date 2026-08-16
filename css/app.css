@@ -795,11 +795,9 @@ body.login-done .login-screen{display:none!important}
 .login-remember input{width:18px;height:18px;accent-color:var(--login-teal);cursor:pointer}
 
 .login-error{
-  position:absolute;left:0;right:0;top:50%;z-index:4;
-  margin:0;padding:0;border:none;background:none;
-  transform:translateY(-50%);
+  margin:-6px 0 2px;padding:0;border:none;background:none;
   text-align:center;font-size:13px;font-weight:800;letter-spacing:1.2px;
-  text-transform:uppercase;color:#c0392b;pointer-events:none
+  text-transform:uppercase;color:#c0392b
 }
 .login-error.is-hidden{display:none!important}
 
