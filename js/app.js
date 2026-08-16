@@ -24,8 +24,8 @@ async function handleReady(pos, label) {
   showSearching();
   const { estimated } = await loadWeather(pos);
   if (estimated) toast('Sem dados de clima ao vivo — usando estimativa.');
-  ready(label);
-  renderList(POINTS);
+  renderList(POINTS, { nearby: true });
+  ready();
 }
 
 boot();

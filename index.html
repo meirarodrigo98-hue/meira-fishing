@@ -18,19 +18,24 @@
 <div class="map-dim" id="mapDim" aria-hidden="true"></div>
 
 <header class="topbar">
-  <p class="status" id="statusLine">Achando você…</p>
+  <p class="status" id="statusLine">Mapa do RJ</p>
   <button class="btn-icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
 </header>
 
-<!-- Gatilho: mapa limpo -->
-<div class="spots-entry" id="spotsEntry">
-  <button class="spots-entry-btn" id="openPoints" type="button">
-    <span class="entry-pulse"></span>
-    Ver pontos de pesca
+<div class="radar-dock" id="radarDock">
+  <button class="radar-btn" id="captureLocation" type="button">
+    <span class="radar-icon" aria-hidden="true"></span>
+    Ligar radar de pontos
   </button>
 </div>
 
-<!-- Card de pontos -->
+<div class="spots-entry hidden" id="spotsEntry">
+  <button class="spots-entry-btn" id="openPoints" type="button">
+    <span class="entry-pulse"></span>
+    <span id="openPointsLabel">Ver pontos próximos</span>
+  </button>
+</div>
+
 <aside class="spots-card" id="spotsCard" aria-hidden="true">
   <div class="spots-bar"></div>
 
@@ -65,26 +70,23 @@
   <button class="nav-stop" id="stopNav" type="button">Parar</button>
 </div>
 
-<section id="boot">
-  <div class="bootbox" id="bootWelcome">
-    <div class="pulse">M</div>
-    <h2>Pontos de pesca no RJ</h2>
-    <p>39 locais no mapa. Capture sua localização para saber o que vale ir agora perto de você.</p>
-    <button class="boot-cta" id="captureLocation" type="button">Capturar minha localização</button>
+<div class="radar-scan hidden" id="radarScan" aria-live="polite">
+  <div class="radar-stage">
+    <span class="radar-ring"></span>
+    <span class="radar-ring"></span>
+    <span class="radar-ring"></span>
+    <span class="radar-sweep"></span>
+    <span class="radar-core"></span>
   </div>
-  <div class="bootbox hidden" id="bootLoading">
-    <div class="pulse loading">M</div>
-    <h2>Pesquisando melhores pontos…</h2>
-    <p id="bootLoadingHint">Achando você no mapa</p>
-  </div>
-</section>
+  <p class="radar-label" id="bootLoadingHint">Ligando radar…</p>
+</div>
 
 <section id="fallback" class="hidden">
   <div class="fallbox">
     <h2>Sem GPS</h2>
-    <p>Escolha um bairro para continuar.</p>
+    <p>Escolha um bairro para ligar o radar.</p>
     <div class="places" id="places"></div>
-    <button class="ghost" id="retryGps" type="button">Tentar GPS de novo</button>
+    <button class="ghost" id="retryGps" type="button">Ligar radar de novo</button>
   </div>
 </section>
 

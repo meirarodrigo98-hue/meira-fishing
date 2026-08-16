@@ -1,10 +1,11 @@
-import { $, fmtKm, km, mapsUrl, toast } from '../lib/utils.js';
+import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
 import { state, setFilter, setNavigating, setSelected } from '../lib/state.js';
 import { rankPoints, verdict } from '../lib/scoring.js';
 import {
   clearRoute,
   drawRoute,
   flyToPoint,
+  fitNearby,
   invalidateMapSize,
   recenterUser,
   renderMarkers,
@@ -52,15 +53,15 @@ function closeSpots() {
 }
 
 const LOADING_HINTS = [
-  'Achando você no mapa',
-  'Consultando condições do mar',
-  'Analisando vento e ondas',
-  'Ranqueando os melhores pontos',
+  'Ligando radar…',
+  'Capturando sua posição…',
+  'Escaneando pontos próximos…',
+  'Calculando o melhor agora…',
 ];
 let loadingTimer = null;
 
 export function bindUi({ onCapture, onRelocate }) {
-  onRefresh = () => renderList(pointsRef);
+  onRefresh = () => renderList(pointsRef, { nearby: document.body.classList.contains('app-ready') });
 
   $('captureLocation').onclick = onCapture;
 
@@ -105,6 +106,10 @@ function setEntryVisible(show) {
   els().entry?.classList.toggle('hidden', !show);
 }
 
+function setRadarDockVisible(show) {
+  $('radarDock')?.classList.toggle('hidden', !show);
+}
+
 function stopLoadingHints() {
   if (loadingTimer != null) {
     clearInterval(loadingTimer);
@@ -114,12 +119,10 @@ function stopLoadingHints() {
 
 export function showSearching() {
   stopLoadingHints();
-  $('boot').classList.remove('hidden');
-  $('boot').classList.add('boot-searching');
-  $('bootWelcome').classList.add('hidden');
-  $('bootLoading').classList.remove('hidden');
-  $('fallback').classList.add('hidden');
-  $('statusLine').textContent = 'Pesquisando…';
+  $('radarScan')?.classList.remove('hidden');
+  setRadarDockVisible(false);
+  $('fallback')?.classList.add('hidden');
+  $('statusLine').textContent = 'Radar ativo…';
   setEntryVisible(false);
 
   let i = 0;
@@ -128,35 +131,35 @@ export function showSearching() {
   loadingTimer = setInterval(() => {
     i = (i + 1) % LOADING_HINTS.length;
     if (hint) hint.textContent = LOADING_HINTS[i];
-  }, 1800);
+  }, 1600);
 }
 
 export function showFallback() {
   stopLoadingHints();
-  $('boot').classList.add('hidden');
-  $('boot').classList.remove('boot-searching');
-  $('bootWelcome').classList.remove('hidden');
-  $('bootLoading').classList.add('hidden');
-  $('fallback').classList.remove('hidden');
+  $('radarScan')?.classList.add('hidden');
+  setRadarDockVisible(true);
+  $('fallback')?.classList.remove('hidden');
   setEntryVisible(false);
 }
 
 export function hideOverlays() {
   stopLoadingHints();
-  $('boot').classList.add('hidden');
-  $('boot').classList.remove('boot-searching');
-  $('bootWelcome').classList.remove('hidden');
-  $('bootLoading').classList.add('hidden');
-  $('fallback').classList.add('hidden');
+  $('radarScan')?.classList.add('hidden');
+  $('fallback')?.classList.add('hidden');
 }
 
-export function ready(label) {
+export function ready() {
   hideOverlays();
   document.body.classList.add('app-ready');
-  $('statusLine').textContent = label;
+  setRadarDockVisible(false);
+
+  const count = rows.length;
+  $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
+  $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
   $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
   setEntryVisible(true);
-  if (onRefresh) onRefresh();
+  fitNearby(pointsRef);
+  openSpots();
 }
 
 export function openPoint(point) {
@@ -225,9 +228,16 @@ function step(delta) {
   showAt(index + delta, { fly: true });
 }
 
-export function renderList(points) {
-  rows = rankPoints(points, state.userPos, state.filter, state.weather);
+export function renderList(points, { nearby = false } = {}) {
+  const all = rankPoints(points, state.userPos, state.filter, state.weather);
+  rows = nearby && state.userPos ? filterNearby(all) : all;
   $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
+
+  if (document.body.classList.contains('app-ready')) {
+    const count = rows.length;
+    $('statusLine').textContent = count ? `${count} pontos no radar` : 'Radar ligado';
+    $('openPointsLabel').textContent = count ? `${count} pontos próximos` : 'Ver pontos próximos';
+  }
 
   const preserve = lastId && rows.some((r) => r.p.id === lastId) ? lastId : rows[0]?.p?.id;
   showAt(idxOf(preserve), { fly: isOpen() });

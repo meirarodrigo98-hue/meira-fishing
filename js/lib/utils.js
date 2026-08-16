@@ -27,6 +27,14 @@ export function km(a, b) {
 
 export const fmtKm = (n) => (n < 1 ? `${Math.round(n * 1000)} m` : `${n.toFixed(1)} km`);
 
+/** Raio do radar — pontos além disso ficam fora após ligar. */
+export const NEARBY_KM = 25;
+
+export function filterNearby(rows, maxKm = NEARBY_KM) {
+  const near = rows.filter((r) => r.distance != null && r.distance <= maxKm);
+  return near.length ? near : rows.slice(0, 10);
+}
+
 export function matchesFilter(point, filter) {
   if (filter === 'terra') return point.mode === 'land' && point.type !== 'Lagoa';
   if (filter === 'barco') return point.mode === 'boat';

@@ -1,5 +1,6 @@
 import { state, setUserPos } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
+import { km, NEARBY_KM } from '../lib/utils.js';
 
 /** Mapa Leaflet — marcadores, rota, destaque do melhor ponto. */
 let map = null;
@@ -8,11 +9,12 @@ let routeLine = null;
 let bestPointId = null;
 const markers = new Map();
 
-function markerIcon(point, isBest) {
+function markerIcon(point, isBest, far = false) {
   const best = isBest ? ' best' : '';
+  const dim = far ? ' far' : '';
   return L.divIcon({
     className: '',
-    html: `<div class="marker ${point.mode}${best}"></div>`,
+    html: `<div class="marker ${point.mode}${best}${dim}"></div>`,
     iconSize: [22, 30],
     iconAnchor: [11, 30],
   });
@@ -78,19 +80,31 @@ export function flyToPoint(point) {
   map.flyTo([point.lat, point.lng], 14, { duration: 0.5 });
 }
 
+export function fitNearby(points, maxKm = NEARBY_KM) {
+  if (!map || !state.userPos) return;
+  const near = points.filter((p) => km(state.userPos, p) <= maxKm);
+  const bounds = L.latLngBounds([[state.userPos.lat, state.userPos.lng]]);
+  near.forEach((p) => bounds.extend([p.lat, p.lng]));
+  map.fitBounds(bounds.pad(0.18), { duration: 0.6 });
+}
+
 export function renderMarkers(points) {
   if (!map) return;
   const ranked = rankPoints(points, state.userPos, state.filter, state.weather);
-  const visible = new Set(ranked.map((x) => x.p.id));
+  const radarOn = document.body.classList.contains('app-ready');
 
   points.forEach((p) => {
     const marker = markers.get(p.id);
     if (!marker) return;
 
+    const row = ranked.find((r) => r.p.id === p.id);
+    const distance = row?.distance ?? (state.userPos ? km(state.userPos, p) : null);
+    const isNear = !radarOn || distance == null || distance <= NEARBY_KM;
     const isBest = p.id === bestPointId;
-    marker.setIcon(markerIcon(p, isBest));
 
-    if (visible.has(p.id)) {
+    marker.setIcon(markerIcon(p, isBest, radarOn && !isNear));
+
+    if (!radarOn || isNear) {
       if (!map.hasLayer(marker)) marker.addTo(map);
     } else if (map.hasLayer(marker)) {
       map.removeLayer(marker);
