@@ -739,19 +739,19 @@ body.login-done .login-screen{display:none!important}
 
 .login-logo-wrap{
   position:relative;display:flex;justify-content:center;align-items:center;
-  margin:0 auto 4px;min-height:180px
+  margin:0 auto 4px;min-height:200px
 }
 .login-logo-glow{
-  position:absolute;width:min(68vw,220px);height:min(68vw,220px);border-radius:50%;
-  background:radial-gradient(circle,rgba(42,157,143,.35) 0%,rgba(42,157,143,.08) 45%,transparent 70%);
-  filter:blur(8px);
+  position:absolute;width:min(75vw,240px);height:min(75vw,240px);border-radius:50%;
+  background:radial-gradient(circle,rgba(42,157,143,.28) 0%,rgba(42,157,143,.06) 45%,transparent 70%);
+  filter:blur(10px);
   animation:login-logo-pulse 4s ease-in-out infinite
 }
 @keyframes login-logo-pulse{0%,100%{opacity:.75;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
 
 .login-logo{
-  position:relative;z-index:1;display:block;width:min(72vw,250px);height:auto;
-  filter:drop-shadow(0 12px 32px rgba(0,0,0,.35)) drop-shadow(0 0 24px rgba(42,157,143,.2));
+  position:relative;z-index:1;display:block;width:min(78vw,270px);height:auto;
+  filter:drop-shadow(0 10px 28px rgba(0,0,0,.4)) drop-shadow(0 0 20px rgba(42,157,143,.15));
   animation:login-logo-float 5s ease-in-out infinite
 }
 @keyframes login-logo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
