@@ -1,4 +1,4 @@
-import { clearPointWeather, setPointWeather } from './state.js';
+import { clearPointWeather, setPointWeather, state } from './state.js';
 
 /** Open-Meteo — clima e mar por coordenada do ponto. */
 const FETCH_MS = 6000;
@@ -72,8 +72,8 @@ export async function loadPointWeather(point) {
   }
 }
 
-export async function loadWeatherBatch(points, onProgress) {
-  clearPointWeather();
+async function loadPoints(points, onProgress, { clear = false } = {}) {
+  if (clear) clearPointWeather();
   if (!points.length) return { estimated: false, loaded: 0 };
 
   let done = 0;
@@ -96,6 +96,16 @@ export async function loadWeatherBatch(points, onProgress) {
   await Promise.all(workers);
 
   return { estimated: anyEstimated, loaded: done };
+}
+
+export async function loadWeatherBatch(points, onProgress) {
+  return loadPoints(points, onProgress, { clear: true });
+}
+
+/** Só busca pontos que ainda não têm clima (ex.: troca de filtro). */
+export async function loadMissingWeather(points, onProgress) {
+  const missing = points.filter((p) => !state.weatherByPoint.has(p.id));
+  return loadPoints(missing, onProgress, { clear: false });
 }
 
 /** Compat — carrega um único ponto (ex.: fallback). */

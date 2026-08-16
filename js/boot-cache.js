@@ -40,47 +40,38 @@
     });
   }
 
-  function applyVersion(id, { forceReload } = {}) {
+  function applyVersion(id) {
     if (!id || id === 'dev') return false;
 
     var url = new URL(location.href);
     var cur = url.searchParams.get('v');
     var stored = readStored();
 
-    if (forceReload || (stored && stored !== id) || (cur && cur !== id)) {
-      clearCaches();
+    if (stored === id && cur === id) {
       writeStored(id);
-      url.searchParams.set('v', id);
-      location.replace(url.href);
-      return true;
+      return false;
     }
 
-    if (cur !== id) {
-      writeStored(id);
-      url.searchParams.set('v', id);
-      location.replace(url.href);
-      return true;
-    }
-
+    clearCaches();
     writeStored(id);
-    return false;
+    url.searchParams.set('v', id);
+    location.replace(url.href);
+    return true;
   }
 
-  function check(forceReload) {
+  function check() {
     return fetchVersion()
       .then(function (data) {
         if (!data || !data.id) return;
-        applyVersion(data.id, { forceReload: forceReload });
+        applyVersion(data.id);
       })
       .catch(function () {});
   }
 
-  check(false);
-  setInterval(function () {
-    check(true);
-  }, CHECK_MS);
+  check();
+  setInterval(check, CHECK_MS);
 
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible') check(true);
+    if (document.visibilityState === 'visible') check();
   });
 })();

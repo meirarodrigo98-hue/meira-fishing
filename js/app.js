@@ -1,7 +1,7 @@
 import { toast } from './lib/utils.js';
 import { POINTS } from './data/points.js';
 import { PLACES } from './data/places.js';
-import { loadWeatherBatch } from './lib/weather.js';
+import { loadWeatherBatch, loadMissingWeather } from './lib/weather.js';
 import { filterNearby } from './lib/utils.js';
 import { rankPoints } from './lib/scoring.js';
 import { createMap } from './features/map.js';
@@ -17,11 +17,23 @@ import {
   showRecover,
   showSearching,
 } from './features/ui.js';
-import { state } from './lib/state.js';
+import { state, getPointWeather } from './lib/state.js';
 import { beginTracking, captureLocation, retryLocation, useManualPlace } from './features/location.js';
 
 const MIN_RADAR_MS = 1600;
 const MAX_RADAR_MS = 22000;
+
+let radarBusy = false;
+
+function startRadar(onReady) {
+  if (radarBusy) return;
+  radarBusy = true;
+  onReady();
+}
+
+function endRadar() {
+  radarBusy = false;
+}
 
 function nearbyPoints() {
   const ranked = rankPoints(POINTS, state.userPos, state.filter, null);
@@ -33,14 +45,34 @@ async function boot() {
   createMap(POINTS, openPoint);
 
   bindUi({
-    onCapture: () => captureLocation(finishRadar, () => {}),
-    onRelocate: () => retryLocation(finishRadar, () => {}),
+    onCapture: () =>
+      startRadar(() =>
+        captureLocation(
+          () => finishRadar(),
+          () => endRadar(),
+        ),
+      ),
+    onRelocate: () =>
+      startRadar(() =>
+        retryLocation(
+          () => finishRadar(),
+          () => endRadar(),
+        ),
+      ),
+    onFilterChange: async (points) => {
+      const missing = points.filter((p) => !getPointWeather(p.id));
+      if (!missing.length) return;
+      await loadMissingWeather(missing, setRadarProgress);
+      renderList(POINTS, { nearby: true });
+    },
   });
 
   renderPlaces(PLACES, (place) => {
-    hideRecover();
-    showSearching();
-    useManualPlace(place, () => finishRadar());
+    startRadar(() => {
+      hideRecover();
+      showSearching();
+      useManualPlace(place, () => finishRadar());
+    });
   });
 }
 
@@ -56,6 +88,8 @@ async function finishRadar() {
     } else {
       showRecover('unavailable');
     }
+  } finally {
+    endRadar();
   }
 }
 

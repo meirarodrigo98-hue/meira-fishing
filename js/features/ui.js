@@ -16,6 +16,7 @@ import {
 
 /** Card de pontos estilo mapa nativo — abrir, navegar, ir. */
 let onRefresh = null;
+let onFilterChange = null;
 let pointsRef = [];
 let rows = [];
 let index = 0;
@@ -93,8 +94,9 @@ function closeSpots() {
   invalidateMapSize();
 }
 
-export function bindUi({ onCapture, onRelocate }) {
+export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   onRefresh = () => renderList(pointsRef);
+  onFilterChange = onFilter;
 
   $('captureLocation').onclick = onCapture;
 
@@ -103,6 +105,7 @@ export function bindUi({ onCapture, onRelocate }) {
       setFilter(btn.dataset.filter);
       $('filters').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === btn));
       renderList(pointsRef);
+      onFilterChange?.(rows.map((r) => r.p));
     };
   });
 
@@ -360,12 +363,17 @@ function stopNav() {
   setEntryVisible(true);
 }
 
+let moveTimer = null;
+
 export function onUserMoved() {
-  if (onRefresh) onRefresh();
-  if (state.navigating && state.selected && state.userPos) {
-    updateRoute(state.userPos, state.selected);
-    $('navMeta').textContent = `${fmtKm(km(state.userPos, state.selected))} · rota no mapa`;
-  }
+  clearTimeout(moveTimer);
+  moveTimer = setTimeout(() => {
+    if (onRefresh) onRefresh();
+    if (state.navigating && state.selected && state.userPos) {
+      updateRoute(state.userPos, state.selected);
+      $('navMeta').textContent = `${fmtKm(km(state.userPos, state.selected))} · rota no mapa`;
+    }
+  }, 800);
 }
 
 // compat
