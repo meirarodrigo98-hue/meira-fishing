@@ -22,8 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Prepare site
         run: |
+          V="${GITHUB_SHA:0:12}"
           mkdir -p _site/css _site/js/data _site/js/lib _site/js/features
           cp index.html _site/index.html
           cp css/app.css _site/css/app.css
@@ -32,8 +34,11 @@ jobs:
           cp js/data/*.js _site/js/data/
           cp js/lib/*.js _site/js/lib/
           cp js/features/*.js _site/js/features/
-          cp .nojekyll _site/.nojekyll
-          printf '{"id":"%s","at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _site/version.json
+          touch _site/.nojekyll
+          printf '{"id":"%s","at":"%s"}\n' "$V" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _site/version.json
+          chmod +x scripts/stamp-version.sh
+          ./scripts/stamp-version.sh _site "$V"
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
