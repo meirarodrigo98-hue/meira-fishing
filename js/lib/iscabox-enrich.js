@@ -177,6 +177,44 @@ export function enrichPoint(point) {
   };
 }
 
+function decodeText(s) {
+  return (s || '')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&');
+}
+
+export function pointAreaPanel(point) {
+  const e = enrichPoint(point);
+  if (!e?.guide) return null;
+
+  const guide = e.guide;
+  const techniques = (guide.techniques || [])
+    .slice(0, 2)
+    .map((t) => ({
+      title: t.title,
+      steps: (t.steps || []).slice(0, 3).map(decodeText),
+      gear: decodeText(t.gear),
+    }));
+
+  return {
+    areaTitle: guide.title || point.area,
+    intro: decodeText(guide.intro)?.slice(0, 320) || null,
+    species: (e.species || []).slice(0, 6),
+    spot: e.spot
+      ? {
+          name: e.spot.name,
+          depth: e.spot.depth,
+          bestTime: e.spot.bestTime,
+        }
+      : null,
+    techniques,
+    dos: (e.tips?.dos || []).filter((t) => t && !isOperatorTip(t)).slice(0, 5),
+    donts: (e.tips?.donts || []).slice(0, 4),
+  };
+}
+
 export function catalogSpeciesLabel(point) {
   const e = enrichPoint(point);
   if (!e?.species?.length) return point.species?.slice(0, 3).join(', ') || '';

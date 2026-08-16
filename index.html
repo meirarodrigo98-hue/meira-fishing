@@ -106,7 +106,7 @@
 </div>
 
 <aside class="spots-card" id="spotsCard" aria-hidden="true">
-  <div class="spots-bar"></div>
+  <button class="spots-bar" id="spotsBar" type="button" aria-label="Fechar"></button>
 
   <div class="spots-filters" id="filters">
     <button class="chip on" data-filter="todos" type="button">Todos</button>
@@ -118,9 +118,11 @@
 
   <div class="spots-scroll">
     <div class="spots-body" id="spotsBody">
+      <p class="spots-area-label" id="cardAreaLabel"></p>
       <h2 class="spots-name" id="cardName">—</h2>
       <p class="spots-meta" id="cardMeta">—</p>
       <p class="spots-access" id="cardAccess"></p>
+      <div class="spots-area-info" id="cardAreaInfo"></div>
     </div>
   </div>
 
