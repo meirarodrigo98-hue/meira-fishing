@@ -3,11 +3,11 @@ const SESSION_KEY = 'mf_session';
 const REMEMBER_DAYS = 30;
 const SESSION_HOURS = 12;
 
-/** SHA-256 de "meira" — altere a senha em hashPassword() e cole o novo hash aqui. */
+/** SHA-256 de "100751rm" — altere a senha em hashPassword() e cole o novo hash aqui. */
 const USERS = {
-  meira: {
-    hash: '772efa842b7119e057d4197a71637183e01b1ce92760896ded209165a8f504d9',
-    name: 'Meira',
+  rd: {
+    hash: 'e0adc2679d19b5405000c985be5b763fed121e380dfcc0d8592c084e7326c163',
+    name: 'RD',
     admin: true,
   },
 };
