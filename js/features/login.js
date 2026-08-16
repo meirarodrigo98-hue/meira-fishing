@@ -18,6 +18,8 @@ function hideLogin() {
   $('loginScreen')?.classList.add('is-hidden');
   document.body.classList.remove('login-pending');
   document.body.classList.add('login-done');
+  document.body.style.removeProperty('top');
+  window.scrollTo(0, 0);
 }
 
 function syncProfileFromSession(session) {
