@@ -14,12 +14,12 @@ let bestPointId = null;
 let onPointClickRef = null;
 const markers = new Map();
 
-function markerIcon(point, isBest) {
+function markerIcon(point, { pulse = false, best = false } = {}) {
   const mode = point.personal ? 'personal' : point.mode === 'boat' ? 'boat' : 'land';
-  const best = isBest ? ' best' : '';
+  const extra = `${pulse ? ' nearby' : ''}${best ? ' best' : ''}`;
   return L.divIcon({
     className: '',
-    html: `<div class="marker ${mode}${best}"></div>`,
+    html: `<div class="marker ${mode}${extra}"></div>`,
     iconSize: [22, 30],
     iconAnchor: [11, 30],
   });
@@ -27,7 +27,7 @@ function markerIcon(point, isBest) {
 
 function attachMarker(point) {
   if (!map || markers.has(point.id)) return;
-  const marker = L.marker([point.lat, point.lng], { icon: markerIcon(point, false) })
+  const marker = L.marker([point.lat, point.lng], { icon: markerIcon(point) })
     .bindTooltip(point.name, { direction: 'top', offset: [0, -28] })
     .on('click', (e) => {
       L.DomEvent.stopPropagation(e);
@@ -205,7 +205,7 @@ export function fitNearby(points, subset = null) {
   }
 }
 
-export function renderMarkers(points, visibleIds = null) {
+export function renderMarkers(points, visibleIds = null, { pulseVisible = false } = {}) {
   if (!map) return;
 
   const showIds = new Set(
@@ -221,10 +221,11 @@ export function renderMarkers(points, visibleIds = null) {
     const marker = markers.get(p.id);
     if (!marker) return;
 
+    const visible = showIds.has(p.id);
     const isBest = p.id === bestPointId;
-    marker.setIcon(markerIcon(p, isBest));
+    marker.setIcon(markerIcon(p, { pulse: pulseVisible && visible, best: isBest }));
 
-    if (showIds.has(p.id)) {
+    if (visible) {
       if (!map.hasLayer(marker)) marker.addTo(map);
     } else if (map.hasLayer(marker)) {
       map.removeLayer(marker);

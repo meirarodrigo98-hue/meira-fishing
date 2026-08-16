@@ -712,10 +712,15 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
 
 .marker{width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;transition:opacity .35s ease,transform .35s ease}
 .marker.land{background:var(--a)}.marker.boat{background:var(--b)}.marker.personal{background:#fbbf24}.marker.personal{background:#fbbf24}
-.marker.best{animation:mglow 1.8s ease infinite}
+.marker.nearby{animation:mglow 1.8s ease infinite}
+.marker.best{animation:mglow-strong 1.4s ease infinite}
 @keyframes mglow{
-  0%,100%{filter:drop-shadow(0 0 4px rgba(45,212,191,.6))}
-  50%{filter:drop-shadow(0 0 10px rgba(45,212,191,.9))}
+  0%,100%{filter:drop-shadow(0 0 4px rgba(45,212,191,.6));transform:rotate(-45deg) scale(1)}
+  50%{filter:drop-shadow(0 0 10px rgba(45,212,191,.95));transform:rotate(-45deg) scale(1.08)}
+}
+@keyframes mglow-strong{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(45,212,191,.85));transform:rotate(-45deg) scale(1.05)}
+  50%{filter:drop-shadow(0 0 14px rgba(45,212,191,1));transform:rotate(-45deg) scale(1.12)}
 }
 
 .leaflet-control-attribution{font-size:7px;opacity:.45}
@@ -732,7 +737,7 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
 
 @media(prefers-reduced-motion:reduce){
   .spots-card,.map-dim,.spots-entry,.radar-dock,.topbar,.leaflet-bottom{transition:none!important}
-  .entry-pulse,.marker.best,.radar-ring,.radar-sweep::after,.radar-icon{animation:none!important}
+  .entry-pulse,.marker.nearby,.marker.best,.radar-ring,.radar-sweep::after,.radar-icon{animation:none!important}
   .login-fx-orb,.login-fx-glow,.login-fx-wave,.login-panel,.login-brand-lines span:nth-child(2),.login-submit,.login-submit::before{animation:none!important}
 }
 

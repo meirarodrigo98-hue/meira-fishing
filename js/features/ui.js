@@ -108,7 +108,6 @@ let pointsRef = [];
 let rows = [];
 let index = 0;
 let lastId = null;
-let shouldAutoOpen = true;
 let checklistObs = emptyObservations();
 let checklistPoint = null;
 let draftProfile = loadProfile();
@@ -141,11 +140,11 @@ function isOpen() {
 }
 
 function renderMapMarkers() {
-  const ids =
-    isRadarOn() && state.userPos && rows.length
-      ? rows.map((r) => r.p.id)
-      : mapPointIds(pointsRef, state.filter);
-  renderMarkers(pointsRef, ids);
+  const nearbyMode = isRadarOn() && state.userPos && rows.length;
+  const ids = nearbyMode
+    ? rows.map((r) => r.p.id)
+    : mapPointIds(pointsRef, state.filter);
+  renderMarkers(pointsRef, ids, { pulseVisible: nearbyMode });
 }
 
 function reloadAllPoints() {
@@ -866,11 +865,7 @@ export function ready() {
   setEntryVisible(true);
 
   fitNearby(pointsRef, rows.map((r) => r.p));
-
-  if (shouldAutoOpen) {
-    shouldAutoOpen = false;
-    requestAnimationFrame(() => openSpots());
-  }
+  renderMapMarkers();
 }
 
 export function openPoint(point) {
