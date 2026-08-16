@@ -1,6 +1,8 @@
-/** Sessão de login — estática + usuários cadastrados no aparelho/repo. */
+/** Login — Supabase quando configurado; fallback local. */
 import { hashPassword } from './password.js';
 import { getUsersMap } from './user-store.js';
+import { isSupabaseEnabled, getSupabase, usernameToEmail } from './supabase-client.js';
+import { fetchRemoteProfile, profileToSession } from './supabase-sync.js';
 
 const SESSION_KEY = 'mf_session';
 const REMEMBER_DAYS = 30;
@@ -22,19 +24,46 @@ function readSession() {
   }
 }
 
+function writeSession(session) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
 export function getSession() {
   return readSession();
+}
+
+export async function refreshSessionFromSupabase() {
+  if (!isSupabaseEnabled()) return null;
+  const sb = getSupabase();
+  const { data } = await sb.auth.getSession();
+  if (!data.session) return null;
+  let profile = null;
+  try {
+    profile = await fetchRemoteProfile();
+  } catch {
+    /* perfil pode ainda não existir */
+  }
+  const session = profileToSession(profile, data.session.user);
+  if (session) writeSession(session);
+  return session;
 }
 
 export function isLoggedIn() {
   return Boolean(getSession());
 }
 
-export function logout() {
+export async function logout() {
+  if (isSupabaseEnabled()) {
+    try {
+      await getSupabase().auth.signOut();
+    } catch {
+      /* ignore */
+    }
+  }
   localStorage.removeItem(SESSION_KEY);
 }
 
-export async function login(username, password, remember = true) {
+async function loginLocal(username, password, remember) {
   const user = (username || '').trim().toLowerCase();
   const cred = getUsersMap()[user];
   if (!cred) return { ok: false, message: 'Usuário não encontrado.', code: 'user_not_found' };
@@ -50,8 +79,49 @@ export async function login(username, password, remember = true) {
     at: Date.now(),
     expires: Date.now() + ms,
   };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  writeSession(session);
   return { ok: true, session };
+}
+
+async function loginSupabase(username, password, remember) {
+  const sb = getSupabase();
+  const email = usernameToEmail(username);
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    const msg = error.message?.toLowerCase() || '';
+    if (msg.includes('invalid') || msg.includes('credentials')) {
+      return { ok: false, message: 'SENHA INCORRETA', code: 'wrong_password' };
+    }
+    if (msg.includes('not found') || msg.includes('user')) {
+      return { ok: false, message: 'Usuário não encontrado.', code: 'user_not_found' };
+    }
+    return { ok: false, message: error.message, code: 'auth_error' };
+  }
+
+  let profile = null;
+  try {
+    profile = await fetchRemoteProfile();
+  } catch {
+    /* ok */
+  }
+
+  const ms = remember ? REMEMBER_DAYS * 864e5 : SESSION_HOURS * 36e5;
+  const session = {
+    ...profileToSession(profile, data.user),
+    at: Date.now(),
+    expires: Date.now() + ms,
+  };
+  writeSession(session);
+  return { ok: true, session };
+}
+
+export async function login(username, password, remember = true) {
+  if (isSupabaseEnabled()) {
+    const cloud = await loginSupabase(username, password, remember);
+    if (cloud.ok) return cloud;
+    if (cloud.code !== 'user_not_found') return cloud;
+  }
+  return loginLocal(username, password, remember);
 }
 
 export function sessionLabel(session) {

@@ -25,7 +25,9 @@ Site: https://meirarodrigo98-hue.github.io/meira-fishing/
 
 ## Banco Supabase
 
-Pontos, perfis e equipamento podem ficar no Supabase. Passo a passo: **`docs/SUPABASE.md`**.
+Guia simples (sem saber SQL): **`docs/SETUP-SUPABASE.md`**
+
+Detalhes técnicos: **`docs/SUPABASE.md`**
 
 ## Fluxo do app
 

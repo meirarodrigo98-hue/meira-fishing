@@ -1,6 +1,9 @@
-import { login, isLoggedIn, getSession } from '../lib/auth.js';
+import { login, isLoggedIn, getSession, refreshSessionFromSupabase, logout } from '../lib/auth.js';
 import { enableAdmin } from '../lib/mypoints.js';
-import { loadProfile, saveProfile } from '../lib/profile.js';
+import { loadProfile, saveProfile, emptyProfile } from '../lib/profile.js';
+import { loadGear, saveGear, emptyGear } from '../lib/gear.js';
+import { isSupabaseEnabled } from '../lib/supabase-client.js';
+import { fetchRemoteProfile } from '../lib/supabase-sync.js';
 import { toast } from '../lib/utils.js';
 
 function $(id) {
@@ -30,10 +33,34 @@ function syncProfileFromSession(session) {
   }
 }
 
-export function initLogin(onReady) {
+async function pullProfileFromCloud() {
+  if (!isSupabaseEnabled()) return;
+  try {
+    const remote = await fetchRemoteProfile();
+    if (!remote) return;
+    saveProfile({
+      ...emptyProfile(),
+      name: remote.display_name || '',
+      style: remote.style || 'todos',
+      level: remote.level || 'iniciante',
+    });
+    if (remote.gear) {
+      saveGear({ ...emptyGear(), ...remote.gear });
+    }
+  } catch {
+    /* offline */
+  }
+}
+
+export async function initLogin(onReady) {
+  if (isSupabaseEnabled()) {
+    await refreshSessionFromSupabase();
+  }
+
   if (isLoggedIn()) {
     const session = getSession();
     if (session?.admin) enableAdmin();
+    await pullProfileFromCloud();
     syncProfileFromSession(session);
     hideLogin();
     onReady?.();
@@ -77,6 +104,7 @@ export function initLogin(onReady) {
     }
 
     if (result.session?.admin) enableAdmin();
+    await pullProfileFromCloud();
     syncProfileFromSession(result.session);
     hideLogin();
     toast(`Bem-vindo, ${result.session.name || result.session.user}!`);
@@ -86,4 +114,4 @@ export function initLogin(onReady) {
   requestAnimationFrame(() => userInput?.focus());
 }
 
-export { isLoggedIn, getSession };
+export { isLoggedIn, getSession, logout };

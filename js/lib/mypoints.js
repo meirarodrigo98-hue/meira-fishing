@@ -8,6 +8,8 @@ import {
   listSnapshots,
   restoreSnapshot,
 } from './point-store.js';
+import { isSupabaseEnabled } from './supabase-client.js';
+import { fetchMyRemotePoints, upsertRemotePoint, deleteRemotePoint } from './supabase-sync.js';
 
 const ADMIN_KEY = 'mf_admin';
 
@@ -21,7 +23,19 @@ const DEFAULT_COAST = {
 
 export async function initMyPoints() {
   await initPointStore();
-  return loadMyPoints();
+  let local = loadMyPoints();
+  if (isSupabaseEnabled()) {
+    try {
+      const remote = await fetchMyRemotePoints();
+      if (remote?.length) {
+        local = mergePointLists(local, remote);
+        saveStoredPoints(local);
+      }
+    } catch {
+      /* offline — usa local */
+    }
+  }
+  return local;
 }
 
 export function isAdmin() {
@@ -96,6 +110,7 @@ export function addMyPoint({ name, lat, lng, type = 'Pedra', note = '', accuracy
   const list = loadMyPoints();
   list.push(point);
   persist(list);
+  if (isSupabaseEnabled()) upsertRemotePoint(point).catch(() => {});
   return { ok: true, point };
 }
 
@@ -110,6 +125,7 @@ export function removeMyPoint(id, { confirmed = false } = {}) {
     return { ok: false, needsConfirm: true, message: 'Este ponto está protegido. Confirme para remover.' };
   }
   persist(list.filter((p) => p.id !== id));
+  if (isSupabaseEnabled()) deleteRemotePoint(id).catch(() => {});
   return { ok: true };
 }
 

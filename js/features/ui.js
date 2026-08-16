@@ -5,6 +5,8 @@ import { loadMissingWeather } from '../lib/weather.js';
 import { POINTS } from '../data/points.js';
 import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint, exportMyPointsFile, importMyPointsFromJson, exportAdminPointsSnippet, listSnapshots, restoreSnapshot, isAdmin, enableAdmin } from '../lib/mypoints.js';
 import { logout, getSession, sessionLabel } from '../lib/auth.js';
+import { saveRemoteProfile } from '../lib/supabase-sync.js';
+import { isSupabaseEnabled } from '../lib/supabase-client.js';
 import {
   addUser,
   exportUsersSnippet,
@@ -626,11 +628,20 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
   $('checklistClose').onclick = closeChecklist;
   $('editGearFromChecklist').onclick = () => showGearEditor({ fromChecklist: true });
   $('gearEditorClose').onclick = () => hideGearEditor();
-  $('gearSave').onclick = () => {
+  $('gearSave').onclick = async () => {
     const result = persistGearDraft();
     if (!result.ok) {
       toast(result.message);
       return;
+    }
+    if (isSupabaseEnabled()) {
+      const profile = loadProfile();
+      await saveRemoteProfile({
+        name: profile.name,
+        style: profile.style,
+        level: profile.level,
+        gear: loadGear(),
+      });
     }
     syncGearBar();
     syncMenuMeta();
@@ -707,9 +718,9 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
   $('myPointsImportBtn')?.addEventListener('click', importMyPointsBackup);
   $('myPointsImport')?.addEventListener('change', (e) => handleMyPointsImport(e.target.files?.[0]));
   $('myPointsAdminExport')?.addEventListener('click', copyAdminPointsSnippet);
-  $('logoutBtn')?.addEventListener('click', () => {
+  $('logoutBtn')?.addEventListener('click', async () => {
     if (!confirm('Sair da conta neste aparelho?')) return;
-    logout();
+    await logout();
     location.reload();
   });
   $('markFromList').onclick = openMarkPointSheet;
@@ -1095,6 +1106,14 @@ function saveProfileDraft() {
     return;
   }
   saveProfile(draftProfile);
+  if (isSupabaseEnabled()) {
+    saveRemoteProfile({
+      name: draftProfile.name,
+      style: draftProfile.style,
+      level: draftProfile.level,
+      gear: loadGear(),
+    });
+  }
   syncMenuMeta();
   toast('Perfil salvo.');
   hideProfileEditor();

@@ -1,5 +1,7 @@
 import { APP_USERS } from '../data/users.js';
 import { hashPassword } from './password.js';
+import { createRemoteUser } from './supabase-sync.js';
+import { isSupabaseEnabled } from './supabase-client.js';
 
 const LOCAL_KEY = 'mf_users';
 const SESSION_KEY = 'mf_session';
@@ -109,6 +111,31 @@ function requireAdmin() {
 export async function addUser({ username, password, name, admin = false }) {
   const gate = requireAdmin();
   if (!gate.ok) return gate;
+
+  if (isSupabaseEnabled()) {
+    const user = normalizeUsername(username);
+    if (!validUsername(user)) {
+      return { ok: false, message: 'Usuário inválido (2–24 letras/números).' };
+    }
+    if ((password || '').length < 4) {
+      return { ok: false, message: 'Senha muito curta (mín. 4 caracteres).' };
+    }
+    if (getUsersMap()[user]) {
+      return { ok: false, message: 'Usuário já existe.' };
+    }
+    const cloud = await createRemoteUser({
+      username: user,
+      password,
+      name: (name || '').trim() || user,
+      admin: !!admin,
+    });
+    if (!cloud.ok) return cloud;
+    const hash = await hashPassword(password);
+    const list = readLocal();
+    list.push({ user, hash, name: (name || '').trim() || user, admin: !!admin });
+    writeLocal(list);
+    return { ok: true, user };
+  }
 
   const user = normalizeUsername(username);
   if (!validUsername(user)) {

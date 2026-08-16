@@ -24,10 +24,35 @@ import { beginTracking, captureLocation, retryLocation, refreshGpsPosition, useA
 import { initLogin } from './features/login.js';
 import { needsLocationPermission, promptLocationServicesOnEntry } from './lib/location-settings.js';
 
+import { isSupabaseEnabled } from './lib/supabase-client.js';
+import { fetchPublicPoints } from './lib/supabase-sync.js';
+
 const MIN_RADAR_MS = 1600;
 const MAX_RADAR_MS = 22000;
 
 let radarBusy = false;
+let catalogPoints = null;
+
+async function getCatalogPoints() {
+  if (catalogPoints) return catalogPoints;
+  if (isSupabaseEnabled()) {
+    try {
+      const remote = await fetchPublicPoints();
+      if (remote?.length) {
+        catalogPoints = remote;
+        return catalogPoints;
+      }
+    } catch {
+      /* usa catálogo local */
+    }
+  }
+  catalogPoints = POINTS;
+  return catalogPoints;
+}
+
+function allPoints() {
+  return mergePoints(catalogPoints || POINTS);
+}
 
 function startRadar(onReady) {
   if (radarBusy) return;
@@ -37,10 +62,6 @@ function startRadar(onReady) {
 
 function endRadar() {
   radarBusy = false;
-}
-
-function allPoints() {
-  return mergePoints(POINTS);
 }
 
 function nearbyPoints() {
@@ -53,6 +74,7 @@ async function startApp() {
 }
 
 async function boot() {
+  await getCatalogPoints();
   await initMyPoints();
   const points = allPoints();
   setPoints(points);

@@ -24,6 +24,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare site
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           V="${GITHUB_SHA:0:12}"
           mkdir -p _site/css _site/js/data _site/js/lib _site/js/features _site/assets
@@ -32,9 +35,18 @@ jobs:
           cp -r assets/* _site/assets/ 2>/dev/null || true
           cp js/boot-cache.js _site/js/boot-cache.js
           cp js/app.js _site/js/app.js
+          cp js/config.js _site/js/config.js
           cp js/data/*.js _site/js/data/
           cp js/lib/*.js _site/js/lib/
           cp js/features/*.js _site/js/features/
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            cat > _site/js/config.js <<EOF
+export const SUPABASE_URL = '${SUPABASE_URL}';
+export const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
+export const SUPABASE_ENABLED = true;
+export const AUTH_EMAIL_DOMAIN = 'meira.app';
+EOF
+          fi
           touch _site/.nojekyll
           printf '{"id":"%s","at":"%s"}\n' "$V" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _site/version.json
           chmod +x scripts/stamp-version.sh
