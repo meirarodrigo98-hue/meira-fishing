@@ -10,493 +10,78 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Meira Fishing</title>
-<script>
-(function(){
-  var KEY="mf_build";
-  fetch("./version.json?t="+Date.now(),{cache:"no-store"})
-    .then(function(r){return r.ok?r.json():null})
-    .then(function(data){
-      if(!data||!data.id||data.id==="dev")return;
-      var url=new URL(location.href);
-      if(url.searchParams.get("v")===data.id){
-        try{localStorage.setItem(KEY,data.id)}catch(e){}
-        return;
-      }
-      url.searchParams.set("v",data.id);
-      try{localStorage.setItem(KEY,data.id)}catch(e){}
-      location.replace(url.href);
-    })
-    .catch(function(){});
-})();
-</script>
+<script src="js/boot-cache.js"></script>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-:root{
-  --bg:#07141a;--panel:#0c1f27;--text:#edf8fb;--muted:#8eaaB3;
-  --line:rgba(255,255,255,.1);--go:#34d399;--wait:#facc15;--stop:#fb7185;
-  --a:#2dd4bf;--b:#38bdf8;--safe:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-button,input{font:inherit}button{cursor:pointer}
-#map{position:fixed;inset:0}
-.topbar{
-  position:fixed;z-index:800;left:12px;right:12px;top:max(12px,env(safe-area-inset-top));
-  display:flex;align-items:center;justify-content:space-between;pointer-events:none
-}
-.brand,.icon{
-  pointer-events:auto;background:#07141af0;border:1px solid var(--line);border-radius:14px
-}
-.brand{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 8px}
-.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;display:grid;place-items:center;font-weight:900}
-.brand b{display:block;font-size:14px;line-height:1.1}
-.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
-.icon{width:42px;height:42px;color:var(--text);display:grid;place-items:center;font-size:16px;font-weight:800}
-.sheet{
-  position:fixed;z-index:900;left:0;right:0;bottom:0;
-  background:linear-gradient(180deg,#0c222ce8,#07141af5);
-  border-top:1px solid var(--line);border-radius:22px 22px 0 0;
-  padding:10px 14px calc(14px + var(--safe));
-  max-height:46vh;display:flex;flex-direction:column
-}
-.handle{width:42px;height:4px;border-radius:99px;background:rgba(255,255,255,.18);margin:2px auto 10px}
-.sheet-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:8px}
-.sheet-head h1{margin:0;font-size:18px;letter-spacing:-.3px}
-.sheet-head p{margin:3px 0 0;color:var(--muted);font-size:11px}
-.filters{display:flex;gap:6px;overflow:auto;padding-bottom:8px}
-.chip{
-  flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.04);
-  color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800
-}
-.chip.on{color:#04262b;background:linear-gradient(135deg,var(--a),var(--b));border-color:transparent}
-.list{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
-.card{
-  border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:16px;
-  padding:12px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center
-}
-.card:active{background:rgba(255,255,255,.07)}
-.card b{display:block;font-size:14px}
-.card small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.verdict{font-size:10px;font-weight:900;border-radius:999px;padding:6px 8px;white-space:nowrap}
-.verdict.ir{background:rgba(52,211,153,.14);color:#b7f7d8}
-.verdict.esperar{background:rgba(250,204,21,.12);color:#ffe58a}
-.verdict.evitar{background:rgba(251,113,133,.12);color:#ffc1cb}
-.verdict.lendo{background:rgba(255,255,255,.06);color:var(--muted)}
-#boot,#fallback,#detail{
-  position:fixed;inset:0;z-index:1200;background:#07141af6;
-  display:flex;align-items:center;justify-content:center;padding:22px
-}
-#boot.hidden,#fallback.hidden,#detail.hidden{display:none}
-.bootbox,.fallbox,.detailbox{width:min(440px,100%)}
-.bootbox{text-align:center}
-.pulse{width:54px;height:54px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:#04262b;font-weight:900;font-size:22px}
-.bootbox h2,.fallbox h2,.detailbox h2{margin:0 0 6px;font-size:24px;letter-spacing:-.4px}
-.bootbox p,.fallbox p,.detailbox p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
-.places{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
-.places button,.ghost,.go{
-  border-radius:12px;padding:11px 13px;font-weight:800
-}
-.places button{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text)}
-.ghost{width:100%;border:1px solid var(--line);background:transparent;color:var(--text)}
-.go{width:100%;border:0;background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;font-size:16px}
-.detailbox{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px}
-.dmeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
-.dbox{border:1px solid var(--line);border-radius:12px;padding:10px}
-.dbox span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase}
-.dbox b{display:block;margin-top:3px;font-size:15px}
-.actions{display:grid;gap:8px}
-.navbar{
-  position:fixed;z-index:950;left:12px;right:12px;bottom:calc(48vh + 8px);
-  display:none;align-items:center;justify-content:space-between;gap:10px;
-  background:#07141af2;border:1px solid var(--line);border-radius:16px;padding:10px 12px
-}
-.navbar.show{display:flex}
-.navbar b{display:block;font-size:14px}
-.navbar small{color:var(--muted);font-size:11px}
-.toast{
-  position:fixed;z-index:2000;left:50%;top:max(72px,calc(env(safe-area-inset-top) + 58px));
-  transform:translate(-50%,-8px);opacity:0;pointer-events:none;
-  background:#07141af5;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:12px;transition:.2s
-}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.marker{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff}
-.marker.land{background:#2dd4bf}.marker.boat{background:#38bdf8}
-.leaflet-control-attribution{font-size:8px}
-</style>
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 <div id="map"></div>
 
 <div class="topbar">
-  <div class="brand"><div class="logo">M</div><div><b>Meira Fishing</b><small id="statusLine">Achando você…</small></div></div>
-  <button class="icon" id="relocate" type="button" title="Minha localização">◎</button>
+  <div class="status" id="statusLine">Achando você…</div>
+  <button class="icon" id="relocate" type="button" aria-label="Minha localização">◎</button>
 </div>
 
-<section class="sheet" id="sheet">
-  <div class="handle"></div>
-  <div class="sheet-head">
-    <div>
-      <h1>Perto de você</h1>
-      <p id="listSub">Os pontos mais próximos, já ranqueados.</p>
+<section class="sheet" id="sheet" data-snap="mini">
+  <div class="sheet-drag"><div class="handle"></div></div>
+
+  <div class="sheet-body">
+    <div class="sheet-list" id="sheetList">
+      <div class="sheet-head">
+        <h1>Perto de você</h1>
+        <p id="listSub">Carregando pontos…</p>
+      </div>
+      <div class="filters" id="filters">
+        <button class="chip on" data-filter="todos">Todos</button>
+        <button class="chip" data-filter="terra">Terra</button>
+        <button class="chip" data-filter="barco">Barco</button>
+        <button class="chip" data-filter="lagoa">Lagoa</button>
+      </div>
+      <div class="sheet-scroll" id="list"></div>
+    </div>
+
+    <div class="sheet-detail" id="sheetDetail">
+      <button class="detail-back" id="closeDetail" type="button">← Voltar</button>
+      <h2 class="detail-name" id="dName">Ponto</h2>
+      <p class="detail-line" id="dLine">—</p>
+      <p class="detail-why" id="dWhy"></p>
     </div>
   </div>
-  <div class="filters" id="filters">
-    <button class="chip on" data-filter="todos">Todos</button>
-    <button class="chip" data-filter="terra">Terra</button>
-    <button class="chip" data-filter="barco">Barco</button>
-    <button class="chip" data-filter="lagoa">Lagoa</button>
-  </div>
-  <div class="list" id="list"></div>
-</section>
 
-<div class="navbar" id="navbar">
-  <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
-  <button class="ghost" id="stopNav" type="button" style="width:auto">Parar</button>
-</div>
+  <div class="nav-strip" id="navStrip">
+    <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
+    <button class="nav-stop" id="stopNav" type="button">Parar</button>
+  </div>
+
+  <div class="sheet-footer" id="sheetFooter">
+    <button class="go" id="goNow" type="button">Ir agora</button>
+  </div>
+</section>
 
 <section id="boot">
   <div class="bootbox">
     <div class="pulse">M</div>
     <h2>Achando você</h2>
-    <p>Autorize a localização. Em seguida os pontos de pesca mais próximos aparecem no mapa.</p>
+    <p>Autorize a localização para ver os pontos de pesca mais próximos.</p>
   </div>
 </section>
 
 <section id="fallback" class="hidden">
   <div class="fallbox">
-    <h2>Sem GPS agora</h2>
-    <p>Escolha um bairro para ver os pontos perto dali. Depois você pode tentar a localização de novo.</p>
+    <h2>Sem GPS</h2>
+    <p>Escolha um bairro para continuar.</p>
     <div class="places" id="places"></div>
-    <button class="ghost" id="retryGps" type="button">Tentar localização de novo</button>
-  </div>
-</section>
-
-<section id="detail" class="hidden">
-  <div class="detailbox">
-    <h2 id="dName">Ponto</h2>
-    <p id="dArea"></p>
-    <div class="dmeta">
-      <div class="dbox"><span>Distância</span><b id="dDist">—</b></div>
-      <div class="dbox"><span>Agora</span><b id="dVerdict">—</b></div>
-      <div class="dbox"><span>Espécie</span><b id="dSpecies">—</b></div>
-      <div class="dbox"><span>Tipo</span><b id="dType">—</b></div>
-    </div>
-    <p id="dWhy" style="margin-bottom:14px"></p>
-    <div class="actions">
-      <button class="go" id="goNow" type="button">Ir agora</button>
-      <button class="ghost" id="closeDetail" type="button">Voltar à lista</button>
-    </div>
+    <button class="ghost" id="retryGps" type="button">Tentar GPS de novo</button>
   </div>
 </section>
 
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const POINTS = [
- {id:'C001',mode:'land',name:'Praça XV / Orla do Centro',area:'Centro / RJ',lat:-22.9037,lng:-43.1715,type:'Orla',confidence:58,species:['Robalo','Xaréu']},
- {id:'C002',mode:'land',name:'Praça Mauá / Pier Mauá',area:'Centro / RJ',lat:-22.8966,lng:-43.1807,type:'Orla',confidence:54,species:['Robalo','Xaréu']},
- {id:'C003',mode:'land',name:'Marina da Glória',area:'Glória / RJ',lat:-22.9190,lng:-43.1712,type:'Pier',confidence:63,species:['Robalo','Xaréu']},
- {id:'C004',mode:'land',name:'MAM / Aterro do Flamengo',area:'Aterro / RJ',lat:-22.9228,lng:-43.1756,type:'Orla',confidence:60,species:['Robalo','Corvina']},
- {id:'C005',mode:'land',name:'Monumento aos Pracinhas',area:'Aterro / RJ',lat:-22.9249,lng:-43.1761,type:'Orla',confidence:59,species:['Robalo','Corvina']},
- {id:'C006',mode:'land',name:'Praia do Flamengo — trecho norte',area:'Flamengo / RJ',lat:-22.9296,lng:-43.1734,type:'Praia',confidence:61,species:['Robalo','Corvina']},
- {id:'C007',mode:'land',name:'Praia do Flamengo — trecho sul',area:'Flamengo / RJ',lat:-22.9356,lng:-43.1770,type:'Praia',confidence:62,species:['Robalo','Corvina']},
- {id:'C008',mode:'land',name:'Enseada de Botafogo — norte',area:'Botafogo / RJ',lat:-22.9416,lng:-43.1796,type:'Orla',confidence:64,species:['Robalo','Xaréu']},
- {id:'C009',mode:'land',name:'Enseada de Botafogo — sul',area:'Botafogo / RJ',lat:-22.9502,lng:-43.1838,type:'Orla',confidence:65,species:['Robalo','Xaréu']},
- {id:'C010',mode:'land',name:'Mureta da Urca',area:'Urca / RJ',lat:-22.9508,lng:-43.1653,type:'Orla',confidence:73,species:['Robalo','Xaréu']},
- {id:'C011',mode:'land',name:'Praia Vermelha / Urca',area:'Urca / RJ',lat:-22.9555,lng:-43.1643,type:'Praia',confidence:68,species:['Robalo','Corvina']},
- {id:'C012',mode:'land',name:'Costão do Leme',area:'Leme / RJ',lat:-22.9636,lng:-43.1617,type:'Costão',confidence:80,species:['Robalo','Xaréu']},
- {id:'C013',mode:'land',name:'Forte de Copacabana / Posto 6',area:'Copacabana / RJ',lat:-22.9881,lng:-43.1912,type:'Pedra',confidence:74,species:['Robalo','Xaréu']},
- {id:'C014',mode:'land',name:'Pedra do Arpoador',area:'Ipanema / RJ',lat:-22.99043,lng:-43.19099,type:'Costão',confidence:82,species:['Anchova','Xaréu']},
- {id:'C015',mode:'land',name:'Canal do Jardim de Alah',area:'Leblon / Ipanema / RJ',lat:-22.9848,lng:-43.2148,type:'Canal',confidence:69,species:['Robalo','Corvina']},
- {id:'L001',mode:'land',name:'Lagoa — Corte do Cantagalo',area:'Lagoa / RJ',lat:-22.9738,lng:-43.2051,type:'Lagoa',confidence:66,species:['Tilápia','Traíra']},
- {id:'L002',mode:'land',name:'Lagoa — Parque dos Patins',area:'Lagoa / RJ',lat:-22.9739,lng:-43.2187,type:'Lagoa',confidence:67,species:['Tilápia','Traíra']},
- {id:'L003',mode:'land',name:'Lagoa — Fonte da Saudade',area:'Lagoa / RJ',lat:-22.9646,lng:-43.2036,type:'Lagoa',confidence:68,species:['Tilápia','Traíra']},
- {id:'L004',mode:'land',name:'Lagoa — Parque da Catacumba',area:'Lagoa / RJ',lat:-22.9686,lng:-43.1947,type:'Lagoa',confidence:67,species:['Tilápia','Traíra']},
- {id:'L005',mode:'land',name:'Lagoa — Jardim Botânico',area:'Lagoa / RJ',lat:-22.9667,lng:-43.2188,type:'Lagoa',confidence:66,species:['Tilápia','Traíra']},
- {id:'L006',mode:'land',name:'Lagoa — Piraquê',area:'Lagoa / RJ',lat:-22.9727,lng:-43.2299,type:'Lagoa',confidence:64,species:['Tilápia','Traíra']},
- {id:'B001',mode:'boat',name:'Entorno das Ilhas Cagarras',area:'Mar de Ipanema / RJ',lat:-23.03028,lng:-43.20028,type:'Ilhas',confidence:78,species:['Xaréu','Olho-de-boi']},
- {id:'B002',mode:'boat',name:'Ilhas Tijucas',area:'Barra da Tijuca / RJ',lat:-23.03083,lng:-43.29222,type:'Ilhas',confidence:84,species:['Garoupa','Xaréu']},
- {id:'B003',mode:'boat',name:'Ilha Rasa — entorno',area:'Ao largo da Barra / RJ',lat:-23.06333,lng:-43.14583,type:'Ilha',confidence:77,species:['Anchova','Olho-de-boi']},
- {id:'B004',mode:'boat',name:'Boca da Barra — referência',area:'Entrada da Baía / RJ',lat:-22.9558,lng:-43.1298,type:'Canal',confidence:62,species:['Xaréu','Robalo']},
- {id:'B005',mode:'boat',name:'Mar aberto — sul de Cagarras',area:'Costa do Rio / RJ',lat:-23.075,lng:-43.208,type:'Mar aberto',confidence:55,species:['Anchova']},
- {id:'B006',mode:'boat',name:'Setor externo das Tijucas',area:'Barra da Tijuca / RJ',lat:-23.053,lng:-43.315,type:'Mar aberto',confidence:58,species:['Xaréu','Garoupa']},
- {id:'B007',mode:'boat',name:'Canal central da Guanabara',area:'Baía de Guanabara / RJ',lat:-22.9090,lng:-43.1535,type:'Canal',confidence:57,species:['Robalo','Xaréu']},
- {id:'B008',mode:'boat',name:'Setor da Ilha Fiscal',area:'Baía de Guanabara / RJ',lat:-22.8978,lng:-43.1704,type:'Canal',confidence:56,species:['Robalo','Xaréu']},
- {id:'O001',mode:'boat',name:'Quebra offshore 18 → 32 m',area:'Ao largo do Leme / RJ',lat:-22.9895,lng:-43.1150,type:'Offshore',confidence:72,species:['Anchova','Xaréu']},
- {id:'O002',mode:'boat',name:'Cabeço submarino oeste',area:'Ao largo de Copacabana / RJ',lat:-23.0040,lng:-43.1450,type:'Offshore',confidence:74,species:['Xaréu','Olho-de-boi']},
- {id:'O003',mode:'boat',name:'Borda externa das Cagarras',area:'Costa do Rio / RJ',lat:-23.0540,lng:-43.1900,type:'Offshore',confidence:76,species:['Anchova','Xaréu']},
- {id:'O004',mode:'boat',name:'Canal profundo sul',area:'Sul das Cagarras / RJ',lat:-23.0810,lng:-43.2250,type:'Offshore',confidence:71,species:['Olho-de-boi','Anchova']},
- {id:'O005',mode:'boat',name:'Quebra 22 → 41 m',area:'Ao largo do Arpoador / RJ',lat:-23.0260,lng:-43.1720,type:'Offshore',confidence:77,species:['Anchova','Xaréu']},
- {id:'O006',mode:'boat',name:'Alto fundo costeiro',area:'Leste das Cagarras / RJ',lat:-23.0300,lng:-43.1450,type:'Offshore',confidence:73,species:['Xaréu','Olho-de-boi']},
- {id:'O007',mode:'boat',name:'Borda de canal norte',area:'Entrada oceânica da Guanabara / RJ',lat:-22.9450,lng:-43.0850,type:'Offshore',confidence:69,species:['Xaréu','Robalo']},
- {id:'O008',mode:'boat',name:'Laje isolada offshore',area:'Entre Cagarras e Tijucas / RJ',lat:-23.0390,lng:-43.2450,type:'Offshore',confidence:75,species:['Garoupa','Xaréu']},
- {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,species:['Garoupa','Xaréu']},
- {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,species:['Olho-de-boi','Anchova']}
-];
-
-const PLACES = [
-  {name:'Copacabana',lat:-22.971,lng:-43.182},
-  {name:'Ipanema',lat:-22.984,lng:-43.205},
-  {name:'Lagoa',lat:-22.972,lng:-43.210},
-  {name:'Urca',lat:-22.952,lng:-43.166},
-  {name:'Centro',lat:-22.906,lng:-43.173},
-  {name:'Barra',lat:-23.011,lng:-43.366}
-];
-
-const $ = id => document.getElementById(id);
-const toast = t => {
-  const e = $('toast');
-  e.textContent = t;
-  e.classList.add('show');
-  setTimeout(() => e.classList.remove('show'), 2200);
-};
-const clamp = (n,a=0,b=100) => Math.max(a, Math.min(b,n));
-const km = (a,b) => {
-  const R=6371, dlat=(b.lat-a.lat)*Math.PI/180, dlng=(b.lng-a.lng)*Math.PI/180;
-  const x = Math.sin(dlat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dlng/2)**2;
-  return 2*R*Math.asin(Math.sqrt(x));
-};
-const fmtKm = n => n<1 ? Math.round(n*1000)+' m' : n.toFixed(1)+' km';
-const matches = (p, filter) => {
-  if(filter==='terra') return p.mode==='land' && p.type!=='Lagoa';
-  if(filter==='barco') return p.mode==='boat';
-  if(filter==='lagoa') return p.type==='Lagoa';
-  return true;
-};
-
-let userPos = null;
-let userMarker = null;
-let filter = 'todos';
-let selected = null;
-let weather = null;
-let routeLine = null;
-const markers = new Map();
-
-const map = L.map('map',{zoomControl:false,attributionControl:true}).setView([-22.98,-43.20],12);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-L.control.zoom({position:'bottomright'}).addTo(map);
-
-POINTS.forEach(p => {
-  const icon = L.divIcon({className:'',html:`<div class="marker ${p.mode}"></div>`,iconSize:[22,30],iconAnchor:[11,30]});
-  const m = L.marker([p.lat,p.lng],{icon}).bindTooltip(p.name,{direction:'top',offset:[0,-24]});
-  m.on('click', () => openPoint(p));
-  markers.set(p.id, m);
-});
-
-function setUser(pos, center){
-  userPos = {lat:pos.lat, lng:pos.lng};
-  if(!userMarker){
-    userMarker = L.circleMarker([userPos.lat,userPos.lng],{
-      radius:8,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1
-    }).addTo(map).bindTooltip('Você');
-  } else {
-    userMarker.setLatLng([userPos.lat,userPos.lng]);
-  }
-  if(center) map.setView([userPos.lat,userPos.lng],13);
-}
-
-function scores(p,d){
-  const w = d?.weather?.current || {};
-  const m = d?.marine?.current || {};
-  let safe = 100, fish = 50 + p.confidence * .35;
-  const wind = w.wind_speed_10m ?? 12;
-  const wave = m.wave_height ?? .7;
-  const gust = w.wind_gusts_10m ?? wind;
-  const period = m.wave_period ?? 8;
-  const sst = m.sea_surface_temperature ?? 23;
-  if(p.mode==='boat'){
-    safe -= Math.max(0,(wind-12)*2.2);
-    safe -= Math.max(0,(gust-22)*1.4);
-    safe -= Math.max(0,(wave-1)*30);
-  } else {
-    safe -= Math.max(0,(wind-18)*1.5);
-    safe -= Math.max(0,(wave-1.3)*28);
-  }
-  if(p.type==='Lagoa'){ safe = clamp(safe+18); fish += wind<=14 ? 4 : 0; }
-  fish += wave>=.3 && wave<=1.1 ? 8 : -4;
-  fish += period>=7 && period<=12 ? 7 : 0;
-  fish += wind<=18 ? 6 : -5;
-  fish += sst>=20 && sst<=26 ? 7 : 0;
-  if((w.precipitation??0)>4) fish -= 4;
-  return {safe:Math.round(clamp(safe)), fish:Math.round(clamp(fish))};
-}
-
-function verdict(p,d){
-  if(!d) return {key:'lendo',label:'Lendo…',why:'Buscando condição da região.'};
-  const s = scores(p,d);
-  const wave = d.marine?.current?.wave_height ?? 0;
-  const rock = p.type==='Costão' || p.type==='Pedra';
-  if(rock && wave>1.4) return {key:'evitar',label:'Evitar',why:'Mar alto no costão. Melhor outro ponto.',...s};
-  if(s.safe<50) return {key:'evitar',label:'Evitar',why:'Condição insegura agora.',...s};
-  if(s.fish>=70 && s.safe>=60) return {key:'ir',label:'Ir agora',why:'Boa janela perto de você.',...s};
-  if(s.fish>=55) return {key:'esperar',label:'Esperar',why:'Dá para ir, mas não é o pico.',...s};
-  return {key:'esperar',label:'Esperar',why:'Condição morna nesta região.',...s};
-}
-
-function ranked(){
-  return POINTS
-    .filter(p => matches(p, filter))
-    .map(p => ({p, distance: userPos ? km(userPos,p) : null, v: verdict(p, weather)}))
-    .sort((a,b) => {
-      if(a.distance==null) return 0;
-      return a.distance - b.distance;
-    });
-}
-
-function renderMarkers(){
-  const keep = new Set(ranked().map(x => x.p.id));
-  POINTS.forEach(p => {
-    const m = markers.get(p.id);
-    if(keep.has(p.id)){ if(!map.hasLayer(m)) m.addTo(map); }
-    else if(map.hasLayer(m)) map.removeLayer(m);
-  });
-}
-
-function renderList(){
-  const rows = ranked().slice(0,10);
-  $('listSub').textContent = userPos
-    ? `${rows.length} pontos mais próximos`
-    : 'Escolha um bairro para medir a distância';
-  $('list').innerHTML = rows.map(({p,distance,v}) => `
-    <button class="card" type="button" data-id="${p.id}">
-      <div>
-        <b>${p.name}</b>
-        <small>${distance==null?'—':fmtKm(distance)} · ${p.species.slice(0,2).join(' / ')}</small>
-      </div>
-      <span class="verdict ${v.key}">${v.label}</span>
-    </button>
-  `).join('');
-  $('list').querySelectorAll('[data-id]').forEach(btn => {
-    btn.onclick = () => openPoint(POINTS.find(p => p.id===btn.dataset.id));
-  });
-  renderMarkers();
-}
-
-function openPoint(p){
-  selected = p;
-  const distance = userPos ? km(userPos,p) : null;
-  const v = verdict(p, weather);
-  $('dName').textContent = p.name;
-  $('dArea').textContent = p.area;
-  $('dDist').textContent = distance==null ? '—' : fmtKm(distance);
-  $('dVerdict').textContent = v.label;
-  $('dSpecies').textContent = p.species.slice(0,2).join(' / ');
-  $('dType').textContent = p.mode==='boat' ? 'Embarcado' : p.type;
-  $('dWhy').textContent = v.why;
-  $('detail').classList.remove('hidden');
-  map.flyTo([p.lat,p.lng],14,{duration:.5});
-}
-
-function closeDetail(){
-  $('detail').classList.add('hidden');
-}
-
-function goNow(){
-  if(!selected) return;
-  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
-  if(userPos){
-    routeLine = L.polyline([[userPos.lat,userPos.lng],[selected.lat,selected.lng]],{
-      color:'#38bdf8',weight:3,opacity:.85
-    }).addTo(map);
-    map.fitBounds(routeLine.getBounds().pad(.25));
-    $('navTitle').textContent = selected.name;
-    $('navMeta').textContent = fmtKm(km(userPos,selected)) + ' · rota no mapa';
-    $('navbar').classList.add('show');
-  }
-  closeDetail();
-  const dest = `${selected.lat},${selected.lng}`;
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=walking`,'_blank');
-}
-
-function stopNav(){
-  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
-  $('navbar').classList.remove('show');
-  if(userPos) map.setView([userPos.lat,userPos.lng],13);
-}
-
-async function loadWeather(pos){
-  const w = `https://api.open-meteo.com/v1/forecast?latitude=${pos.lat}&longitude=${pos.lng}&current=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=America%2FSao_Paulo`;
-  const m = `https://marine-api.open-meteo.com/v1/marine?latitude=${pos.lat}&longitude=${pos.lng}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,ocean_current_velocity,sea_level_height_msl&timezone=America%2FSao_Paulo&cell_selection=sea`;
-  try{
-    const [wr,mr] = await Promise.all([fetch(w),fetch(m)]);
-    if(!wr.ok) throw new Error('weather');
-    weather = {weather: await wr.json(), marine: mr.ok ? await mr.json() : {current:{}}};
-  }catch(e){
-    weather = {
-      weather:{current:{wind_speed_10m:12,wind_gusts_10m:16,precipitation:0}},
-      marine:{current:{wave_height:.7,wave_period:8,sea_surface_temperature:23}}
-    };
-  }
-  renderList();
-}
-
-function ready(pos, label){
-  setUser(pos, true);
-  $('boot').classList.add('hidden');
-  $('fallback').classList.add('hidden');
-  $('statusLine').textContent = label;
-  renderList();
-  loadWeather(pos);
-}
-
-function askGps(){
-  if(!navigator.geolocation){
-    $('boot').classList.add('hidden');
-    $('fallback').classList.remove('hidden');
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(pos => {
-    ready({lat:pos.coords.latitude,lng:pos.coords.longitude}, 'Perto da sua posição');
-  }, () => {
-    $('boot').classList.add('hidden');
-    $('fallback').classList.remove('hidden');
-  }, {enableHighAccuracy:true, timeout:12000, maximumAge:20000});
-}
-
-$('filters').querySelectorAll('[data-filter]').forEach(btn => {
-  btn.onclick = () => {
-    filter = btn.dataset.filter;
-    $('filters').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x===btn));
-    renderList();
-  };
-});
-$('relocate').onclick = () => {
-  $('boot').classList.remove('hidden');
-  $('statusLine').textContent = 'Achando você…';
-  askGps();
-};
-$('retryGps').onclick = () => {
-  $('fallback').classList.add('hidden');
-  $('boot').classList.remove('hidden');
-  askGps();
-};
-$('closeDetail').onclick = closeDetail;
-$('goNow').onclick = goNow;
-$('stopNav').onclick = stopNav;
-$('places').innerHTML = PLACES.map(p => `<button type="button" data-place="${p.name}">${p.name}</button>`).join('');
-$('places').querySelectorAll('[data-place]').forEach(btn => {
-  btn.onclick = () => {
-    const place = PLACES.find(x => x.name===btn.dataset.place);
-    ready(place, 'Perto de '+place.name);
-  };
-});
-
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos => {
-    if(!userPos) return;
-    setUser({lat:pos.coords.latitude,lng:pos.coords.longitude}, false);
-    if(!$('detail').classList.contains('hidden') && selected){
-      $('dDist').textContent = fmtKm(km(userPos,selected));
-    }
-    if($('navbar').classList.contains('show') && selected){
-      $('navMeta').textContent = fmtKm(km(userPos,selected)) + ' · rota no mapa';
-    }
-  }, ()=>{}, {enableHighAccuracy:true, maximumAge:20000, timeout:20000});
-}
-
-askGps();
+<script type="module">
+  const v = new URLSearchParams(location.search).get('v') || Date.now();
+  import(`./js/app.js?v=${v}`);
 </script>
 </body>
 </html>
