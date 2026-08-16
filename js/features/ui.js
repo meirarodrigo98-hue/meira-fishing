@@ -1,5 +1,5 @@
 import { $, fmtKm, km, mapsUrl, toast } from '../lib/utils.js';
-import { state, setFilter, setNavigating, setSelected } from '../lib/state.js';
+import { state, setFilter, setNavigating, setPointsRevealed, setSelected } from '../lib/state.js';
 import { rankPoints, verdict } from '../lib/scoring.js';
 import {
   clearRoute,
@@ -11,12 +11,68 @@ import {
   setBestPointId,
   updateRoute,
 } from './map.js';
-import { collapseSheet, expandFull, openSheet, snapTo } from './sheet.js';
+import { collapseSheet, openSheet, snapTo } from './sheet.js';
 
 /** Lista, detalhe na faixa e navegação — mobile first. */
 let onRefresh = null;
 let pointsRef = [];
 let detailOpen = false;
+let carouselRows = [];
+let carouselIndex = 0;
+let lastCarouselId = null;
+
+function revealPoints() {
+  setPointsRevealed(true);
+}
+
+function hidePoints() {
+  if (state.navigating) return;
+  setPointsRevealed(false);
+  renderMarkers(pointsRef);
+}
+
+function updateWeatherNote() {
+  const el = $('weatherNote');
+  if (!el) return;
+  el.classList.toggle('hidden', !state.weatherEstimated);
+}
+
+function showFab() {
+  $('openPoints')?.classList.remove('hidden');
+}
+
+function hideFab() {
+  const fab = $('openPoints');
+  if (!fab) return;
+  fab.classList.add('hidden');
+  fab.classList.remove('is-open');
+  fab.setAttribute('aria-label', 'Pontos próximos');
+}
+
+function setFabOpen(open) {
+  const fab = $('openPoints');
+  if (!fab) return;
+  fab.classList.toggle('is-open', open);
+  fab.setAttribute('aria-label', open ? 'Fechar pontos' : 'Pontos próximos');
+}
+
+function togglePointsSheet() {
+  const fab = $('openPoints');
+  if (!fab || fab.classList.contains('hidden')) return;
+
+  if (fab.classList.contains('is-open')) {
+    resetDetailView();
+    collapseSheet();
+    hidePoints();
+    setFabOpen(false);
+    return;
+  }
+
+  revealPoints();
+  openSheet();
+  renderList(pointsRef);
+  setFabOpen(true);
+}
 
 export function bindUi({ onRelocate }) {
   onRefresh = () => renderList(pointsRef);
@@ -29,11 +85,10 @@ export function bindUi({ onRelocate }) {
     };
   });
 
-  $('openPoints').onclick = () => {
-    openSheet();
-    $('openPoints').classList.add('hidden');
-    renderList(pointsRef);
-  };
+  $('openPoints').onclick = togglePointsSheet;
+
+  $('pointPrev').onclick = () => stepPoint(-1);
+  $('pointNext').onclick = () => stepPoint(1);
 
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
@@ -47,7 +102,19 @@ export function bindUi({ onRelocate }) {
 export function onSheetSnap(name) {
   if (name === 'hidden') {
     resetDetailView();
-    if (!state.navigating) $('openPoints').classList.remove('hidden');
+    hidePoints();
+    if (!state.navigating) {
+      showFab();
+      setFabOpen(false);
+    }
+    return;
+  }
+
+  if (!state.navigating && !detailOpen) {
+    revealPoints();
+    showFab();
+    setFabOpen(true);
+    if (onRefresh) onRefresh();
   }
 }
 
@@ -75,13 +142,20 @@ export function showBoot() {
   $('boot').classList.remove('hidden');
   $('fallback').classList.add('hidden');
   $('statusLine').textContent = 'Achando você…';
-  $('openPoints').classList.add('hidden');
+  hideFab();
+}
+
+export function showBootLight() {
+  $('boot').classList.add('hidden');
+  $('fallback').classList.add('hidden');
+  $('statusLine').textContent = 'Buscando GPS…';
+  hideFab();
 }
 
 export function showFallback() {
   $('boot').classList.add('hidden');
   $('fallback').classList.remove('hidden');
-  $('openPoints').classList.add('hidden');
+  hideFab();
 }
 
 export function hideOverlays() {
@@ -93,21 +167,27 @@ export function hideOverlays() {
 export function ready(label) {
   hideOverlays();
   $('statusLine').textContent = label;
-  $('openPoints').classList.remove('hidden');
+  showFab();
+  setFabOpen(false);
+  updateWeatherNote();
   if (onRefresh) onRefresh();
 }
 
 export function openPoint(point) {
+  revealPoints();
   openSheet();
   setSelected(point);
+  lastCarouselId = point.id;
+  if (carouselRows.length) carouselIndex = indexForPointId(point.id);
   detailOpen = true;
   refreshDetail(point);
   $('sheetList').classList.add('hide');
   $('sheetDetail').classList.add('show');
   $('sheetFooter').classList.add('show');
-  $('openPoints').classList.add('hidden');
+  hideFab();
   snapTo('mid');
   flyToPoint(point);
+  renderMarkers(pointsRef);
 }
 
 function refreshDetail(point = state.selected) {
@@ -124,18 +204,22 @@ function refreshDetail(point = state.selected) {
   ]
     .filter(Boolean)
     .join(' · ');
-  $('dWhy').textContent = v.why;
+  const why = v.why;
+  $('dWhy').textContent = state.weatherEstimated ? `${why} Condições estimadas.` : why;
 }
 
 export function closeDetail() {
   resetDetailView();
-  $('openPoints').classList.add('hidden');
+  showFab();
+  setFabOpen(true);
   snapTo('mini');
+  if (state.selected) showPointAt(indexForPointId(state.selected.id), { fly: false });
 }
 
 function goNowFromPoint(point) {
   if (!point) return;
   setSelected(point);
+  revealPoints();
 
   if (state.userPos) {
     drawRoute(state.userPos, point);
@@ -143,13 +227,14 @@ function goNowFromPoint(point) {
     $('navMeta').textContent = `${fmtKm(km(state.userPos, point))} · rota no mapa`;
     $('navStrip').classList.add('show');
     setNavigating(true);
+    renderMarkers(pointsRef);
   } else {
     toast('Ative a localização para ver a rota.');
   }
 
   resetDetailView();
   collapseSheet();
-  $('openPoints').classList.add('hidden');
+  hideFab();
   window.open(mapsUrl(point), '_blank', 'noopener');
 }
 
@@ -162,12 +247,14 @@ function stopNav() {
   $('navStrip').classList.remove('show');
   setNavigating(false);
   recenterUser();
-  $('openPoints').classList.remove('hidden');
+  hidePoints();
+  showFab();
+  setFabOpen(false);
 }
 
 function bindPointActions(container, points) {
-  container.querySelectorAll('[data-id]').forEach((btn) => {
-    btn.onclick = () => openPoint(points.find((p) => p.id === btn.dataset.id));
+  container.querySelectorAll('[data-id]').forEach((el) => {
+    el.onclick = () => openPoint(points.find((p) => p.id === el.dataset.id));
   });
   container.querySelectorAll('[data-go]').forEach((btn) => {
     btn.onclick = (e) => {
@@ -175,67 +262,91 @@ function bindPointActions(container, points) {
       goNowFromPoint(points.find((p) => p.id === btn.dataset.go));
     };
   });
-  const seeMore = container.querySelector('[data-see-more]');
-  if (seeMore) seeMore.onclick = () => expandFull();
+}
+
+function updatePointNav() {
+  const total = carouselRows.length;
+  const nav = $('pointsNav');
+  if (!nav) return;
+
+  if (!total) {
+    nav.classList.add('hidden');
+    return;
+  }
+
+  nav.classList.remove('hidden');
+  $('pointCounter').textContent = `${carouselIndex + 1} / ${total}`;
+  $('pointPrev').disabled = carouselIndex <= 0;
+  $('pointNext').disabled = carouselIndex >= total - 1;
+}
+
+function renderPointCard({ p, distance, v }, index) {
+  const rank = index === 0 ? 'Melhor agora' : `#${index + 1}`;
+  const bestClass = index === 0 ? ' is-best' : '';
+  return `
+    <article class="point-card" data-id="${p.id}">
+      <div class="slide-inner${bestClass}" role="button" tabindex="0" data-id="${p.id}">
+        <span class="slide-rank">${rank}</span>
+        <b class="slide-name">${p.name}</b>
+        <span class="slide-meta">${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(' / ')}</span>
+        <div class="slide-row">
+          <span class="verdict ${v.key}">${v.label}</span>
+          <button class="slide-go" type="button" data-go="${p.id}">Ir agora</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function showPointAt(index, { fly = true } = {}) {
+  if (!carouselRows.length) return;
+
+  carouselIndex = Math.max(0, Math.min(carouselRows.length - 1, index));
+  const row = carouselRows[carouselIndex];
+  lastCarouselId = row.p.id;
+
+  $('list').innerHTML = renderPointCard(row, carouselIndex);
+  bindPointActions($('list'), pointsRef);
+  updatePointNav();
+
+  setBestPointId(row.p.id);
+  renderMarkers(pointsRef);
+  if (fly) flyToPoint(row.p);
+}
+
+function stepPoint(delta) {
+  if (!carouselRows.length) return;
+  showPointAt(carouselIndex + delta, { fly: true });
+}
+
+function indexForPointId(id) {
+  const i = carouselRows.findIndex((r) => r.p.id === id);
+  return i >= 0 ? i : 0;
 }
 
 export function renderList(points) {
-  const rows = rankPoints(points, state.userPos, state.filter, state.weather);
-  const top = rows.slice(0, 10);
+  carouselRows = rankPoints(points, state.userPos, state.filter, state.weather);
+  const total = carouselRows.length;
 
   $('listSub').textContent = state.userPos
-    ? `${top.length} pontos perto de você`
+    ? `${total} ponto${total !== 1 ? 's' : ''} · use ↑ ↓`
     : 'Escolha um bairro para medir distância';
+  updateWeatherNote();
 
-  setBestPointId(top[0]?.p?.id ?? null);
-
-  if (!top.length) {
+  if (!total) {
+    carouselIndex = 0;
     $('list').innerHTML = '<div class="empty">Nenhum ponto neste filtro.</div>';
+    updatePointNav();
+    setBestPointId(null);
     renderMarkers(points);
     return;
   }
 
-  const hero = top[0];
-  const compact = top.slice(1, 4);
-  const rest = top.slice(4);
+  const preserveId =
+    lastCarouselId && carouselRows.some((r) => r.p.id === lastCarouselId)
+      ? lastCarouselId
+      : carouselRows[0]?.p?.id;
 
-  let html = `
-    <button class="hero" type="button" data-id="${hero.p.id}">
-      <span class="hero-label">Melhor agora</span>
-      <b>${hero.p.name}</b>
-      <span class="hero-meta">${hero.distance == null ? '—' : fmtKm(hero.distance)} · ${hero.p.species.slice(0, 2).join(' / ')}</span>
-      <div class="hero-row">
-        <span class="verdict ${hero.v.key}">${hero.v.label}</span>
-        <button class="hero-go" type="button" data-go="${hero.p.id}">Ir agora</button>
-      </div>
-    </button>`;
-
-  html += compact
-    .map(
-      ({ p, distance, v }) => `
-    <button class="card" type="button" data-id="${p.id}">
-      <div><b>${p.name}</b><small>${distance == null ? '—' : fmtKm(distance)} · ${p.species[0] || '—'}</small></div>
-      <span class="verdict ${v.key}">${v.label}</span>
-    </button>`,
-    )
-    .join('');
-
-  if (rest.length) {
-    html += rest
-      .map(
-        ({ p, distance, v }) => `
-      <button class="card sheet-more" type="button" data-id="${p.id}">
-        <div><b>${p.name}</b><small>${distance == null ? '—' : fmtKm(distance)}</small></div>
-        <span class="verdict ${v.key}">${v.label}</span>
-      </button>`,
-      )
-      .join('');
-    html += `<button class="see-more" type="button" data-see-more>Ver todos (${top.length})</button>`;
-  }
-
-  $('list').innerHTML = html;
-  bindPointActions($('list'), points);
-  renderMarkers(points);
+  showPointAt(indexForPointId(preserveId), { fly: !detailOpen });
 
   if (detailOpen && state.selected) refreshDetail(state.selected);
 }

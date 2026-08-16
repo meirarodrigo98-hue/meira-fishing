@@ -4,6 +4,8 @@ export const state = {
   filter: 'todos',
   selected: null,
   weather: null,
+  weatherEstimated: false,
+  pointsRevealed: false,
   navigating: false,
 };
 
@@ -11,8 +13,13 @@ export function setUserPos(pos) {
   state.userPos = pos ? { lat: pos.lat, lng: pos.lng } : null;
 }
 
-export function setWeather(data) {
+export function setWeather(data, estimated = false) {
   state.weather = data;
+  state.weatherEstimated = estimated;
+}
+
+export function setPointsRevealed(revealed) {
+  state.pointsRevealed = revealed;
 }
 
 export function setSelected(point) {

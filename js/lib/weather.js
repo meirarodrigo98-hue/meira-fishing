@@ -18,14 +18,14 @@ export async function loadWeather(pos) {
       weather: await weatherRes.json(),
       marine: marineRes.ok ? await marineRes.json() : { current: {} },
     };
-    setWeather(data);
-    return data;
+    setWeather(data, false);
+    return { data, estimated: false };
   } catch {
     const fallback = {
       weather: { current: { wind_speed_10m: 12, wind_gusts_10m: 16, precipitation: 0 } },
       marine: { current: { wave_height: 0.7, wave_period: 8, sea_surface_temperature: 23 } },
     };
-    setWeather(fallback);
-    return fallback;
+    setWeather(fallback, true);
+    return { data: fallback, estimated: true };
   }
 }
