@@ -183,6 +183,14 @@ export function catalogSpeciesLabel(point) {
   return e.species.slice(0, 4).join(', ');
 }
 
+function isOperatorTip(text) {
+  return /reservar barco|operador experiente|contratar guia|contratar operador/i.test(text || '');
+}
+
+function firstUsefulTip(dos = []) {
+  return dos.find((t) => t && !isOperatorTip(t)) || null;
+}
+
 export function pointInsights(point) {
   const e = enrichPoint(point);
   if (!e) return null;
@@ -190,7 +198,8 @@ export function pointInsights(point) {
   const lines = [];
   if (e.spot?.bestTime) lines.push(`⏱ ${e.spot.bestTime}`);
   if (e.spot?.depth) lines.push(`🌊 ${e.spot.depth}`);
-  if (!e.spot && e.tips.dos[0]) lines.push(`💡 ${e.tips.dos[0]}`);
+  const tip = firstUsefulTip(e.tips.dos);
+  if (!e.spot && tip) lines.push(`💡 ${tip}`);
 
   return lines.length ? { lines } : null;
 }

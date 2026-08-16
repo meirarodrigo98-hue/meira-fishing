@@ -4205,7 +4205,6 @@ export const ISCABOX_GUIDES = [
     ],
     "tips": {
       "dos": [
-        "Reservar barco com operador experiente",
         "Levar remédio para enjoo (Dramin)",
         "Vestir roupas com proteção UV",
         "Melhor época: novembro a março",
