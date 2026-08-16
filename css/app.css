@@ -8,7 +8,7 @@
   --b:#38bdf8;
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
-  --card-h:340px;
+  --card-h:380px;
   --glass:rgba(6,18,26,.82);
   --glow:rgba(45,212,191,.28);
 }
@@ -273,20 +273,28 @@ body.spots-open .spots-card{transform:translateY(0)}
 }
 .spots-area-info.is-hidden{display:none}
 .spots-area-intro{
-  margin:0 0 10px;font-size:12px;line-height:1.5;color:#adc4cb;
+  margin:0 0 12px;font-size:13px;line-height:1.55;color:#adc4cb;
 }
 .spots-area-row{margin:0 0 8px;font-size:12px;line-height:1.45;color:var(--text)}
 .spots-area-k{
-  display:inline-block;min-width:52px;margin-right:6px;
+  display:block;margin-bottom:6px;
   font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);
 }
-.spots-area-block{margin:10px 0 0}
-.spots-area-block .spots-area-k{display:block;margin-bottom:6px}
+.spots-area-block{margin:14px 0 0}
 .spots-area-list{
-  margin:0;padding-left:16px;font-size:12px;line-height:1.45;color:#c5dce2;
+  margin:0;padding-left:16px;font-size:12px;line-height:1.5;color:#c5dce2;
 }
-.spots-area-list li{margin:0 0 4px}
-.spots-area-list ul{margin:4px 0 0;padding-left:14px;color:#adc4cb}
+.spots-area-list li{margin:0 0 6px}
+.spots-area-spots li{margin-bottom:10px}
+.spots-area-meta{display:block;margin-top:3px;font-size:11px;color:var(--muted)}
+.spots-area-tech{margin-bottom:12px!important}
+.spots-area-steps{
+  margin:6px 0 0;padding-left:18px;color:#adc4cb;list-style:decimal;
+}
+.spots-area-steps li{margin-bottom:4px}
+.spots-area-gear{
+  margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--muted);
+}
 .spots-area-list strong{color:var(--text);font-weight:700}
 
 .pill{

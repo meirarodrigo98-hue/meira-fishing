@@ -190,28 +190,32 @@ export function pointAreaPanel(point) {
   if (!e?.guide) return null;
 
   const guide = e.guide;
-  const techniques = (guide.techniques || [])
-    .slice(0, 2)
-    .map((t) => ({
-      title: t.title,
-      steps: (t.steps || []).slice(0, 3).map(decodeText),
-      gear: decodeText(t.gear),
-    }));
+  const spotGuide = e.spotGuide && e.spotGuide.id !== guide.id ? e.spotGuide : null;
+
+  const species = (guide.species?.length ? guide.species : spotGuide?.species || []).map((s) => ({
+    name: decodeText(s.name),
+    latin: decodeText(s.latin) || null,
+  }));
+
+  const techniques = (guide.techniques?.length ? guide.techniques : spotGuide?.techniques || []).map((t) => ({
+    title: decodeText(t.title),
+    steps: (t.steps || []).map(decodeText),
+    gear: decodeText(t.gear) || null,
+  }));
+
+  const spotList = guide.spots?.length ? guide.spots : spotGuide?.spots || (e.spot ? [e.spot] : []);
+  const spots = spotList.map((s) => ({
+    name: decodeText(s.name),
+    depth: s.depth || null,
+    bestTime: s.bestTime || null,
+  }));
 
   return {
     areaTitle: guide.title || point.area,
-    intro: decodeText(guide.intro)?.slice(0, 320) || null,
-    species: (e.species || []).slice(0, 6),
-    spot: e.spot
-      ? {
-          name: e.spot.name,
-          depth: e.spot.depth,
-          bestTime: e.spot.bestTime,
-        }
-      : null,
+    intro: decodeText(guide.intro) || null,
+    species,
+    spots,
     techniques,
-    dos: (e.tips?.dos || []).filter((t) => t && !isOperatorTip(t)).slice(0, 5),
-    donts: (e.tips?.donts || []).slice(0, 4),
   };
 }
 

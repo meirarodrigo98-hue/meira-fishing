@@ -943,33 +943,37 @@ function renderAreaInfo(p) {
   const parts = [];
   if (panel.intro) parts.push(`<p class="spots-area-intro">${escHtml(panel.intro)}</p>`);
   if (panel.species.length) {
+    const items = panel.species
+      .map((s) => {
+        const line = s.latin ? `${s.name} (${s.latin})` : s.name;
+        return `<li>${escHtml(line)}</li>`;
+      })
+      .join('');
     parts.push(
-      `<p class="spots-area-row"><span class="spots-area-k">Peixes</span>${escHtml(panel.species.join(' · '))}</p>`,
+      `<div class="spots-area-block"><span class="spots-area-k">Peixes</span><ul class="spots-area-list">${items}</ul></div>`,
     );
   }
-  if (panel.spot) {
-    const spotLine = [panel.spot.name, panel.spot.depth, panel.spot.bestTime].filter(Boolean).join(' · ');
-    parts.push(`<p class="spots-area-row"><span class="spots-area-k">Spot</span>${escHtml(spotLine)}</p>`);
+  if (panel.spots.length) {
+    const items = panel.spots
+      .map((s) => {
+        const meta = [s.depth, s.bestTime].filter(Boolean).join(' · ');
+        return `<li><strong>${escHtml(s.name)}</strong>${meta ? `<span class="spots-area-meta">${escHtml(meta)}</span>` : ''}</li>`;
+      })
+      .join('');
+    parts.push(
+      `<div class="spots-area-block"><span class="spots-area-k">Pontos produtivos</span><ul class="spots-area-list spots-area-spots">${items}</ul></div>`,
+    );
   }
   if (panel.techniques.length) {
     const items = panel.techniques
       .map((t) => {
         const steps = t.steps.map((s) => `<li>${escHtml(s)}</li>`).join('');
-        return `<li><strong>${escHtml(t.title)}</strong>${steps ? `<ul>${steps}</ul>` : ''}</li>`;
+        const gear = t.gear ? `<p class="spots-area-gear">${escHtml(t.gear)}</p>` : '';
+        return `<li class="spots-area-tech"><strong>${escHtml(t.title)}</strong>${steps ? `<ol class="spots-area-steps">${steps}</ol>` : ''}${gear}</li>`;
       })
       .join('');
     parts.push(
       `<div class="spots-area-block"><span class="spots-area-k">Técnicas</span><ul class="spots-area-list">${items}</ul></div>`,
-    );
-  }
-  if (panel.dos.length) {
-    parts.push(
-      `<div class="spots-area-block"><span class="spots-area-k">Dicas</span><ul class="spots-area-list">${panel.dos.map((t) => `<li>${escHtml(t)}</li>`).join('')}</ul></div>`,
-    );
-  }
-  if (panel.donts.length) {
-    parts.push(
-      `<div class="spots-area-block"><span class="spots-area-k">Evitar</span><ul class="spots-area-list">${panel.donts.map((t) => `<li>${escHtml(t)}</li>`).join('')}</ul></div>`,
     );
   }
   root.innerHTML = parts.join('');
