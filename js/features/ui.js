@@ -1,6 +1,6 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
 import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
-import { rankPoints, verdict, formatConditions } from '../lib/scoring.js';
+import { rankPoints, formatConditions } from '../lib/scoring.js';
 import {
   clearRoute,
   drawRoute,
@@ -173,6 +173,13 @@ export function showSearching() {
     }
   }, 20000);
 }
+
+export function hideAwaitingPermission() {
+  $('permWait')?.classList.add('is-hidden');
+}
+
+export function showAwaitingPermission() {
+  stopLoadingHints();
   $('permWait')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
   setTopbarVisible(false);
@@ -181,11 +188,7 @@ export function showSearching() {
   setEntryVisible(false);
 }
 
-export function hideAwaitingPermission() {
-  $('permWait')?.classList.add('is-hidden');
-}
-
-export function showAwaitingPermission() {
+export function showPermissionDenied() {
   stopLoadingHints();
   hideAwaitingPermission();
   setTopbarVisible(false);
