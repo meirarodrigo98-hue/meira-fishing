@@ -112,6 +112,44 @@ let checklistObs = emptyObservations();
 let checklistPoint = null;
 let draftProfile = loadProfile();
 let sheetOrigin = null;
+let onModeSelectedRef = null;
+let fishingMode = null;
+
+const MODE_TO_FILTER = { terra: 'costa', barco: 'barco' };
+
+function syncFilterChips(filter) {
+  $('filters')?.querySelectorAll('[data-filter]').forEach((c) => {
+    c.classList.toggle('on', c.dataset.filter === filter);
+  });
+}
+
+function applyFishingMode(mode) {
+  const filter = MODE_TO_FILTER[mode];
+  if (!filter) return;
+  fishingMode = mode;
+  setFilter(filter);
+  syncFilterChips(filter);
+  const profile = loadProfile();
+  saveProfile({ ...profile, style: mode });
+}
+
+export function showModePicker() {
+  const saved = loadProfile().style;
+  if (saved === 'terra' || saved === 'barco') fishingMode = saved;
+  document.body.classList.add('mode-pending');
+  $('modePick')?.classList.remove('is-hidden');
+  setRadarDockVisible(false);
+  setTopbarVisible(false);
+  setEntryVisible(false);
+  $('modePick')?.querySelectorAll('[data-mode]').forEach((btn) => {
+    btn.classList.toggle('on', btn.dataset.mode === fishingMode);
+  });
+}
+
+export function hideModePicker() {
+  document.body.classList.remove('mode-pending');
+  $('modePick')?.classList.add('is-hidden');
+}
 
 export function setRadarProgress(done, total, name) {
   const hint = $('bootLoadingHint');
@@ -600,18 +638,27 @@ function closeSpots() {
   invalidateMapSize();
 }
 
-export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilterChange: onFilter }) {
+export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilterChange: onFilter, onModeSelected }) {
   onRefresh = () => renderList(pointsRef, { soft: true });
   onFilterChange = onFilter;
   onRelocateRef = onRelocate;
+  onModeSelectedRef = onModeSelected;
   syncLocSettingsButtons();
 
   $('captureLocation').onclick = onCapture;
 
+  $('modePick')?.querySelectorAll('[data-mode]').forEach((btn) => {
+    btn.onclick = () => {
+      applyFishingMode(btn.dataset.mode);
+      hideModePicker();
+      onModeSelectedRef?.();
+    };
+  });
+
   $('filters').querySelectorAll('[data-filter]').forEach((btn) => {
     btn.onclick = () => {
       setFilter(btn.dataset.filter);
-      $('filters').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === btn));
+      syncFilterChips(btn.dataset.filter);
       renderList(pointsRef);
       onFilterChange?.(rows.map((r) => r.p));
     };

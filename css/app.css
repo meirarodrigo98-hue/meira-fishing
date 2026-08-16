@@ -79,6 +79,43 @@ body.app-ready .topbar:not(.is-hidden){
 .hud-btn.on{background:rgba(56,189,248,.22);border-color:rgba(56,189,248,.55);color:#7dd3fc}
 body.follow-on .hud-btn#followBtn.on{box-shadow:0 0 0 2px rgba(56,189,248,.35)}
 
+/* escolha terra / embarcado */
+.mode-pick{
+  position:fixed;inset:0;z-index:840;
+  display:grid;place-items:end center;
+  padding:0 20px calc(28px + var(--safe-b));
+  background:linear-gradient(to top,rgba(4,12,16,.97) 0%,rgba(4,12,16,.55) 42%,rgba(4,12,16,.18) 100%);
+  pointer-events:auto;transition:opacity .3s ease,transform .3s ease
+}
+.mode-pick.is-hidden{opacity:0;pointer-events:none;transform:translateY(16px)}
+.mode-pick-inner{max-width:420px;width:100%;text-align:center}
+.mode-pick-title{
+  margin:0 0 6px;font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)
+}
+.mode-pick-sub{
+  margin:0 0 18px;font-size:13px;line-height:1.45;color:var(--muted)
+}
+.mode-pick-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode-pick-btn{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  min-height:132px;padding:16px 12px;border-radius:20px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:center
+}
+.mode-pick-btn:active{transform:scale(.98);opacity:.95}
+.mode-pick-btn.on{
+  border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.12);
+  box-shadow:0 12px 40px rgba(0,0,0,.35),0 0 24px rgba(45,212,191,.18)
+}
+.mode-pick-icon{
+  width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  border:2.5px solid #fff;flex-shrink:0
+}
+.mode-pick-icon.land{background:var(--a)}
+.mode-pick-icon.boat{background:var(--b)}
+.mode-pick-label{font-size:17px;font-weight:800;letter-spacing:-.2px;color:var(--text)}
+.mode-pick-hint{font-size:11px;line-height:1.35;color:var(--muted);max-width:140px}
+
 /* radar — botão inicial */
 .radar-dock{
   position:fixed;z-index:850;left:0;right:0;
@@ -736,7 +773,7 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .spots-card,.map-dim,.spots-entry,.radar-dock,.topbar,.leaflet-bottom{transition:none!important}
+  .spots-card,.map-dim,.spots-entry,.mode-pick,.radar-dock,.topbar,.leaflet-bottom{transition:none!important}
   .entry-pulse,.marker.nearby,.marker.best,.radar-ring,.radar-sweep::after,.radar-icon{animation:none!important}
   .login-fx-orb,.login-fx-glow,.login-fx-wave,.login-panel,.login-brand-lines span:nth-child(2),.login-submit,.login-submit::before{animation:none!important}
 }
@@ -750,6 +787,7 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
 
 body.login-pending:not(.login-done) #map,
 body.login-pending:not(.login-done) .map-dim,
+body.login-pending:not(.login-done) .mode-pick,
 body.login-pending:not(.login-done) .radar-dock,
 body.login-pending:not(.login-done) .topbar,
 body.login-pending:not(.login-done) .spots-entry,

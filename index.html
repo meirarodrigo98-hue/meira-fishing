@@ -77,7 +77,27 @@
 
 <button class="mark-fab is-hidden" id="markFab" type="button" aria-label="Marcar ponto aqui">＋</button>
 
-<div class="radar-dock" id="radarDock">
+<div class="mode-pick" id="modePick">
+  <div class="mode-pick-inner">
+    <p class="radar-tag">Meira Fishing</p>
+    <h2 class="mode-pick-title">Como você vai pescar?</h2>
+    <p class="mode-pick-sub">Escolha o tipo para abrir o mapa com os pontos certos</p>
+    <div class="mode-pick-options">
+      <button class="mode-pick-btn" type="button" data-mode="terra">
+        <span class="mode-pick-icon land" aria-hidden="true"></span>
+        <span class="mode-pick-label">Terra</span>
+        <span class="mode-pick-hint">Costa, pedras e orla</span>
+      </button>
+      <button class="mode-pick-btn" type="button" data-mode="barco">
+        <span class="mode-pick-icon boat" aria-hidden="true"></span>
+        <span class="mode-pick-label">Embarcado</span>
+        <span class="mode-pick-hint">Barco e mar aberto</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="radar-dock is-hidden" id="radarDock">
   <div class="radar-dock-inner">
     <p class="radar-tag">Meira Fishing</p>
     <button class="radar-btn" id="captureLocation" type="button">

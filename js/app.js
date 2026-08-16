@@ -15,6 +15,7 @@ import {
   renderPlaces,
   setPoints,
   setRadarProgress,
+  showModePicker,
   showRecover,
   showSearching,
 } from './features/ui.js';
@@ -116,6 +117,7 @@ async function boot() {
       await loadMissingWeather(missing, setRadarProgress);
       renderList(allPoints(), { nearby: true });
     },
+    onModeSelected: () => startInitialRadar(),
   });
 
   renderPlaces(PLACES, (place) => {
@@ -130,12 +132,18 @@ async function boot() {
     toast('Abra no Chrome ou Safari para GPS preciso.');
   }
 
-  await requestLocationOnEntry();
+  showModePicker();
 }
 
-async function requestLocationOnEntry() {
-  if (!window.isSecureContext || !navigator.geolocation) return;
-  if (hasCapturedLocation()) return;
+function startInitialRadar() {
+  if (!window.isSecureContext || !navigator.geolocation) {
+    showRecover('unsupported');
+    return;
+  }
+  if (hasCapturedLocation()) {
+    finishRadar();
+    return;
+  }
 
   startRadar(() =>
     captureLocation(
