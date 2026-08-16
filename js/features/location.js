@@ -6,7 +6,6 @@ import {
   hideAwaitingPermission,
   hideRecover,
   onUserMoved,
-  showAwaitingPermission,
   showPermissionDenied,
   showRecover,
   showSearching,
@@ -312,7 +311,7 @@ export function captureLocation(onSuccess, onFallback) {
   }
 
   hideRecover();
-  showAwaitingPermission();
+  showSearching();
 
   capturePrecisePosition({ maxWaitMs: 35000, targetAccuracy: 30 })
     .then((reading) => {

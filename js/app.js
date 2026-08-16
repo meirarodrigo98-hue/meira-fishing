@@ -17,12 +17,10 @@ import {
   setRadarProgress,
   showRecover,
   showSearching,
-  showLocationHelp,
 } from './features/ui.js';
 import { state, getPointWeather, hasCapturedLocation } from './lib/state.js';
 import { beginTracking, captureLocation, retryLocation, refreshGpsPosition, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
 import { initLogin } from './features/login.js';
-import { needsLocationPermission, promptLocationServicesOnEntry } from './lib/location-settings.js';
 
 import { isSupabaseEnabled } from './lib/supabase-client.js';
 import { fetchPublicPoints } from './lib/supabase-sync.js';
@@ -139,27 +137,12 @@ async function requestLocationOnEntry() {
   if (!window.isSecureContext || !navigator.geolocation) return;
   if (hasCapturedLocation()) return;
 
-  const needs = await needsLocationPermission();
-  if (!needs) {
-    startRadar(() =>
-      captureLocation(
-        () => finishRadar(),
-        () => endRadar(),
-      ),
-    );
-    return;
-  }
-
-  promptLocationServicesOnEntry(showLocationHelp);
-
-  window.setTimeout(() => {
-    startRadar(() =>
-      captureLocation(
-        () => finishRadar(),
-        () => endRadar(),
-      ),
-    );
-  }, 600);
+  startRadar(() =>
+    captureLocation(
+      () => finishRadar(),
+      () => endRadar(),
+    ),
+  );
 }
 
 async function finishRadar() {
