@@ -102,12 +102,6 @@ export function usersSummary() {
   return n === 1 ? '1 usuário' : `${n} usuários`;
 }
 
-function requireAdmin() {
-  const session = readSession();
-  if (!session?.admin) return { ok: false, message: 'Somente admin pode fazer isso.' };
-  return { ok: true, session };
-}
-
 export async function addUser({ username, password, name, admin = false }) {
   const gate = requireAdmin();
   if (!gate.ok) return gate;

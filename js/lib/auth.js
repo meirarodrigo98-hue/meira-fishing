@@ -117,9 +117,12 @@ async function loginSupabase(username, password, remember) {
 
 export async function login(username, password, remember = true) {
   if (isSupabaseEnabled()) {
-    const cloud = await loginSupabase(username, password, remember);
-    if (cloud.ok) return cloud;
-    if (cloud.code !== 'user_not_found') return cloud;
+    try {
+      const cloud = await loginSupabase(username, password, remember);
+      if (cloud.ok) return cloud;
+    } catch {
+      /* rede ou Supabase indisponível — tenta login local */
+    }
   }
   return loginLocal(username, password, remember);
 }

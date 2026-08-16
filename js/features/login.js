@@ -54,7 +54,11 @@ async function pullProfileFromCloud() {
 
 export async function initLogin(onReady) {
   if (isSupabaseEnabled()) {
-    await refreshSessionFromSupabase();
+    try {
+      await refreshSessionFromSupabase();
+    } catch {
+      /* offline ou Supabase ainda não configurado */
+    }
   }
 
   if (isLoggedIn()) {

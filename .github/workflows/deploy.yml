@@ -35,17 +35,13 @@ jobs:
           cp -r assets/* _site/assets/ 2>/dev/null || true
           cp js/boot-cache.js _site/js/boot-cache.js
           cp js/app.js _site/js/app.js
-          cp js/config.js _site/js/config.js
           cp js/data/*.js _site/js/data/
           cp js/lib/*.js _site/js/lib/
           cp js/features/*.js _site/js/features/
           if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
-            cat > _site/js/config.js <<EOF
-export const SUPABASE_URL = '${SUPABASE_URL}';
-export const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
-export const SUPABASE_ENABLED = true;
-export const AUTH_EMAIL_DOMAIN = 'meira.app';
-EOF
+            sed -i "s|export const SUPABASE_URL = ''|export const SUPABASE_URL = '${SUPABASE_URL}'|" _site/js/lib/supabase-client.js
+            sed -i "s|export const SUPABASE_ANON_KEY = ''|export const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}'|" _site/js/lib/supabase-client.js
+            sed -i 's|export const SUPABASE_ENABLED = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)|export const SUPABASE_ENABLED = true|' _site/js/lib/supabase-client.js
           fi
           touch _site/.nojekyll
           printf '{"id":"%s","at":"%s"}\n' "$V" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > _site/version.json

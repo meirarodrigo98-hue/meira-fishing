@@ -1,5 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENABLED, AUTH_EMAIL_DOMAIN } from '../config.js';
+
+/** Sobrescrito no deploy (GitHub Secrets). Local: copie de config.example.js */
+export const SUPABASE_URL = '';
+export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_ENABLED = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const AUTH_EMAIL_DOMAIN = 'meira.app';
 
 let client = null;
 
