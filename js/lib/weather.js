@@ -2,7 +2,7 @@ import { clearPointWeather, setPointWeather, state } from './state.js';
 
 /** Open-Meteo — clima e mar por coordenada do ponto. */
 const FETCH_MS = 6000;
-const BATCH_CONCURRENCY = 4;
+const BATCH_CONCURRENCY = 6;
 
 async function fetchJson(url) {
   const ctrl = new AbortController();

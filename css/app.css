@@ -245,6 +245,7 @@ body.spots-open .spots-card{transform:translateY(0)}
   margin:0;font-size:21px;font-weight:800;line-height:1.2;letter-spacing:-.4px
 }
 .spots-meta{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.spots-access{margin:4px 0 0;font-size:12px;line-height:1.4;color:#8ec8d8}
 .spots-conditions{
   margin:8px 0 0;font-size:12px;font-weight:600;line-height:1.4;
   color:#9ef0d0;letter-spacing:-.1px

@@ -314,6 +314,11 @@ function paint(row, i) {
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
   $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
+  const accessEl = $('cardAccess');
+  if (accessEl) {
+    accessEl.textContent = p.access ? `📍 ${p.access}` : '';
+    accessEl.classList.toggle('is-hidden', !p.access);
+  }
   $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';
   $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
   $('cardVerdict').className = `pill ${v.key}`;
@@ -327,6 +332,7 @@ function paintEmpty() {
   $('cardRank').textContent = '—';
   $('cardName').textContent = 'Nenhum ponto';
   $('cardMeta').textContent = 'Mude o filtro acima';
+  $('cardAccess')?.classList.add('is-hidden');
   $('cardConditions').textContent = '';
   $('cardVerdict').textContent = '—';
   $('cardVerdict').className = 'pill lendo';
