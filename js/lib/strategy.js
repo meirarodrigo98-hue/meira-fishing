@@ -1,207 +1,249 @@
-import { scores, verdict } from './scoring.js';
-import { fmtKm } from './utils.js';
+import { hasBait, hasExtra, hasSinker, gearPower, labelFor } from './gear.js';
 
-/** Checklist e estratégia — leitura completa do ponto + condições. */
-function timeSlot() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 8) return { key: 'dawn', label: 'Amanhecer', prime: true };
-  if (h >= 17 && h < 20) return { key: 'dusk', label: 'Entardecer', prime: true };
-  if (h >= 20 || h < 5) return { key: 'night', label: 'Noite', prime: false };
-  return { key: 'day', label: 'Pleno dia', prime: false };
+/** Checklist no local — observações + material → estratégia. */
+export const OBS_GROUPS = [
+  {
+    id: 'wave',
+    label: 'Onda',
+    options: [
+      { id: 'calm', label: 'Calma' },
+      { id: 'medium', label: 'Média' },
+      { id: 'strong', label: 'Forte' },
+    ],
+  },
+  {
+    id: 'tide',
+    label: 'Maré',
+    options: [
+      { id: 'rising', label: 'Subindo' },
+      { id: 'falling', label: 'Vazando' },
+      { id: 'slack', label: 'Parada' },
+      { id: 'unknown', label: 'Não sei' },
+    ],
+  },
+  {
+    id: 'wind',
+    label: 'Vento',
+    options: [
+      { id: 'light', label: 'Fraco' },
+      { id: 'moderate', label: 'Moderado' },
+      { id: 'strong', label: 'Forte' },
+    ],
+  },
+  {
+    id: 'structure',
+    label: 'Estrutura',
+    options: [
+      { id: 'rocks', label: 'Rochas / costão' },
+      { id: 'channel', label: 'Canal / corrente' },
+      { id: 'vegetation', label: 'Vegetação' },
+      { id: 'sand', label: 'Areia / mole' },
+    ],
+  },
+  {
+    id: 'activity',
+    label: 'Movimento',
+    options: [
+      { id: 'birds', label: 'Pássaros' },
+      { id: 'splashes', label: 'Salpicos' },
+      { id: 'nothing', label: 'Nada visível' },
+    ],
+  },
+  {
+    id: 'water',
+    label: 'Água',
+    options: [
+      { id: 'clear', label: 'Limpa' },
+      { id: 'murky', label: 'Turva' },
+    ],
+  },
+];
+
+export function emptyObservations() {
+  return Object.fromEntries(OBS_GROUPS.map((g) => [g.id, null]));
 }
 
-function gearFor(point) {
-  if (point.type === 'Lagoa') {
-    return 'Vara leve/média (1,80–2,10 m), molinete 1000–3000, linha 0,20–0,28 mm';
-  }
-  if (point.type === 'Costão' || point.type === 'Pedra') {
-    return 'Vara pesada (2,70–3,60 m), carretilha/molinete forte, linha 0,35–0,45 mm, leader de aço/flúor';
-  }
-  if (point.mode === 'boat' && point.type === 'Offshore') {
-    return 'Equipamento pesado, linha 0,40–0,60 mm, molinete 6000+, chumbos 200–400 g';
-  }
-  if (point.mode === 'boat') {
-    return 'Vara média/pesada, molinete 4000–6000, linha 0,30–0,40 mm, GPS/sonda se possível';
-  }
-  return 'Vara média (2,10–2,70 m), molinete 3000–4000, linha 0,25–0,35 mm';
-}
-
-function baitFor(point, tide) {
+function pickBait(point, gear, obs) {
   const sp = point.species[0];
-  const map = {
-    Robalo: 'Camarão vivo, sabiki de peixinho ou isca artificial (minnow/jig)',
-    Xaréu: 'Sabiki, molusco, isca pequena viva ou artificial tipo jig',
-    Corvina: 'Camarão, siri, isca de fundo ou artificial de corpo longo',
-    Anchova: 'Isca natural grande (sardinha, lula) ou jig de 80–150 g',
-    Garoupa: 'Isca de fundo (sardinha, corrico) ou jig vertical',
-    'Olho-de-boi': 'Isca viva média, jig ou corrico lento',
-    Tilápia: 'Minhoca, milho, massa ou isca vegetal',
-    Traíra: 'Minhoca, isca viva pequena ou spinner',
-  };
-  let bait = map[sp] || 'Isca natural local e artificial compatível com a espécie';
-
-  if (point.type === 'Lagoa') bait = 'Minhoca, milho ou isca vegetal — traíra responde a spinner';
-  if ((point.type === 'Costão' || point.type === 'Pedra') && tide?.trend === 'rising') {
-    bait += ' · priorize arremessos na rebentação com maré enchendo';
-  }
-  return bait;
-}
-
-function techniqueFor(point, wx, tide) {
-  const wind = wx?.weather?.current?.wind_speed_10m ?? 12;
-  const wave = wx?.marine?.current?.wave_height ?? 0.7;
+  const candidates = [];
 
   if (point.type === 'Lagoa') {
-    return wind > 16
-      ? 'Pesque abrigado na margem; arremessos curtos perto de vegetação'
-      : 'Vara ao longo das margens e estruturas; trabalhe devagar perto de junco/pedras';
+    if (hasBait(gear, 'minhoca')) candidates.push({ id: 'minhoca', why: 'Margem com vegetação — traíra e tilápia' });
+    if (hasBait(gear, 'milho')) candidates.push({ id: 'milho', why: 'Lagoa responde bem a isca vegetal' });
+    if (hasBait(gear, 'spinner')) candidates.push({ id: 'spinner', why: 'Spinner devagar perto de junco' });
+  } else if (sp === 'Robalo' || sp === 'Corvina') {
+    if (hasBait(gear, 'camarao')) candidates.push({ id: 'camarao', why: `${sp} na estrutura com maré` });
+    if (hasBait(gear, 'minnow')) candidates.push({ id: 'minnow', why: 'Arremesso paralelo à estrutura' });
+    if (hasBait(gear, 'jig')) candidates.push({ id: 'jig', why: 'Jig trabalhado no retorno da onda' });
+  } else if (sp === 'Xaréu') {
+    if (hasBait(gear, 'sabiki')) candidates.push({ id: 'sabiki', why: 'Sabiki na corrente ou quebra' });
+    if (hasBait(gear, 'jig')) candidates.push({ id: 'jig', why: 'Jig pequeno com movimento' });
+  } else if (sp === 'Anchova' || sp === 'Garoupa' || sp === 'Olho-de-boi') {
+    if (hasBait(gear, 'sardinha')) candidates.push({ id: 'sardinha', why: 'Isca natural grande no fundo' });
+    if (hasBait(gear, 'jig')) candidates.push({ id: 'jig', why: 'Jig pesado na quebra ou fundo' });
   }
-  if (point.type === 'Costão' || point.type === 'Pedra') {
-    if (wave > 1.4) return 'Evite arremessos na rebentação — pescaria só em bolsões abrigados';
-    if (tide?.trend === 'rising') return 'Arremessos paralelos ao costão, trabalhe isca na volta da onda';
-    if (tide?.trend === 'falling') return 'Foque canais e reentrâncias com maré vazando';
-    return 'Arremessos do costão para o mar; varie distância até achar cardume';
+
+  if (obs.activity === 'birds' && hasBait(gear, 'sabiki')) {
+    candidates.unshift({ id: 'sabiki', why: 'Pássaros indicam cardume — sabiki rápido' });
   }
-  if (point.type === 'Canal') {
-    return 'Pescaria de fundo ou meia-água na corrente; posicione na saída/entrada do canal';
+  if (obs.water === 'murky' && hasBait(gear, 'camarao')) {
+    candidates.unshift({ id: 'camarao', why: 'Água turva — cheiro de camarão ajuda' });
   }
-  if (point.mode === 'boat' && point.type === 'Offshore') {
-    return wave > 1.2
-      ? 'Deriva lenta com chumbo pesado; jig vertical na quebra'
-      : 'Deriva ou fundeadouro na quebra; alterne jig e corrico';
+  if (obs.water === 'clear' && hasBait(gear, 'minnow')) {
+    candidates.unshift({ id: 'minnow', why: 'Água limpa — artificial naturalista' });
   }
-  if (point.mode === 'boat') {
-    return 'Circule a estrutura (ilha/canal); fundeadouro ou deriva com isca na meia-água/fundo';
+
+  if (!candidates.length && gear.baits.length) {
+    return { id: gear.baits[0], why: 'Use o que você tem e varie o ritmo' };
   }
-  if (wind > 20) return 'Arremessos mais curtos, chumbo extra e paciência com vento de frente';
-  return 'Arremessos médios da orla; varie distância e profundidade a cada 10–15 min';
+  return candidates[0] ?? null;
 }
 
-function positionFor(point, tide) {
-  const tips = {
-    Orla: 'Quebra de onda, bóias, moles e pontos de desembocadura',
-    Praia: 'Reentrâncias, correntes laterais e fundo variado',
-    Pier: 'Pilares, sombra do píer e saída de água',
-    Costão: 'Pontos de rocha com reentrada e bolsões abrigados',
-    Pedra: 'Canal entre pedras e borda onde a onda quebra',
-    Canal: 'Centro do canal na corrente ou bordas na maré parada',
-    Lagoa: 'Margens com vegetação, pontes e bordas de parque',
-    Ilhas: 'Paredão da ilha, fundo variado e sombra da estrutura',
-    Ilha: 'Contorno da ilha e fundo de 8–20 m',
-    'Mar aberto': 'Cardumes na deriva; atenção a aves e variação de fundo',
-    Offshore: 'Quebra de 18–40 m, cabeços e bordas de canal',
+function pickSetup(gear, obs, point) {
+  const power = gearPower(gear);
+  const parts = [`${labelFor('rod', gear.rod)} + ${labelFor('line', gear.line)}`];
+
+  if (obs.wave === 'strong' || obs.wind === 'strong') {
+    if (hasSinker(gear, 'pesado')) parts.push('chumbo pesado');
+    else if (hasSinker(gear, 'medio')) parts.push('chumbo médio (considere mais peso)');
+    else parts.push('arremessos curtos — falta chumbo pesado');
+  } else if (hasSinker(gear, 'leve')) {
+    parts.push('chumbo leve');
+  }
+
+  if ((point.type === 'Costão' || point.type === 'Pedra') && hasExtra(gear, 'leader')) {
+    parts.push('leader obrigatório na rebentação');
+  }
+
+  if (power < 4 && (obs.wave === 'strong' || point.type === 'Offshore')) {
+    parts.push('⚠ equipamento leve para essa condição');
+  }
+
+  return parts.join(' · ');
+}
+
+function pickTechnique(point, gear, obs, bait) {
+  const b = bait?.id;
+
+  if (point.type === 'Lagoa') {
+    if (obs.structure === 'vegetation') return 'Arremessos curtos rente ao junco; recolhimento lento';
+    return 'Vara ao longo da margem; mude de spot a cada 15 min';
+  }
+
+  if (point.type === 'Costão' || point.type === 'Pedra') {
+    if (obs.wave === 'strong') return 'Não entre na rebentação — arremesse de bolsão abrigado';
+    if (obs.tide === 'rising') return 'Arremessos paralelos ao costão com maré enchendo';
+    if (obs.tide === 'falling') return 'Trabalhe canais entre rochas com maré vazando';
+    if (b === 'jig') return 'Jig na volta da onda, 2–3 toques e pausa';
+    return 'Arremessos do costão; varie distância até achar peixe';
+  }
+
+  if (obs.structure === 'channel') {
+    return 'Isca de fundo ou meia-água na saída do canal';
+  }
+
+  if (point.mode === 'boat') {
+    if (obs.activity === 'birds') return 'Deriva em direção aos pássaros; sabiki ou jig';
+    if (obs.wind === 'strong') return 'Fundeadouro abrigado ou deriva lenta com chumbo extra';
+    return 'Circule a estrutura; alterne fundo e meia-água';
+  }
+
+  if (obs.wind === 'strong') return 'Arremessos mais curtos com vento de frente';
+  if (obs.activity === 'nothing') return 'Isca natural, recolhimento lento, teste 3 distâncias';
+  return 'Arremessos médios; mude profundidade a cada 10 min';
+}
+
+function pickPosition(point, obs) {
+  if (obs.structure === 'rocks') return 'Borda das rochas e reentrâncias — não fique no seco';
+  if (obs.structure === 'channel') return 'Saída/entrada do canal onde a corrente acelera';
+  if (obs.structure === 'vegetation') return 'Margem com vegetação ou sombra de ponte';
+  if (obs.structure === 'sand') return 'Reentrâncias e mudança de fundo na praia';
+
+  const byType = {
+    Costão: 'Pontos de quebra com bolsão abrigado',
+    Pedra: 'Canal entre pedras onde a onda passa',
+    Pier: 'Pilares e sombra do píer',
+    Orla: 'Quebra de onda e moles',
+    Lagoa: 'Margens com estrutura e pontes',
+    Offshore: 'Quebra de fundo e bordas de canal',
   };
-  let base = tips[point.type] || 'Estruturas naturais e variação de fundo';
+  let pos = byType[point.type] || 'Estrutura com variação de fundo';
 
-  if (tide?.trend === 'rising' && point.mode === 'land') {
-    base += ' · maré enchendo puxa peixe para a estrutura';
-  } else if (tide?.trend === 'falling' && (point.type === 'Costão' || point.type === 'Pedra')) {
-    base += ' · maré vazando expõe canais entre rochas';
-  }
-  return base;
+  if (obs.tide === 'rising') pos += ' · maré enchendo puxa peixe para dentro';
+  if (obs.tide === 'falling') pos += ' · maré vazando expõe passagem';
+  if (obs.activity === 'birds') pos += ' · siga os pássaros com cuidado';
+
+  return pos;
 }
 
-function safetyItems(point, wx, s) {
-  const wave = wx?.marine?.current?.wave_height ?? 0.7;
-  const wind = wx?.weather?.current?.wind_speed_10m ?? 12;
-  const gust = wx?.weather?.current?.wind_gusts_10m ?? wind;
-  const items = [];
+function buildWarnings(point, gear, obs) {
+  const w = [];
+  const power = gearPower(gear);
 
-  items.push({ status: 'info', label: 'Calçado antiderrapante e protetor solar' });
-
-  if (point.type === 'Costão' || point.type === 'Pedra') {
-    items.push({ status: wave > 1.2 ? 'bad' : 'warn', label: 'Nunca vire costas para o mar' });
-    if (wave > 1.4) items.push({ status: 'bad', label: 'Onda forte — evite pescar na rebentação' });
+  if (obs.wave === 'strong' && (point.type === 'Costão' || point.type === 'Pedra')) {
+    w.push('Onda forte no costão — não vire costas para o mar');
   }
-  if (point.mode === 'boat') {
-    items.push({ status: 'info', label: 'Coletes, rádio/celular seco e combustível cheio' });
-    if (wind > 18 || gust > 25) items.push({ status: 'warn', label: 'Vento forte — evite sair sozinho' });
-    if (wave > 1.5) items.push({ status: 'bad', label: 'Mar agitado — considere adiar a saída' });
+  if (obs.wave === 'strong' && power < 5) {
+    w.push('Sua vara/linha estão leves para onda forte');
   }
-  if (s.safe < 50) items.push({ status: 'bad', label: 'Condição insegura neste ponto agora' });
-  if ((wx?.weather?.current?.precipitation ?? 0) > 2) {
-    items.push({ status: 'warn', label: 'Chuva — capa impermeável e cuidado com piso escorregadio' });
+  if (point.mode === 'boat' && !hasExtra(gear, 'boat')) {
+    w.push('Ponto de barco — confirme se vai sair de barco');
   }
-  return items;
+  if (point.mode === 'boat' && obs.wind === 'strong') {
+    w.push('Vento forte no mar — evite sair sozinho');
+  }
+  if (obs.activity === 'nothing' && obs.tide === 'slack') {
+    w.push('Maré parada e sem movimento — paciência ou mude de spot');
+  }
+  if (!hasExtra(gear, 'leader') && (point.type === 'Costão' || point.type === 'Pedra')) {
+    w.push('Leader recomendado para rochas e dentes');
+  }
+  return w;
 }
 
-function item(status, label, detail = '') {
-  return { status, label, detail };
+export function obsComplete(obs) {
+  return OBS_GROUPS.every((g) => obs[g.id]);
 }
 
-export function buildPointChecklist(point, { weather, distance, estimated = false } = {}) {
-  const wx = weather;
-  const v = verdict(point, wx);
-  const s = wx ? scores(point, wx) : null;
-  const tide = wx?.tide;
-  const slot = timeSlot();
-  const wind = wx?.weather?.current?.wind_speed_10m;
-  const wave = wx?.marine?.current?.wave_height;
-  const sst = wx?.marine?.current?.sea_surface_temperature;
+export function obsProgress(obs) {
+  const done = OBS_GROUPS.filter((g) => obs[g.id]).length;
+  return { done, total: OBS_GROUPS.length };
+}
 
-  const items = [];
-
-  // Leitura do ponto
-  items.push(
-    item('info', `Ponto: ${point.name}`, `${point.type} · ${point.area}`),
-    item('info', `Espécies-alvo: ${point.species.join(', ')}`),
-  );
-  if (distance != null) items.push(item('info', `Distância: ${fmtKm(distance)}`, 'Do seu GPS atual'));
-
-  // Condições ao vivo
-  if (!wx) {
-    items.push(item('warn', 'Clima ainda carregando', 'Aguarde ou reabra o checklist'));
-  } else {
-    const cond = [];
-    if (wind != null) cond.push(`vento ${Math.round(wind)} km/h`);
-    if (wave != null) cond.push(`onda ${wave.toFixed(1)} m`);
-    if (tide?.label) cond.push(tide.label.toLowerCase());
-    if (sst != null) cond.push(`mar ${Math.round(sst)} °C`);
-    items.push(
-      item(estimated ? 'warn' : 'ok', estimated ? 'Condições estimadas' : 'Condições ao vivo', cond.join(' · ') || '—'),
-    );
-    items.push(
-      item(v.key === 'ir' ? 'ok' : v.key === 'evitar' ? 'bad' : 'warn', `Veredito: ${v.key === 'ir' ? 'Vale ir' : v.label}`, v.why),
-    );
+export function buildLiveStrategy(point, gear, observations) {
+  if (!obsComplete(observations)) {
+    return {
+      ready: false,
+      headline: 'Marque o que você vê no local',
+      detail: 'A estratégia aparece quando todas as opções estiverem preenchidas.',
+      bait: null,
+      setup: null,
+      technique: null,
+      position: null,
+      warnings: [],
+    };
   }
 
-  // Timing
-  items.push(
-    item(slot.prime ? 'ok' : 'warn', `Horário: ${slot.label}`, slot.prime ? 'Janela clássica de alimentação' : 'Peixe mais lento — paciência e isca natural'),
-  );
+  const obs = observations;
+  const bait = pickBait(point, gear, obs);
+  const setup = pickSetup(gear, obs, point);
+  const technique = pickTechnique(point, gear, obs, bait);
+  const position = pickPosition(point, obs);
+  const warnings = buildWarnings(point, gear, obs);
 
-  if (tide) {
-    const tideTip =
-      tide.trend === 'rising'
-        ? 'Maré enchendo — peixes sobem para estruturas e alimentam'
-        : tide.trend === 'falling'
-          ? 'Maré vazando — trabalhe canais e saídas de água'
-          : tide.trend === 'slack'
-            ? 'Maré parada — isca lenta e mais tempo no mesmo lugar'
-            : 'Observe a maré local antes de escolher o spot exato';
-    items.push(item(tide.trend === 'rising' ? 'ok' : 'info', tide.label, tideTip));
-  }
+  let headline = 'Estratégia pronta para agora';
+  if (obs.activity === 'birds' || obs.activity === 'splashes') headline = 'Tem movimento — vale insistir';
+  if (obs.wave === 'strong') headline = 'Condição exigente — pescaria seletiva';
+  if (obs.activity === 'nothing' && obs.tide === 'slack') headline = 'Condição parada — paciência e isca natural';
 
-  // Estratégia
-  items.push(item('info', 'Equipamento', gearFor(point)));
-  items.push(item('ok', 'Isca / artificial', baitFor(point, tide)));
-  items.push(item('ok', 'Técnica', techniqueFor(point, wx, tide)));
-  items.push(item('ok', 'Onde posicionar', positionFor(point, tide)));
-
-  // Preparo prático
-  items.push(
-    item('info', 'Levar na mochila', 'Água, iscas reserva, alicate, passador, headlamp se for ficar'),
-    item('info', 'Abordagem', point.mode === 'boat' ? 'Saída pelo ponto de apoio mais próximo' : 'Chegue 15 min antes para montar sem pressa'),
-  );
-
-  safetyItems(point, wx, s ?? { safe: 100 }).forEach((safety) => items.push(safety));
-
-  const headline =
-    v.key === 'ir'
-      ? `Estratégia agressiva — ${point.species[0]} em ${point.type.toLowerCase()}`
-      : v.key === 'evitar'
-        ? `Cuidado — condição difícil, ajuste expectativa`
-        : `Estratégia moderada — paciência e isca natural`;
-
-  return { headline, items, verdict: v, estimated };
+  return {
+    ready: true,
+    headline,
+    detail: `${point.species.slice(0, 2).join(' / ')} · ${point.type}`,
+    bait: bait ? { label: labelFor('baits', bait.id), why: bait.why } : null,
+    setup,
+    technique,
+    position,
+    warnings,
+  };
 }

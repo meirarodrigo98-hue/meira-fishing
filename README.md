@@ -11,7 +11,8 @@ Site: https://meirarodrigo98-hue.github.io/meira-fishing/
 | `js/data/points.js` | Pontos de pesca (nome, lat/lng, espécie, tipo) |
 | `js/data/places.js` | Bairros do fallback sem GPS |
 | `js/lib/scoring.js` | Regras de **Ir agora / Esperar / Evitar** |
-| `js/lib/strategy.js` | Checklist e estratégia por ponto |
+| `js/lib/gear.js` | Cadastro do material do pescador |
+| `js/lib/strategy.js` | Checklist no local + estratégia pelo material |
 | `js/lib/weather.js` | API de clima e mar (Open-Meteo) |
 | `js/features/map.js` | Mapa, marcadores e rota |
 | `js/features/ui.js` | Card de pontos, filtros e HUD |
@@ -25,7 +26,8 @@ Site: https://meirarodrigo98-hue.github.io/meira-fishing/
 1. Abre → toque em **Ligar radar de pontos**
 2. Permite GPS (ou escolhe região manual)
 3. Radar consulta clima de cada ponto próximo
-4. Abre card com melhor ponto → **Ir agora**
+4. Abre card com melhor ponto → **Checklist** (marca o que vê) ou **Ir agora**
+5. Cadastre seu material no ⚙ do topo (salvo no aparelho)
 
 ## Publicar
 

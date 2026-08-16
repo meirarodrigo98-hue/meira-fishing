@@ -1,8 +1,8 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby } from '../lib/utils.js';
-import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setPointWeather } from '../lib/state.js';
+import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
-import { buildPointChecklist } from '../lib/strategy.js';
-import { loadPointWeather } from '../lib/weather.js';
+import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
+import { GEAR, loadGear, saveGear, isGearReady, gearSummary } from '../lib/gear.js';
 import {
   clearRoute,
   drawRoute,
@@ -24,6 +24,10 @@ let rows = [];
 let index = 0;
 let lastId = null;
 let shouldAutoOpen = true;
+let checklistObs = emptyObservations();
+let checklistPoint = null;
+let draftGear = loadGear();
+let gearFromHud = false;
 
 export function setRadarProgress(done, total, name) {
   const hint = $('bootLoadingHint');
@@ -125,6 +129,15 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   };
   $('cardChecklist').onclick = () => openChecklist();
   $('checklistClose').onclick = closeChecklist;
+  $('editGearFromChecklist').onclick = () => showGearEditor();
+  $('gearEditorClose').onclick = hideGearEditor;
+  $('gearSave').onclick = saveGearDraft;
+  $('gearBtn').onclick = () => {
+    gearFromHud = true;
+    showGearEditor({ fromHud: true });
+  };
+  renderGearForm();
+  syncGearBar();
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
@@ -348,49 +361,190 @@ function closeChecklist() {
   const panel = $('checklistPanel');
   panel?.classList.remove('show');
   panel?.setAttribute('aria-hidden', 'true');
+  hideGearEditor();
+  $('checklistObserve')?.classList.remove('is-hidden');
 }
 
-async function openChecklist() {
+function showGearEditor({ fromHud = false } = {}) {
+  gearFromHud = fromHud;
+  draftGear = loadGear();
+  renderGearForm();
+  if (!fromHud) $('checklistObserve')?.classList.add('is-hidden');
+
+  const panel = $('gearPanel');
+  panel?.setAttribute('aria-hidden', 'false');
+  panel?.classList.remove('show');
+  requestAnimationFrame(() => panel?.classList.add('show'));
+
+  if (fromHud) return;
+
+  const checklist = $('checklistPanel');
+  if (!checklist?.classList.contains('show')) {
+    checklist?.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => checklist?.classList.add('show'));
+  }
+}
+
+function hideGearEditor() {
+  $('gearPanel')?.classList.remove('show');
+  $('gearPanel')?.setAttribute('aria-hidden', 'true');
+
+  if (gearFromHud) {
+    gearFromHud = false;
+    return;
+  }
+  $('checklistObserve')?.classList.remove('is-hidden');
+}
+
+function syncGearBar() {
+  const gear = loadGear();
+  const bar = $('gearBar');
+  const text = $('gearBarText');
+  if (!text || !bar) return;
+  text.textContent = gearSummary(gear);
+  bar.classList.toggle('missing', !isGearReady(gear));
+}
+
+function renderGearForm() {
+  const form = $('gearForm');
+  if (!form) return;
+
+  const singleGroups = ['rod', 'reel', 'line'];
+  const multiGroups = ['baits', 'sinkers', 'extras'];
+
+  form.innerHTML = [
+    ...singleGroups.map((group) => renderGearField(group, GEAR[group], false)),
+    ...multiGroups.map((group) => renderGearField(group, GEAR[group], true)),
+  ].join('');
+
+  form.querySelectorAll('[data-gear-group]').forEach((chip) => {
+    chip.onclick = () => {
+      const group = chip.dataset.gearGroup;
+      const id = chip.dataset.gearId;
+      const multi = chip.dataset.gearMulti === '1';
+
+      if (multi) {
+        const set = new Set(draftGear[group] || []);
+        if (set.has(id)) set.delete(id);
+        else set.add(id);
+        draftGear[group] = [...set];
+      } else {
+        draftGear[group] = draftGear[group] === id ? null : id;
+      }
+      renderGearForm();
+    };
+  });
+}
+
+function renderGearField(group, options, multi) {
+  const labels = { rod: 'Vara', reel: 'Molinete', line: 'Linha', baits: 'Iscas', sinkers: 'Chumbos', extras: 'Extras' };
+  const chips = options
+    .map((opt) => {
+      const on = multi ? draftGear[group]?.includes(opt.id) : draftGear[group] === opt.id;
+      const detail = opt.detail ? ` (${opt.detail})` : '';
+      return `<button type="button" class="gear-chip${on ? ' on' : ''}" data-gear-group="${group}" data-gear-id="${opt.id}" data-gear-multi="${multi ? 1 : 0}">${opt.label}${detail}</button>`;
+    })
+    .join('');
+  return `<div class="gear-field"><p class="gear-field-label">${labels[group]}</p><div class="gear-options">${chips}</div></div>`;
+}
+
+function saveGearDraft() {
+  if (!draftGear.rod || !draftGear.line || !draftGear.baits?.length) {
+    toast('Marque vara, linha e ao menos uma isca.');
+    return;
+  }
+  saveGear(draftGear);
+  syncGearBar();
+  toast('Material salvo.');
+  hideGearEditor();
+  if (checklistPoint) updateStrategy(checklistPoint);
+}
+
+function renderObsGroups() {
+  const root = $('obsGroups');
+  if (!root) return;
+
+  root.innerHTML = OBS_GROUPS.map((group) => {
+    const chips = group.options
+      .map((opt) => {
+        const on = checklistObs[group.id] === opt.id;
+        return `<button type="button" class="obs-chip${on ? ' on' : ''}" data-obs-group="${group.id}" data-obs-id="${opt.id}">${opt.label}</button>`;
+      })
+      .join('');
+    return `<div class="obs-group"><p class="obs-group-label">${group.label}</p><div class="obs-options">${chips}</div></div>`;
+  }).join('');
+
+  root.querySelectorAll('[data-obs-group]').forEach((chip) => {
+    chip.onclick = () => {
+      const group = chip.dataset.obsGroup;
+      const id = chip.dataset.obsId;
+      checklistObs[group] = checklistObs[group] === id ? null : id;
+      renderObsGroups();
+      if (checklistPoint) updateStrategy(checklistPoint);
+    };
+  });
+}
+
+function updateStrategy(point) {
+  const gear = loadGear();
+  const box = $('strategyBox');
+  const headline = $('strategyHeadline');
+  const detail = $('strategyDetail');
+  const steps = $('strategySteps');
+  const warns = $('strategyWarns');
+  const progress = obsProgress(checklistObs);
+
+  if (!isGearReady(gear)) {
+    box?.classList.add('pending');
+    headline.textContent = 'Cadastre seu material primeiro';
+    detail.textContent = 'A estratégia usa o que você tem na mochila.';
+    steps.innerHTML = '';
+    warns.innerHTML = '';
+    return;
+  }
+
+  if (progress.done < progress.total) {
+    box?.classList.add('pending');
+    headline.textContent = `Marque o local (${progress.done}/${progress.total})`;
+    detail.textContent = 'Toque nas opções de acordo com o que você vê agora.';
+    steps.innerHTML = '';
+    warns.innerHTML = '';
+    return;
+  }
+
+  const plan = buildLiveStrategy(point, gear, checklistObs);
+  box?.classList.toggle('pending', !plan.ready);
+
+  headline.textContent = plan.headline;
+  detail.textContent = plan.detail;
+
+  const rows = [];
+  if (plan.bait) rows.push(`<li><b>Isca:</b> ${plan.bait.label} — ${plan.bait.why}</li>`);
+  if (plan.setup) rows.push(`<li><b>Montagem:</b> ${plan.setup}</li>`);
+  if (plan.technique) rows.push(`<li><b>Técnica:</b> ${plan.technique}</li>`);
+  if (plan.position) rows.push(`<li><b>Posição:</b> ${plan.position}</li>`);
+  steps.innerHTML = rows.join('');
+  warns.innerHTML = plan.warnings.map((w) => `<li>${w}</li>`).join('');
+}
+
+function openChecklist() {
   const row = rows[index];
   if (!row) return;
+
+  gearFromHud = false;
+  checklistPoint = row.p;
+  checklistObs = emptyObservations();
 
   const panel = $('checklistPanel');
   panel?.classList.remove('show');
   panel?.setAttribute('aria-hidden', 'false');
+  hideGearEditor();
   requestAnimationFrame(() => panel?.classList.add('show'));
 
   $('checklistTitle').textContent = row.p.name;
-  $('checklistSummary').textContent = 'Lendo ponto e condições…';
-  $('checklistItems').innerHTML = '<li class="checklist-item info"><div><span class="checklist-label">Montando estratégia…</span></div></li>';
-
-  let wx = getPointWeather(row.p.id);
-  if (!wx) {
-    try {
-      const { data, estimated } = await loadPointWeather(row.p);
-      setPointWeather(row.p.id, data, estimated);
-      wx = data;
-    } catch {
-      toast('Não foi possível ler o clima deste ponto.');
-    }
-  }
-
-  renderChecklist(row.p, row.distance);
-}
-
-function renderChecklist(point, distance) {
-  const wx = getPointWeather(point.id);
-  const estimated = isPointWeatherEstimated(point.id);
-  const plan = buildPointChecklist(point, { weather: wx, distance, estimated });
-
-  $('checklistTitle').textContent = point.name;
-  $('checklistSummary').textContent = plan.headline;
-
-  $('checklistItems').innerHTML = plan.items
-    .map(
-      (it) =>
-        `<li class="checklist-item ${it.status}"><div><span class="checklist-label">${it.label}</span>${it.detail ? `<span class="checklist-detail">${it.detail}</span>` : ''}</div></li>`,
-    )
-    .join('');
+  syncGearBar();
+  renderObsGroups();
+  updateStrategy(row.p);
 }
 
 function goNow(point) {

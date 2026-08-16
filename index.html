@@ -27,6 +27,7 @@
     <span class="hud-label" id="hudLabel">Radar ativo</span>
     <span class="hud-count" id="hudCount">—</span>
   </div>
+  <button class="hud-btn" id="gearBtn" type="button" aria-label="Meu material">⚙</button>
   <button class="hud-btn" id="relocate" type="button" aria-label="Atualizar localização">◎</button>
 </header>
 
@@ -82,15 +83,33 @@
   </div>
 
   <div class="checklist-panel" id="checklistPanel" aria-hidden="true">
-    <div class="checklist-head">
-      <div>
-        <span class="checklist-tag">Estratégia do ponto</span>
-        <h3 class="checklist-title" id="checklistTitle">—</h3>
+    <div class="checklist-view" id="checklistObserve">
+      <div class="checklist-head">
+        <div>
+          <span class="checklist-tag">No local</span>
+          <h3 class="checklist-title" id="checklistTitle">—</h3>
+        </div>
+        <button class="checklist-close" id="checklistClose" type="button" aria-label="Fechar">✕</button>
       </div>
-      <button class="checklist-close" id="checklistClose" type="button" aria-label="Fechar">✕</button>
+
+      <div class="gear-bar" id="gearBar">
+        <div>
+          <span class="gear-bar-label">Seu material</span>
+          <p class="gear-bar-text" id="gearBarText">—</p>
+        </div>
+        <button class="gear-bar-btn" id="editGearFromChecklist" type="button">Editar</button>
+      </div>
+
+      <p class="checklist-hint">Marque o que você vê agora no ponto:</p>
+      <div class="obs-groups" id="obsGroups"></div>
+
+      <div class="strategy-box" id="strategyBox">
+        <p class="strategy-headline" id="strategyHeadline">Marque as opções acima</p>
+        <p class="strategy-detail" id="strategyDetail"></p>
+        <ul class="strategy-steps" id="strategySteps"></ul>
+        <ul class="strategy-warns" id="strategyWarns"></ul>
+      </div>
     </div>
-    <p class="checklist-summary" id="checklistSummary"></p>
-    <ul class="checklist-list" id="checklistItems"></ul>
   </div>
 
   <nav class="spots-pager" id="pointsNav">
@@ -99,6 +118,19 @@
     <button class="pager-btn" id="pointNext" type="button" aria-label="Próximo">›</button>
   </nav>
 </aside>
+
+<div class="gear-panel" id="gearPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Cadastro</span>
+      <h3 class="checklist-title">Meu material</h3>
+    </div>
+    <button class="checklist-close" id="gearEditorClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <p class="checklist-hint">Salvo no seu aparelho — usado para montar a estratégia.</p>
+  <div class="gear-form" id="gearForm"></div>
+  <button class="gear-save" id="gearSave" type="button">Salvar material</button>
+</div>
 
 <div class="nav-strip" id="navStrip">
   <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
