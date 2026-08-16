@@ -66,10 +66,16 @@
 </div>
 
 <section id="boot">
-  <div class="bootbox">
+  <div class="bootbox" id="bootWelcome">
     <div class="pulse">M</div>
-    <h2>Achando você</h2>
-    <p>Autorize a localização para ver os melhores pontos perto de você.</p>
+    <h2>Pontos de pesca no RJ</h2>
+    <p>39 locais no mapa. Capture sua localização para saber o que vale ir agora perto de você.</p>
+    <button class="boot-cta" id="captureLocation" type="button">Capturar minha localização</button>
+  </div>
+  <div class="bootbox hidden" id="bootLoading">
+    <div class="pulse loading">M</div>
+    <h2>Pesquisando melhores pontos…</h2>
+    <p id="bootLoadingHint">Achando você no mapa</p>
   </div>
 </section>
 

@@ -31,7 +31,13 @@ export function createMap(points, onPointClick) {
       .bindTooltip(p.name, { direction: 'top', offset: [0, -24] })
       .on('click', () => onPointClick(p));
     markers.set(p.id, marker);
+    marker.addTo(map);
   });
+
+  if (points.length) {
+    const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
+    map.fitBounds(bounds.pad(0.08));
+  }
 
   return map;
 }

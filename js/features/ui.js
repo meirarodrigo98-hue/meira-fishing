@@ -51,8 +51,18 @@ function closeSpots() {
   invalidateMapSize();
 }
 
-export function bindUi({ onRelocate }) {
+const LOADING_HINTS = [
+  'Achando você no mapa',
+  'Consultando condições do mar',
+  'Analisando vento e ondas',
+  'Ranqueando os melhores pontos',
+];
+let loadingTimer = null;
+
+export function bindUi({ onCapture, onRelocate }) {
   onRefresh = () => renderList(pointsRef);
+
+  $('captureLocation').onclick = onCapture;
 
   $('filters').querySelectorAll('[data-filter]').forEach((btn) => {
     btn.onclick = () => {
@@ -77,7 +87,7 @@ export function bindUi({ onRelocate }) {
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
 
-  return { showBoot, showFallback, hideOverlays, ready, renderList: () => renderList(pointsRef) };
+  return { showFallback, hideOverlays, ready, renderList: () => renderList(pointsRef) };
 }
 
 export function setPoints(points) {
@@ -95,33 +105,54 @@ function setEntryVisible(show) {
   els().entry?.classList.toggle('hidden', !show);
 }
 
-export function showBoot() {
-  $('boot').classList.remove('hidden');
-  $('fallback').classList.add('hidden');
-  $('statusLine').textContent = 'Achando você…';
-  setEntryVisible(false);
+function stopLoadingHints() {
+  if (loadingTimer != null) {
+    clearInterval(loadingTimer);
+    loadingTimer = null;
+  }
 }
 
-export function showBootLight() {
-  $('boot').classList.add('hidden');
+export function showSearching() {
+  stopLoadingHints();
+  $('boot').classList.remove('hidden');
+  $('boot').classList.add('boot-searching');
+  $('bootWelcome').classList.add('hidden');
+  $('bootLoading').classList.remove('hidden');
   $('fallback').classList.add('hidden');
-  $('statusLine').textContent = 'Buscando GPS…';
+  $('statusLine').textContent = 'Pesquisando…';
   setEntryVisible(false);
+
+  let i = 0;
+  const hint = $('bootLoadingHint');
+  if (hint) hint.textContent = LOADING_HINTS[0];
+  loadingTimer = setInterval(() => {
+    i = (i + 1) % LOADING_HINTS.length;
+    if (hint) hint.textContent = LOADING_HINTS[i];
+  }, 1800);
 }
 
 export function showFallback() {
+  stopLoadingHints();
   $('boot').classList.add('hidden');
+  $('boot').classList.remove('boot-searching');
+  $('bootWelcome').classList.remove('hidden');
+  $('bootLoading').classList.add('hidden');
   $('fallback').classList.remove('hidden');
   setEntryVisible(false);
 }
 
 export function hideOverlays() {
+  stopLoadingHints();
   $('boot').classList.add('hidden');
+  $('boot').classList.remove('boot-searching');
+  $('bootWelcome').classList.remove('hidden');
+  $('bootLoading').classList.add('hidden');
   $('fallback').classList.add('hidden');
 }
 
 export function ready(label) {
   hideOverlays();
+  document.body.classList.add('app-ready');
   $('statusLine').textContent = label;
   $('weatherNote')?.classList.toggle('hidden', !state.weatherEstimated);
   setEntryVisible(true);

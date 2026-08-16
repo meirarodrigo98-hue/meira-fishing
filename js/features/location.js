@@ -1,7 +1,7 @@
 import { toast } from '../lib/utils.js';
 import { setUser } from './map.js';
 
-import { onUserMoved, showBoot, showBootLight, showFallback } from './ui.js';
+import { onUserMoved, showFallback, showSearching } from './ui.js';
 
 /** GPS — entrada automática e fallback por bairro. */
 let watchId = null;
@@ -26,17 +26,14 @@ function startWatching() {
   );
 }
 
-export function startLocation(onSuccess, onFallback, { retry = false } = {}) {
+export function captureLocation(onSuccess, onFallback) {
   if (!navigator.geolocation) {
+    showFallback();
     onFallback();
     return;
   }
 
-  if (retry) {
-    showBootLight();
-  } else {
-    showBoot();
-  }
+  showSearching();
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -60,7 +57,7 @@ export function retryLocation(onSuccess, onFallback) {
     onFallback();
     return;
   }
-  startLocation(onSuccess, onFallback, { retry: true });
+  captureLocation(onSuccess, onFallback);
 }
 
 export function useManualPlace(place, onReady) {
