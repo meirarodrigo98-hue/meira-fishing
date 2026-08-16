@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07141a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Meira Fishing — MVP Completo</title>
+<title>Meira Fishing</title>
 <script>
 (function(){
   var KEY="mf_build";
@@ -31,2879 +33,470 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{
-  --bg:#07141a;--panel:#0b1e26;--panel2:#102a34;--panel3:#14343f;
-  --text:#edf8fb;--muted:#92aab3;--line:rgba(255,255,255,.09);
-  --a:#2dd4bf;--b:#38bdf8;--green:#34d399;--yellow:#facc15;--red:#fb7185;
-  --shadow:0 18px 45px rgba(0,0,0,.35)
+  --bg:#07141a;--panel:#0c1f27;--text:#edf8fb;--muted:#8eaaB3;
+  --line:rgba(255,255,255,.1);--go:#34d399;--wait:#facc15;--stop:#fb7185;
+  --a:#2dd4bf;--b:#38bdf8;--safe:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-#app{height:100%;display:grid;grid-template-rows:62px 1fr}
-header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);background:#07141af2;z-index:1500}
-.brand{display:flex;align-items:center;gap:10px}.logo{width:39px;height:39px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:#05252a;font-weight:950}
-.brand b{font-size:16px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
-.hactions{display:flex;gap:7px}.iconbtn,.btn{border:1px solid var(--line);color:var(--text);background:rgba(255,255,255,.045);border-radius:11px;padding:9px 11px;font-weight:800}
-.btn.primary{background:linear-gradient(135deg,var(--a),var(--b));color:#03262a;border:0}.btn.warn{background:rgba(250,204,21,.10);color:#ffe985;border-color:rgba(250,204,21,.2)}
-.workspace{min-height:0;display:grid;grid-template-columns:340px 1fr}
-.sidebar{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:12px}
-.main{position:relative;min-width:0;min-height:0;overflow:hidden}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(255,255,255,.035);padding:5px;border-radius:14px}
-.tabs button{border:0;color:var(--muted);background:transparent;padding:10px 8px;border-radius:10px;font-size:12px;font-weight:900}
-.tabs button.active{color:#042a2d;background:linear-gradient(135deg,var(--a),var(--b))}
-.section{margin-top:12px}.section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:900;margin:0 0 8px 2px}
-.hero{background:linear-gradient(135deg,rgba(45,212,191,.13),rgba(56,189,248,.08));border:1px solid rgba(45,212,191,.15);border-radius:16px;padding:13px}
-.hero-top{display:flex;justify-content:space-between;gap:10px}.hero h2{font-size:17px;margin:0}.hero p{font-size:11px;color:var(--muted);margin:5px 0 0;line-height:1.4}
-.score{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;border:5px solid var(--green);font-size:17px;font-weight:950;flex:0 0 auto}
-.two-scores{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.scorebox{border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:12px;padding:9px}.scorebox span{font-size:9px;color:var(--muted);text-transform:uppercase}.scorebox strong{display:block;font-size:17px;margin-top:2px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}.metric{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:12px;padding:9px}.metric span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.5px}.metric strong{font-size:13px;display:block;margin-top:3px}.metric small{font-size:9px;color:#b9cbd1}
-.search{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:12px;padding:10px 11px;outline:none}
-.filters{display:flex;gap:6px;overflow:auto;padding-bottom:2px;margin-top:7px}.chip{white-space:nowrap;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--muted);border-radius:999px;padding:7px 9px;font-size:10px;font-weight:800}.chip.active{color:#c9fff6;border-color:rgba(45,212,191,.3);background:rgba(45,212,191,.10)}
-.pointlist{display:flex;flex-direction:column;gap:7px}.pcard{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:13px;padding:10px;cursor:pointer;transition:.18s}.pcard:hover{background:rgba(255,255,255,.055);transform:translateY(-1px)}.phead{display:flex;justify-content:space-between;gap:8px}.phead b{font-size:12px}.badge{font-size:9px;font-weight:900;border-radius:999px;padding:5px 7px;background:rgba(52,211,153,.1);color:#bff6da;white-space:nowrap}.meta{font-size:10px;color:var(--muted);margin-top:4px}.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.tag{font-size:9px;border:1px solid var(--line);border-radius:999px;padding:4px 6px;color:#bad0d6}
-#map{position:absolute;inset:0}.maptop{position:absolute;z-index:700;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none}.mapgroup{display:flex;gap:6px;pointer-events:auto}.mapbtn{border:1px solid var(--line);background:#07141aeb;color:var(--text);box-shadow:var(--shadow);border-radius:11px;padding:9px 10px;font-size:11px;font-weight:850}.mapbtn.active{background:rgba(56,189,248,.18);color:#cdf4ff}
-.maplegend{position:absolute;z-index:600;right:12px;bottom:15px;background:#07141ae8;border:1px solid var(--line);border-radius:12px;padding:8px 9px;font-size:9px;color:var(--muted);box-shadow:var(--shadow)}.ldot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
-.drawer{position:absolute;z-index:1000;right:14px;top:14px;width:380px;max-height:calc(100% - 28px);overflow:auto;background:linear-gradient(180deg,#0c222bfa,#07141afa);border:1px solid var(--line);border-radius:20px;padding:13px;box-shadow:var(--shadow);transform:translateX(110%);transition:.25s}.drawer.show{transform:translateX(0)}.dhead{display:flex;justify-content:space-between;gap:10px}.dhead h2{font-size:18px;margin:0}.dhead p{font-size:10px;color:var(--muted);margin:4px 0 0}.close{border:0;background:transparent;color:var(--muted);font-size:21px}
-.notice{font-size:10px;line-height:1.45;border:1px solid rgba(250,204,21,.18);background:rgba(250,204,21,.06);color:#f7e7a3;border-radius:11px;padding:8px 9px;margin-top:10px}
-.live{display:flex;align-items:center;gap:6px;color:#bff6da;font-size:9px;font-weight:900;margin-top:8px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:p 1.8s infinite}@keyframes p{70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.actions .btn{font-size:11px}
-.hourstrip{display:flex;gap:6px;overflow:auto;padding-bottom:3px}.hour{min-width:75px;border:1px solid var(--line);border-radius:11px;padding:8px;background:rgba(255,255,255,.03);text-align:center}.hour b{font-size:11px}.hour span{display:block;font-size:9px;color:var(--muted);margin-top:3px}.hour.best{border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.07)}
-.days{display:flex;flex-direction:column;gap:6px}.day{display:grid;grid-template-columns:62px 1fr 43px;gap:8px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:8px}.day b{font-size:10px}.bar{height:6px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--yellow),var(--green));border-radius:999px}.day strong{text-align:right;font-size:12px}
-.modal{position:fixed;z-index:2500;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.modalbox{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:15px;box-shadow:var(--shadow)}.modalbox h2{font-size:18px;margin:0 0 4px}.modalbox p{font-size:10px;color:var(--muted);margin:0 0 12px}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field label{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:10px;padding:9px;outline:none}.field textarea{min-height:72px;resize:vertical}.full{grid-column:1/-1}
-.navpanel{display:none;margin-top:10px;border:1px solid rgba(56,189,248,.20);background:rgba(56,189,248,.06);border-radius:14px;padding:10px}.navpanel.show{display:flex;gap:12px;align-items:center}.compass{width:76px;height:76px;border-radius:50%;border:2px solid rgba(255,255,255,.2);position:relative;flex:0 0 auto}.needle{position:absolute;width:4px;height:30px;border-radius:999px;background:linear-gradient(to top,#e8f3f5 50%,#fb7185 50%);bottom:50%;left:calc(50% - 2px);transform-origin:50% 100%}.navinfo strong{font-size:15px}.navinfo small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
-.empty{text-align:center;padding:22px 8px;color:var(--muted);font-size:11px}.toast{position:fixed;z-index:3000;left:50%;top:75px;transform:translate(-50%,-10px);opacity:0;pointer-events:none;background:#07141af5;border:1px solid var(--line);box-shadow:var(--shadow);padding:9px 12px;border-radius:11px;font-size:11px;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
-.source{font-size:9px;color:var(--muted);line-height:1.45;margin-top:8px}.source a{color:#93e6ff}
-.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0c222b;color:#fff}.leaflet-popup-content{margin:9px 11px;font-size:11px}.leaflet-control-attribution{font-size:8px}
-.marker{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 5px 15px rgba(0,0,0,.35)}.marker.land{background:#2dd4bf}.marker.boat{background:#38bdf8}.marker:after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#05313a;left:8px;top:8px}
-.mobilebar{display:none}
-
-/* ===== Evolução Copiloto ===== */
-.copilot-home{
-  position:absolute; inset:0; z-index:850; background:
-  radial-gradient(circle at 80% 10%,rgba(56,189,248,.12),transparent 34%),
-  radial-gradient(circle at 10% 90%,rgba(45,212,191,.10),transparent 30%),
-  linear-gradient(180deg,rgba(7,20,26,.97),rgba(7,20,26,.92));
-  overflow:auto; padding:20px;
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}button{cursor:pointer}
+#map{position:fixed;inset:0}
+.topbar{
+  position:fixed;z-index:800;left:12px;right:12px;top:max(12px,env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;pointer-events:none
 }
-.copilot-home.hidden{display:none}
-.home-wrap{max-width:980px;margin:0 auto;padding:12px 0 40px}
-.home-hero{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:18px}
-.home-hero h1{margin:0;font-size:34px;line-height:1.02;letter-spacing:-1px}
-.home-hero p{margin:8px 0 0;color:var(--muted);max-width:620px;line-height:1.55;font-size:13px}
-.ai-pill{border:1px solid rgba(45,212,191,.2);background:rgba(45,212,191,.08);color:#c9fff5;padding:8px 10px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}
-.home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.home-card{
-  border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
-  border-radius:18px;padding:16px;cursor:pointer;transition:.18s;min-height:150px;position:relative;overflow:hidden
+.brand,.icon{
+  pointer-events:auto;background:#07141af0;border:1px solid var(--line);border-radius:14px
 }
-.home-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.25);background:linear-gradient(145deg,rgba(56,189,248,.08),rgba(45,212,191,.04))}
-.home-card .ico{font-size:26px}.home-card h3{margin:10px 0 5px;font-size:17px}.home-card p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
-.home-card strong{position:absolute;right:12px;bottom:10px;font-size:10px;color:#cbf8ff}
-.home-summary{margin-top:14px;display:grid;grid-template-columns:2fr 1fr;gap:12px}
-.opportunity{border:1px solid rgba(52,211,153,.2);background:rgba(52,211,153,.05);border-radius:18px;padding:15px}
-.opportunity h3{margin:0;font-size:16px}.opportunity p{margin:5px 0;color:var(--muted);font-size:11px}.opp-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-top:10px}
-.opp-score{font-size:28px;font-weight:950}.mini-stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.mini-stat{font-size:9px;padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:#c2d7dd}
-.resume-box{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:18px;padding:15px}.resume-box h3{margin:0 0 10px;font-size:14px}.resume-box .big{font-size:25px;font-weight:950}.resume-box small{color:var(--muted)}
-.flow-panel{
-  position:absolute; inset:0; z-index:900; background:rgba(7,20,26,.98); overflow:auto; padding:18px;
-  display:none
+.brand{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 8px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;display:grid;place-items:center;font-weight:900}
+.brand b{display:block;font-size:14px;line-height:1.1}
+.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.icon{width:42px;height:42px;color:var(--text);display:grid;place-items:center;font-size:16px;font-weight:800}
+.sheet{
+  position:fixed;z-index:900;left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,#0c222ce8,#07141af5);
+  border-top:1px solid var(--line);border-radius:22px 22px 0 0;
+  padding:10px 14px calc(14px + var(--safe));
+  max-height:46vh;display:flex;flex-direction:column
 }
-.flow-panel.show{display:block}
-.flow-wrap{max-width:920px;margin:0 auto}.flow-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
-.flow-head h2{margin:0;font-size:24px}.flow-head p{color:var(--muted);font-size:11px;line-height:1.5;margin:5px 0 0}
-.backbtn{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:11px;padding:9px 11px;font-weight:850}
-.planner-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.panel-card{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:16px;padding:13px}
-.panel-card h3{margin:0 0 9px;font-size:14px}.fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.select, .input{
- width:100%;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);border-radius:10px;padding:9px;outline:none
+.handle{width:42px;height:4px;border-radius:99px;background:rgba(255,255,255,.18);margin:2px auto 10px}
+.sheet-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:8px}
+.sheet-head h1{margin:0;font-size:18px;letter-spacing:-.3px}
+.sheet-head p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.filters{display:flex;gap:6px;overflow:auto;padding-bottom:8px}
+.chip{
+  flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800
 }
-.plan-results{display:grid;gap:8px;margin-top:10px}.plan-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.025)}
-.plan-card.top{border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.05)}.plan-head{display:flex;justify-content:space-between;gap:10px}.plan-head b{font-size:13px}.plan-score{font-size:18px;font-weight:950}
-.reason-list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}.reason{font-size:9px;border:1px solid var(--line);border-radius:9px;padding:6px;color:#c8d9de}
-.radar-wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:10px}.radar-map{height:480px;border-radius:16px;overflow:hidden;border:1px solid var(--line);position:relative}
-#radarMap{height:100%}.radar-list{display:flex;flex-direction:column;gap:7px;max-height:480px;overflow:auto}.radar-item{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.025);cursor:pointer}
-.radar-item b{font-size:11px}.radar-item small{display:block;color:var(--muted);margin-top:4px}.heat-dot{width:18px;height:18px;border-radius:50%;box-shadow:0 0 25px currentColor}
-.score-explain{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:7px}.score-explain .bar{height:7px}.score-explain span{font-size:9px;color:var(--muted)}.score-explain b{font-size:10px}
-.tripbar{
-  position:absolute;z-index:820;left:50%;bottom:12px;transform:translateX(-50%);
-  background:#07141af2;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:15px;padding:8px 10px;
-  display:none;align-items:center;gap:10px
+.chip.on{color:#04262b;background:linear-gradient(135deg,var(--a),var(--b));border-color:transparent}
+.list{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.card{
+  border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:16px;
+  padding:12px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center
 }
-.tripbar.show{display:flex}.tripbar b{font-size:11px}.tripbar small{font-size:9px;color:var(--muted)}.tripbar .btn{padding:7px 9px;font-size:10px}
-.trip-active{display:flex;gap:5px;align-items:center}.trip-active i{width:7px;height:7px;border-radius:50%;background:var(--red);animation:p 1.8s infinite}
-.explain-btn{width:100%;margin-top:8px}
-.species-rank{display:flex;gap:6px;overflow:auto;padding-bottom:2px;margin-top:8px}.species-rank button{white-space:nowrap}
-.session-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
-.session-stat{border:1px solid var(--line);border-radius:12px;padding:9px;background:rgba(255,255,255,.025)}.session-stat span{display:block;color:var(--muted);font-size:9px}.session-stat b{display:block;font-size:15px;margin-top:3px}
-
-/* ===== Check-in Inteligente do Ponto ===== */
-.checkin-panel{
-  margin-top:10px;border:1px solid rgba(45,212,191,.18);
-  background:linear-gradient(145deg,rgba(45,212,191,.055),rgba(56,189,248,.03));
-  border-radius:16px;padding:12px
+.card:active{background:rgba(255,255,255,.07)}
+.card b{display:block;font-size:14px}
+.card small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.verdict{font-size:10px;font-weight:900;border-radius:999px;padding:6px 8px;white-space:nowrap}
+.verdict.ir{background:rgba(52,211,153,.14);color:#b7f7d8}
+.verdict.esperar{background:rgba(250,204,21,.12);color:#ffe58a}
+.verdict.evitar{background:rgba(251,113,133,.12);color:#ffc1cb}
+.verdict.lendo{background:rgba(255,255,255,.06);color:var(--muted)}
+#boot,#fallback,#detail{
+  position:fixed;inset:0;z-index:1200;background:#07141af6;
+  display:flex;align-items:center;justify-content:center;padding:22px
 }
-.checkin-panel h3{margin:0 0 4px;font-size:14px}
-.checkin-panel p{margin:0;color:var(--muted);font-size:10px;line-height:1.45}
-.quick-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.qopt{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#c8dbe0;border-radius:999px;padding:7px 9px;font-size:10px;font-weight:800}
-.qopt.active{background:rgba(45,212,191,.13);border-color:rgba(45,212,191,.35);color:#d7fff8}
-.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.check-card{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:12px;padding:9px}
-.check-card label{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.check-card select,.check-card input{width:100%;border:1px solid var(--line);background:#0d2731;color:var(--text);border-radius:9px;padding:8px}
-.tackle-box{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
-.tackle-chip{border:1px solid var(--line);background:rgba(255,255,255,.03);color:#bdd1d7;border-radius:10px;padding:7px 8px;font-size:10px}
-.tackle-chip.active{border-color:rgba(56,189,248,.35);background:rgba(56,189,248,.11);color:#daf6ff}
-.rec-card{border:1px solid rgba(52,211,153,.22);background:rgba(52,211,153,.055);border-radius:14px;padding:11px;margin-top:10px}
-.rec-card h4{margin:0;font-size:13px}.rec-main{font-size:17px;font-weight:950;margin-top:5px}.rec-copy{font-size:10px;color:#c8d9de;line-height:1.55;margin-top:7px}
-.rec-steps{display:grid;gap:6px;margin-top:9px}.rec-step{border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:rgba(255,255,255,.025);font-size:10px}
-.feedback-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}
-.feedback-btn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:11px;padding:9px;font-size:10px;font-weight:850}
-.feedback-btn:hover{background:rgba(255,255,255,.065)}
-.adapt-card{border:1px solid rgba(250,204,21,.20);background:rgba(250,204,21,.055);border-radius:13px;padding:10px;margin-top:9px;display:none}
-.adapt-card.show{display:block}.adapt-card b{font-size:12px}.adapt-card p{margin:5px 0 0;color:#f5e9b0;font-size:10px;line-height:1.5}
-@media(max-width:860px){.check-grid{grid-template-columns:1fr}}
-
-@media(max-width:860px){
- .copilot-home{padding:12px}.home-hero{display:block}.home-hero h1{font-size:27px}.ai-pill{display:inline-block;margin-top:10px}
- .home-grid,.home-summary,.planner-grid,.radar-wrap{grid-template-columns:1fr}.home-summary{display:block}.resume-box{margin-top:10px}
- .radar-map{height:360px}.flow-panel{padding:12px}.fieldrow{grid-template-columns:1fr}.session-summary{grid-template-columns:1fr 1fr}
- .tripbar{left:8px;right:8px;transform:none;justify-content:space-between}
+#boot.hidden,#fallback.hidden,#detail.hidden{display:none}
+.bootbox,.fallbox,.detailbox{width:min(440px,100%)}
+.bootbox{text-align:center}
+.pulse{width:54px;height:54px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:#04262b;font-weight:900;font-size:22px}
+.bootbox h2,.fallbox h2,.detailbox h2{margin:0 0 6px;font-size:24px;letter-spacing:-.4px}
+.bootbox p,.fallbox p,.detailbox p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.places{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
+.places button,.ghost,.go{
+  border-radius:12px;padding:11px 13px;font-weight:800
 }
-
-@media(max-width:860px){
-  #app{grid-template-rows:58px 1fr}.workspace{display:block;position:relative}.sidebar{position:absolute;z-index:900;left:8px;right:8px;bottom:8px;max-height:44%;border:1px solid var(--line);border-radius:18px;background:#0b1e26f7;box-shadow:var(--shadow);padding:10px}.sidebar.collapsed{max-height:65px;overflow:hidden}.main{height:100%}.drawer{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:72%;transform:translateY(115%)}.drawer.show{transform:translateY(0)}.maplegend{bottom:78px}.maptop{top:8px}.brand small{display:none}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.mobilebar{display:block;text-align:center;font-size:9px;color:var(--muted);padding:3px;cursor:pointer}.sidebar:not(.collapsed) .mobilebar:after{content:" — recolher"}.sidebar.collapsed .mobilebar:after{content:" — abrir"}.section.mobile-hide{display:none}
+.places button{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text)}
+.ghost{width:100%;border:1px solid var(--line);background:transparent;color:var(--text)}
+.go{width:100%;border:0;background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;font-size:16px}
+.detailbox{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px}
+.dmeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.dbox{border:1px solid var(--line);border-radius:12px;padding:10px}
+.dbox span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase}
+.dbox b{display:block;margin-top:3px;font-size:15px}
+.actions{display:grid;gap:8px}
+.navbar{
+  position:fixed;z-index:950;left:12px;right:12px;bottom:calc(48vh + 8px);
+  display:none;align-items:center;justify-content:space-between;gap:10px;
+  background:#07141af2;border:1px solid var(--line);border-radius:16px;padding:10px 12px
 }
-
-/* ===== V4 UX PRÁTICA ===== */
-.quick-shell{
-  position:absolute;inset:0;z-index:2000;background:linear-gradient(180deg,rgba(7,20,26,.99),rgba(7,20,26,.96));
-  display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto
+.navbar.show{display:flex}
+.navbar b{display:block;font-size:14px}
+.navbar small{color:var(--muted);font-size:11px}
+.toast{
+  position:fixed;z-index:2000;left:50%;top:max(72px,calc(env(safe-area-inset-top) + 58px));
+  transform:translate(-50%,-8px);opacity:0;pointer-events:none;
+  background:#07141af5;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:12px;transition:.2s
 }
-.quick-shell.hidden{display:none}
-.quick-card{width:min(680px,100%);margin:auto}
-.qbrand{text-align:center;margin-bottom:18px}
-.qbrand .qlogo{width:64px;height:64px;border-radius:20px;margin:0 auto 10px;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:#04262b;font-size:28px;font-weight:950}
-.qbrand h1{margin:0;font-size:28px}.qbrand p{margin:6px 0 0;color:var(--muted);font-size:12px}
-.qgrid{display:grid;grid-template-columns:1fr;gap:10px}
-.qbig{
-  min-height:92px;border:1px solid var(--line);border-radius:18px;padding:14px 16px;background:rgba(255,255,255,.035);
-  color:var(--text);display:flex;align-items:center;gap:14px;text-align:left;font-weight:900
-}
-.qbig:hover{background:rgba(255,255,255,.06);border-color:rgba(56,189,248,.25)}
-.qbig .emoji{font-size:30px}.qbig b{display:block;font-size:17px}.qbig small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:600}
-.quick-step{display:none}.quick-step.show{display:block}
-.qtitle{display:flex;align-items:center;gap:10px;margin-bottom:12px}.qback{border:0;background:transparent;color:var(--muted);font-size:22px;padding:4px 6px}.qtitle h2{margin:0;font-size:22px}
-.qchoices{display:grid;grid-template-columns:1fr 1fr;gap:9px}.qchoice{
-  border:1px solid var(--line);border-radius:16px;min-height:72px;background:rgba(255,255,255,.03);color:var(--text);
-  font-weight:900;padding:10px;text-align:center
-}
-.qchoice.active,.qchoice:hover{background:rgba(45,212,191,.10);border-color:rgba(45,212,191,.32)}
-.qchoice .e{display:block;font-size:23px;margin-bottom:5px}.qchoice small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
-.qresults{display:grid;gap:9px}.qresult{
-  border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03);padding:13px;cursor:pointer
-}
-.qresult.best{border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.055)}
-.qresult-head{display:flex;justify-content:space-between;gap:10px}.qresult b{font-size:14px}.qscore{font-size:24px;font-weight:950}
-.qmeta{font-size:10px;color:var(--muted);margin-top:4px}.qicons{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.qmini{font-size:9px;border:1px solid var(--line);border-radius:999px;padding:5px 7px;color:#c4d8de}
-.qfooter{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.qprimary{border:0;border-radius:14px;padding:12px;background:linear-gradient(135deg,var(--a),var(--b));color:#06262b;font-weight:950}
-.qsecondary{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.035);color:var(--text);font-weight:900}
-.qstatus{
-  border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03);padding:14px;text-align:center
-}
-.qstatus .bigscore{font-size:54px;font-weight:950;line-height:1}.qstatus h3{margin:6px 0 4px}.qstatus p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
-.qnav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.qnavbox{border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center;background:rgba(255,255,255,.025)}
-.qnavbox span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}.qnavbox b{display:block;font-size:19px;margin-top:4px}
-.qprogress{display:flex;gap:5px;justify-content:center;margin:0 0 12px}.qprogress i{width:26px;height:4px;border-radius:999px;background:rgba(255,255,255,.12)}.qprogress i.on{background:var(--a)}
-.qquestion{text-align:center}.qquestion h3{font-size:22px;margin:5px 0 4px}.qquestion p{font-size:10px;color:var(--muted);margin:0 0 13px}
-.qanswer{display:grid;grid-template-columns:1fr 1fr;gap:8px}.qanswer button{min-height:66px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:14px;font-weight:900;padding:8px}.qanswer button:hover{border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.09)}
-.qrecommend{
-  border:1px solid rgba(52,211,153,.25);background:rgba(52,211,153,.055);border-radius:17px;padding:14px;text-align:center
-}
-.qrecommend .bait{font-size:28px;font-weight:950;margin:7px 0}.qrecommend small{display:block;color:var(--muted);font-size:10px;line-height:1.5}
-.qfeedback{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.qfeedback button{min-height:62px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:14px;font-weight:900}
-.qadvanced{margin-top:10px;text-align:center}.qadvanced button{border:0;background:transparent;color:var(--muted);font-size:10px;text-decoration:underline}
-@media(max-width:600px){
-  .quick-shell{padding:10px;align-items:flex-start}.quick-card{padding-top:10px}.qchoices{grid-template-columns:1fr 1fr}.qbrand h1{font-size:24px}.qtitle h2{font-size:20px}
-}
-
-
-.nearby-panel{
-  position:absolute;z-index:910;left:12px;top:12px;width:min(330px,calc(100% - 24px));
-  background:#07141af2;border:1px solid var(--line);border-radius:16px;padding:11px;box-shadow:var(--shadow);
-  display:none
-}
-.nearby-panel.show{display:block}
-.nearby-panel h3{margin:0;font-size:13px}.nearby-panel p{margin:4px 0 8px;color:var(--muted);font-size:9px}
-.nearby-list{display:flex;flex-direction:column;gap:6px;max-height:270px;overflow:auto}
-.nearby-item{border:1px solid var(--line);border-radius:11px;padding:8px;background:rgba(255,255,255,.03);cursor:pointer}
-.nearby-item:hover{background:rgba(255,255,255,.06)}
-.nearby-item b{font-size:10px}.nearby-item small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
-.nearby-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.nearby-dist{font-size:11px;font-weight:950}
-.location-state{text-align:center;margin-top:10px;color:var(--muted);font-size:10px}
-@media(max-width:860px){
- .nearby-panel{top:8px;left:8px;right:8px;width:auto}
-}
-
-
-/* ===== Check-in V2: leitura rápida ===== */
-.ci2-shell{
-  position:absolute;inset:0;z-index:2300;background:rgba(7,20,26,.985);
-  display:none;align-items:center;justify-content:center;padding:14px;overflow:auto
-}
-.ci2-shell.show{display:flex}
-.ci2-card{width:min(650px,100%);margin:auto}
-.ci2-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}
-.ci2-head h2{margin:0;font-size:22px}.ci2-close{border:0;background:transparent;color:var(--muted);font-size:24px}
-.ci2-progress{display:flex;gap:5px;margin-bottom:12px}.ci2-progress i{height:5px;flex:1;border-radius:999px;background:rgba(255,255,255,.10)}.ci2-progress i.on{background:var(--a)}
-.ci2-q{text-align:center}.ci2-q h3{font-size:23px;margin:4px 0}.ci2-q p{font-size:10px;color:var(--muted);margin:0 0 12px}
-.ci2-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ci2-opt{min-height:78px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:15px;padding:10px;font-weight:900}
-.ci2-opt:hover{background:rgba(45,212,191,.08);border-color:rgba(45,212,191,.30)}
-.ci2-opt span{display:block;font-size:24px;margin-bottom:5px}.ci2-opt small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
-.ci2-result{display:none}.ci2-result.show{display:block}
-.ci2-score{text-align:center;border:1px solid rgba(52,211,153,.22);background:rgba(52,211,153,.05);border-radius:17px;padding:14px}
-.ci2-score .num{font-size:52px;font-weight:950;line-height:1}.ci2-score h3{margin:7px 0 3px}.ci2-score p{margin:0;color:var(--muted);font-size:10px}
-.ci2-action{margin-top:10px;border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,.025)}
-.ci2-action h4{margin:0;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}.ci2-main{font-size:24px;font-weight:950;margin:5px 0}
-.ci2-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ci2-pill{font-size:9px;padding:5px 7px;border:1px solid var(--line);border-radius:999px;color:#c7d9de}
-.ci2-next{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.ci2-btn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:13px;padding:11px;font-weight:900}.ci2-btn.primary{background:linear-gradient(135deg,var(--a),var(--b));color:#05262a;border:0}
-.ci2-feedback{display:none;margin-top:10px}.ci2-feedback.show{display:block}.ci2-feedback-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ci2-feedback button{min-height:62px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:13px;font-weight:900}
-.ci2-adjust{display:none;margin-top:10px;border:1px solid rgba(250,204,21,.20);background:rgba(250,204,21,.05);border-radius:14px;padding:11px}.ci2-adjust.show{display:block}.ci2-adjust b{font-size:13px}.ci2-adjust p{font-size:10px;color:#f4e7aa;line-height:1.5;margin:5px 0 0}
-@media(max-width:600px){.ci2-options{grid-template-columns:1fr 1fr}.ci2-card{padding-top:4px}.ci2-q h3{font-size:20px}}
-
-
-/* ===== Captura rápida ===== */
-.quick-catch{
-  position:fixed;inset:0;z-index:3200;background:rgba(0,0,0,.68);
-  display:none;align-items:center;justify-content:center;padding:14px
-}
-.quick-catch.show{display:flex}
-.quick-catch-card{
-  width:min(480px,100%);background:var(--panel);border:1px solid var(--line);
-  border-radius:20px;padding:15px;box-shadow:var(--shadow)
-}
-.quick-catch-card h3{margin:0;font-size:18px}
-.quick-catch-card p{margin:5px 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
-.quick-species{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.quick-species button{
-  min-height:58px;border:1px solid var(--line);background:rgba(255,255,255,.035);
-  color:var(--text);border-radius:13px;font-weight:900
-}
-.quick-species button:hover{border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.08)}
-.quick-catch-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.quick-catch-actions button{border-radius:12px;padding:10px;font-weight:900}
-
-
-/* ===== Melhores pontos embarcados ===== */
-.best-boat-box{
-  display:none;
-  margin-top:12px;
-  border:1px solid rgba(56,189,248,.18);
-  background:linear-gradient(145deg,rgba(56,189,248,.07),rgba(255,255,255,.025));
-  border-radius:16px;
-  padding:11px;
-}
-.best-boat-box.show{display:block}
-.best-boat-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
-.best-boat-head h3{margin:0;font-size:13px}
-.best-boat-head small{color:var(--muted);font-size:9px}
-.best-boat-list{display:flex;flex-direction:column;gap:7px}
-.best-boat-item{
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.03);
-  border-radius:12px;
-  padding:9px;
-  cursor:pointer;
-}
-.best-boat-item:hover{background:rgba(255,255,255,.06)}
-.best-boat-row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.best-boat-item b{font-size:11px}
-.best-boat-meta{font-size:9px;color:var(--muted);margin-top:3px}
-.best-boat-score{font-size:16px;font-weight:950}
-.best-boat-pills{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
-.best-boat-pill{
-  font-size:8px;
-  color:#c7dbe1;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:4px 6px;
-}
-
-
-/* ===== Navegação exata ao waypoint ===== */
-.exact-nav-card{
-  margin-top:10px;border:1px solid rgba(56,189,248,.22);
-  background:linear-gradient(145deg,rgba(56,189,248,.08),rgba(45,212,191,.035));
-  border-radius:15px;padding:11px
-}
-.exact-nav-card h4{margin:0;font-size:12px}
-.exact-nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.exact-nav-box{border:1px solid var(--line);border-radius:11px;padding:9px;background:rgba(255,255,255,.025);text-align:center}
-.exact-nav-box span{display:block;color:var(--muted);font-size:8px;text-transform:uppercase}
-.exact-nav-box b{display:block;font-size:18px;margin-top:3px}
-.arrival-status{margin-top:8px;border-radius:11px;padding:9px;text-align:center;font-size:10px;font-weight:900;border:1px solid var(--line);background:rgba(255,255,255,.03)}
-.arrival-status.near{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.22);color:#ffe893}
-.arrival-status.arrived{background:rgba(52,211,153,.09);border-color:rgba(52,211,153,.25);color:#c7f8dc}
-.exact-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
-.route-line-label{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}
-
-
-/* ===== Meira Fishing Points ===== */
-body.points-simple .copilot-home,
-body.points-simple .flow-panel,
-body.points-simple .tripbar,
-body.points-simple #conditionsSection,
-body.points-simple .best-boat-box,
-body.points-simple .section.mobile-hide,
-body.points-simple .checkin-panel,
-body.points-simple #speciesScores,
-body.points-simple #explainScoreBtn,
-body.points-simple #scoreExplanation,
-body.points-simple #hourStrip,
-body.points-simple #days,
-body.points-simple .notice,
-body.points-simple .live,
-body.points-simple .two-scores,
-body.points-simple .navpanel,
-body.points-simple .source,
-body.points-simple .actions {
-  display:none !important;
-}
-body.points-simple .workspace{grid-template-columns:320px 1fr}
-body.points-simple .sidebar{padding:12px}
-body.points-simple .hero{padding:11px;background:rgba(255,255,255,.025)}
-body.points-simple .hero h2{font-size:15px}
-body.points-simple .hero p{font-size:10px}
-body.points-simple .drawer{width:360px}
-.points-start{
-  position:absolute;inset:0;z-index:2500;background:
-  radial-gradient(circle at 75% 15%,rgba(56,189,248,.12),transparent 35%),
-  linear-gradient(180deg,#07141afc,#07141af7);
-  display:flex;align-items:center;justify-content:center;padding:18px
-}
-.points-start.hidden{display:none}
-.points-start-card{width:min(500px,100%);text-align:center}
-.points-start-logo{
-  width:72px;height:72px;border-radius:22px;margin:0 auto 14px;
-  background:linear-gradient(135deg,var(--a),var(--b));
-  display:grid;place-items:center;color:#04262b;font-size:30px;font-weight:950
-}
-.points-start h1{font-size:28px;margin:0}
-.points-start p{font-size:12px;color:var(--muted);line-height:1.5;margin:8px auto 18px;max-width:360px}
-.points-start-btn{
-  width:100%;border:0;border-radius:16px;padding:15px;
-  background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;font-weight:950;font-size:16px
-}
-.points-start-alt{margin-top:10px;border:0;background:transparent;color:var(--muted);font-size:10px;text-decoration:underline}
-.point-type-bar{display:flex;gap:6px;overflow:auto;margin-top:8px;padding-bottom:2px}
-.point-type-bar button{white-space:nowrap;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);border-radius:999px;padding:7px 9px;font-size:10px;font-weight:850}
-.point-type-bar button.active{background:rgba(45,212,191,.11);border-color:rgba(45,212,191,.28);color:#d8fff8}
-.simple-point-info{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
-.simple-point-box{border:1px solid var(--line);border-radius:11px;padding:9px;background:rgba(255,255,255,.025)}
-.simple-point-box span{display:block;font-size:8px;color:var(--muted);text-transform:uppercase}
-.simple-point-box b{display:block;font-size:14px;margin-top:3px}
-.simple-navigate{width:100%;margin-top:10px;border:0;border-radius:13px;padding:12px;background:linear-gradient(135deg,var(--a),var(--b));color:#04262b;font-weight:950}
-.simple-close{width:100%;margin-top:7px;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.035);color:var(--text);font-weight:850}
-@media(max-width:860px){
-  body.points-simple .workspace{display:block}
-  body.points-simple .sidebar{position:absolute;z-index:900;left:8px;right:8px;bottom:8px;max-height:37%;border:1px solid var(--line);border-radius:17px;background:#0b1e26f7}
-  body.points-simple .drawer{left:8px;right:8px;width:auto;bottom:8px;top:auto;max-height:55%}
-  .points-start h1{font-size:24px}
-}
-
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.marker{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff}
+.marker.land{background:#2dd4bf}.marker.boat{background:#38bdf8}
+.leaflet-control-attribution{font-size:8px}
 </style>
 </head>
 <body>
-<div id="app">
-<header>
-  <div class="brand"><div class="logo">M</div><div><b>Meira Fishing</b><small>Planeje • Encontre • Navegue • Registre</small></div></div>
-  <div class="hactions">
-    <button class="iconbtn" id="homeTop">⌂ Início</button>
-    <button class="iconbtn" id="locateTop">◎ GPS</button>
-    <button class="iconbtn" id="captureTop">＋ Captura</button>
-  </div>
-</header>
+<div id="map"></div>
 
-<div class="workspace">
-<aside class="sidebar" id="sidebar">
-  <div class="mobilebar" id="mobileBar">Painel</div>
+<div class="topbar">
+  <div class="brand"><div class="logo">M</div><div><b>Meira Fishing</b><small id="statusLine">Achando você…</small></div></div>
+  <button class="icon" id="relocate" type="button" title="Minha localização">◎</button>
+</div>
 
-  <div class="tabs">
-    <button class="active" data-mode="land">🎣 TERRA</button>
-    <button data-mode="boat">🚤 EMBARCADO</button>
-  </div>
-
-  <div class="section">
-    <div class="hero">
-      <div class="hero-top">
-        <div><h2 id="heroTitle">Condição geral</h2><p id="heroSub">Selecione um ponto para receber condições ao vivo.</p></div>
-        <div class="score" id="heroScore">--</div>
-      </div>
-      <div class="two-scores">
-        <div class="scorebox"><span>Pesca</span><strong id="fishScore">--/100</strong></div>
-        <div class="scorebox"><span>Segurança</span><strong id="safeScore">--/100</strong></div>
-      </div>
+<section class="sheet" id="sheet">
+  <div class="handle"></div>
+  <div class="sheet-head">
+    <div>
+      <h1>Perto de você</h1>
+      <p id="listSub">Os pontos mais próximos, já ranqueados.</p>
     </div>
   </div>
-
-  <div class="section" id="conditionsSection">
-    <div class="section-title">Condições agora</div>
-    <div class="grid2">
-      <div class="metric"><span>Vento</span><strong id="mWind">--</strong><small id="mWindDir">--</small></div>
-      <div class="metric"><span>Ondas</span><strong id="mWave">--</strong><small id="mPeriod">--</small></div>
-      <div class="metric"><span>Água</span><strong id="mSst">--</strong><small>superfície</small></div>
-      <div class="metric"><span>Corrente</span><strong id="mCurrent">--</strong><small id="mCurrentDir">--</small></div>
-      <div class="metric"><span>Nível do mar*</span><strong id="mTide">--</strong><small id="mTideTrend">estimativa</small></div>
-      <div class="metric"><span>Chuva</span><strong id="mRain">--</strong><small>hora atual</small></div>
-    </div>
+  <div class="filters" id="filters">
+    <button class="chip on" data-filter="todos">Todos</button>
+    <button class="chip" data-filter="terra">Terra</button>
+    <button class="chip" data-filter="barco">Barco</button>
+    <button class="chip" data-filter="lagoa">Lagoa</button>
   </div>
+  <div class="list" id="list"></div>
+</section>
 
-  
-  <div class="section best-boat-box" id="bestBoatBox">
-    <div class="best-boat-head">
-      <div>
-        <h3>🏆 Melhores pontos embarcados</h3>
-        <small>Ranking automático pelas condições atuais</small>
-      </div>
-      <button class="btn" id="refreshBoatBest" style="padding:7px 8px;font-size:10px">↻</button>
-    </div>
-    <div class="best-boat-list" id="bestBoatList">
-      <div class="empty">Entre no modo embarcado para carregar.</div>
-    </div>
+<div class="navbar" id="navbar">
+  <div><b id="navTitle">Navegando</b><small id="navMeta">—</small></div>
+  <button class="ghost" id="stopNav" type="button" style="width:auto">Parar</button>
+</div>
+
+<section id="boot">
+  <div class="bootbox">
+    <div class="pulse">M</div>
+    <h2>Achando você</h2>
+    <p>Autorize a localização. Em seguida os pontos de pesca mais próximos aparecem no mapa.</p>
   </div>
+</section>
 
-
-  <div class="section">
-    <div class="section-title">Pontos</div>
-    <input class="search" id="search" placeholder="Buscar ponto ou região...">
-
-    <div class="point-type-bar" id="simpleTypeBar">
-      <button class="active" data-simpletype="Todos">Todos</button>
-      <button data-simpletype="land">Terra</button>
-      <button data-simpletype="boat">Embarcado</button>
-      <button data-simpletype="Offshore">Offshore</button>
-      <button data-simpletype="Lagoa">Lagoa</button>
-    </div>
-
-    <div class="filters" id="filters"></div>
-    <div class="pointlist" id="pointList"></div>
+<section id="fallback" class="hidden">
+  <div class="fallbox">
+    <h2>Sem GPS agora</h2>
+    <p>Escolha um bairro para ver os pontos perto dali. Depois você pode tentar a localização de novo.</p>
+    <div class="places" id="places"></div>
+    <button class="ghost" id="retryGps" type="button">Tentar localização de novo</button>
   </div>
+</section>
 
-  <div class="section mobile-hide">
-    <div class="section-title">Ações</div>
-    <div class="grid2">
-      <button class="btn" id="favoritesBtn">★ Favoritos</button>
-      <button class="btn" id="historyBtn">☰ Capturas</button>
+<section id="detail" class="hidden">
+  <div class="detailbox">
+    <h2 id="dName">Ponto</h2>
+    <p id="dArea"></p>
+    <div class="dmeta">
+      <div class="dbox"><span>Distância</span><b id="dDist">—</b></div>
+      <div class="dbox"><span>Agora</span><b id="dVerdict">—</b></div>
+      <div class="dbox"><span>Espécie</span><b id="dSpecies">—</b></div>
+      <div class="dbox"><span>Tipo</span><b id="dType">—</b></div>
     </div>
-  </div>
-</aside>
-
-<main class="main">
-
-  
-  <section class="quick-shell" id="quickShell">
-    <div class="quick-card">
-      <div class="quick-step show" id="qHome">
-        <div class="qbrand">
-          <div class="qlogo">M</div>
-          <h1>Meira Fishing</h1>
-          <p>Encontre os melhores pontos perto de você.</p>
-        </div>
-        <div class="qgrid">
-          <button class="qbig" id="useLocationStart">
-            <span class="emoji">📍</span>
-            <span><b>Usar minha localização</b><small>Autorize o GPS e veja os pontos próximos no mapa.</small></span>
-          </button>
-        </div>
-        <div class="qadvanced"><button id="openAdvanced">Abrir sem localização</button></div>
-      </div>
-
-      <div class="quick-step" id="qMode">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Como você vai pescar?</h2></div>
-        <div class="qchoices">
-          <button class="qchoice" data-qmode="land"><span class="e">🎣</span>Terra<small>Praia, pedra, costão</small></button>
-          <button class="qchoice" data-qmode="boat"><span class="e">🚤</span>Embarcado<small>Ilhas, costeira, mar aberto</small></button>
-        </div>
-      </div>
-
-      <div class="quick-step" id="qTarget">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>O que você quer pegar?</h2></div>
-        <div class="qchoices" id="qSpeciesChoices"></div>
-      </div>
-
-      <div class="quick-step" id="qResults">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Melhores opções agora</h2></div>
-        <div class="qresults" id="qResultsList"></div>
-      </div>
-
-      <div class="quick-step" id="qPoint">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2 id="qPointName">Ponto</h2></div>
-        <div class="qstatus">
-          <div class="bigscore" id="qPointScore">--</div>
-          <h3 id="qPointLabel">Analisando...</h3>
-          <p id="qPointWhy"></p>
-        </div>
-        <div class="qnav">
-          <div class="qnavbox"><span>Distância</span><b id="qPointDistance">--</b></div>
-          <div class="qnavbox"><span>Segurança</span><b id="qPointSafe">--</b></div>
-        </div>
-        <div class="qfooter">
-          <button class="qsecondary" id="qCheckinBtn">👀 Cheguei no ponto</button>
-          <button class="qprimary" id="qNavigateBtn">🧭 Navegar</button>
-        </div>
-      </div>
-
-      <div class="quick-step" id="qCheckin">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Check-in rápido</h2></div>
-        <div class="qprogress"><i class="on"></i><i></i><i></i><i></i></div>
-        <div class="qquestion">
-          <h3 id="qQuestionTitle">Como está a água?</h3>
-          <p id="qQuestionSub">Só toque em uma opção.</p>
-          <div class="qanswer" id="qAnswers"></div>
-        </div>
-      </div>
-
-      <div class="quick-step" id="qRecommend">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Faça isso agora</h2></div>
-        <div class="qrecommend">
-          <div>🎯 Melhor tentativa</div>
-          <div class="bait" id="qRecBait">--</div>
-          <small id="qRecText"></small>
-        </div>
-        <div class="qfeedback">
-          <button data-qfeedback="capture">🐟 Peguei</button>
-          <button data-qfeedback="attack">⚡ Ataque</button>
-          <button data-qfeedback="follow">👀 Seguiu</button>
-          <button data-qfeedback="nothing">❌ Nada</button>
-        </div>
-      </div>
-
-      <div class="quick-step" id="qAdjust">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Próximo passo</h2></div>
-        <div class="qrecommend">
-          <div id="qAdjustIcon">🔄</div>
-          <div class="bait" id="qAdjustTitle">Ajuste rápido</div>
-          <small id="qAdjustText"></small>
-        </div>
-        <div class="qfooter">
-          <button class="qsecondary" id="qTryAgain">Tentar mais uma vez</button>
-          <button class="qprimary" id="qNextPoint">Próximo ponto</button>
-        </div>
-      </div>
-
-      <div class="quick-step" id="qPlan">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Planejar</h2></div>
-        <div class="qchoices">
-          <button class="qchoice" data-planfast="land"><span class="e">🎣</span>Terra<small>Ver melhores opções</small></button>
-          <button class="qchoice" data-planfast="boat"><span class="e">🚤</span>Embarcado<small>Ver melhores opções</small></button>
-        </div>
-        <div class="qadvanced"><button id="openPlannerAdvanced">Planejamento detalhado</button></div>
-      </div>
-
-      <div class="quick-step" id="qSession">
-        <div class="qtitle"><button class="qback" data-qback>←</button><h2>Já estou pescando</h2></div>
-        <div class="qgrid">
-          <button class="qbig" id="qUseCurrentPoint"><span class="emoji">📍</span><span><b>Estou no ponto atual</b><small>Fazer check-in e receber estratégia.</small></span></button>
-          <button class="qbig" data-qgo="qMode"><span class="emoji">🔎</span><span><b>Quero outro ponto</b><small>Ver melhores opções ao redor.</small></span></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="copilot-home hidden" id="copilotHome">
-    <div class="home-wrap">
-      <div class="home-hero">
-        <div>
-          <h1>Seu copiloto de pesca.</h1>
-          <p>Planeje antes de sair, encontre as melhores oportunidades perto de você, navegue sem expor coordenadas e transforme cada pescaria em inteligência para a próxima.</p>
-        </div>
-        <div class="ai-pill">MEIRA INTELLIGENCE • MVP</div>
-      </div>
-
-      <div class="home-grid">
-        <div class="home-card" data-flow="planner">
-          <div class="ico">🎯</div><h3>Planejar minha pescaria</h3>
-          <p>Escolha modo, espécie e período. O Meira compara os pontos e monta Plano A, B e C com justificativa.</p><strong>PLANEJAR →</strong>
-        </div>
-        <div class="home-card" data-flow="now">
-          <div class="ico">⚡</div><h3>Pescar agora</h3>
-          <p>Usa sua posição e condições atuais para encontrar os pontos mais promissores no seu raio.</p><strong>VER MELHORES →</strong>
-        </div>
-        <div class="home-card" data-flow="radar">
-          <div class="ico">📡</div><h3>Meira Radar</h3>
-          <p>Veja visualmente onde o potencial está mais alto e compare regiões sem abrir ponto por ponto.</p><strong>ABRIR RADAR →</strong>
-        </div>
-        <div class="home-card" data-flow="trip">
-          <div class="ico">🚤</div><h3>Iniciar pescaria</h3>
-          <p>Comece uma sessão. O sistema registra tempo, pontos visitados, condições e capturas da jornada.</p><strong>COMEÇAR →</strong>
-        </div>
-      </div>
-
-      <div class="home-summary">
-        <div class="opportunity">
-          <h3>🔥 Melhor oportunidade do momento</h3>
-          <p id="homeOppText">Analisando os pontos cadastrados...</p>
-          <div class="opp-row"><div><div class="mini-stats" id="homeOppStats"></div></div><div class="opp-score" id="homeOppScore">--</div></div>
-          <button class="btn primary" id="homeOppBtn" style="margin-top:10px">Ver oportunidade</button>
-        </div>
-        <div class="resume-box">
-          <h3>Seu histórico</h3>
-          <div class="big" id="homeCaptureCount">0</div>
-          <small>capturas registradas</small>
-          <div style="margin-top:10px"><b id="homeFavCount">0</b> <small>pontos favoritos</small></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="flow-panel" id="plannerPanel">
-    <div class="flow-wrap">
-      <div class="flow-head"><div><h2>🎯 Planejar pescaria</h2><p>Monte uma recomendação por modo, espécie e período. O ranking usa condições ao vivo + confiança atual do ponto.</p></div><button class="backbtn" data-flow-close>← Voltar</button></div>
-      <div class="planner-grid">
-        <div class="panel-card">
-          <h3>Preferências</h3>
-          <div class="fieldrow">
-            <div class="field"><label>Modo</label><select class="select" id="planMode"><option value="land">Terra</option><option value="boat">Embarcado</option></select></div>
-            <div class="field"><label>Espécie</label><select class="select" id="planSpecies"></select></div>
-            <div class="field"><label>Período</label><select class="select" id="planPeriod"><option value="now">Agora</option><option value="morning">Amanhã cedo</option><option value="weekend">Próximos dias</option></select></div>
-            <div class="field"><label>Raio máximo</label><select class="select" id="planRadius"><option value="999">Sem limite</option><option value="5">5 km</option><option value="10">10 km</option><option value="20">20 km</option></select></div>
-          </div>
-          <button class="btn primary" id="runPlanner" style="width:100%;margin-top:10px">Gerar Plano A / B / C</button>
-        </div>
-        <div class="panel-card">
-          <h3>Como o Meira decide</h3>
-          <div class="reason-list">
-            <div class="reason">Histórico/base do ponto</div><div class="reason">Vento</div>
-            <div class="reason">Onda e período</div><div class="reason">Temperatura da água</div>
-            <div class="reason">Corrente</div><div class="reason">Compatibilidade com espécie</div>
-          </div>
-          <div class="notice" style="margin-top:10px">Esse MVP ainda não “aprende” com dezenas de pescarias reais. O score ganha força quando seus 1.000 pontos e histórico forem importados.</div>
-        </div>
-      </div>
-      <div class="plan-results" id="plannerResults"></div>
-    </div>
-  </section>
-
-  <section class="flow-panel" id="radarPanel">
-    <div class="flow-wrap">
-      <div class="flow-head"><div><h2>📡 Meira Radar</h2><p>Mapa de potencial estimado. Quanto maior o score, maior a prioridade do ponto para análise.</p></div><button class="backbtn" data-flow-close>← Voltar</button></div>
-      <div class="species-rank" id="radarSpecies"></div>
-      <div class="radar-wrap" style="margin-top:10px">
-        <div class="radar-map"><div id="radarMap"></div></div>
-        <div class="radar-list" id="radarList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="flow-panel" id="tripPanel">
-    <div class="flow-wrap">
-      <div class="flow-head"><div><h2>🚤 Sessão de pescaria</h2><p>Registre a jornada inteira, inclusive quando não houver captura. “Pesquei e não peguei” também vira dado.</p></div><button class="backbtn" data-flow-close>← Voltar</button></div>
-      <div class="panel-card">
-        <h3 id="tripStatusTitle">Nenhuma pescaria em andamento</h3>
-        <p id="tripStatusText" style="color:var(--muted);font-size:11px;line-height:1.5">Inicie uma sessão para acompanhar tempo e pontos visitados.</p>
-        <div class="session-summary">
-          <div class="session-stat"><span>Tempo</span><b id="tripTime">00:00</b></div>
-          <div class="session-stat"><span>Pontos</span><b id="tripPoints">0</b></div>
-          <div class="session-stat"><span>Capturas</span><b id="tripCaptures">0</b></div>
-          <div class="session-stat"><span>Status</span><b id="tripStatusMini">Parado</b></div>
-        </div>
-        <div class="actions">
-          <button class="btn primary" id="startTrip">Iniciar pescaria</button>
-          <button class="btn warn" id="endTrip">Encerrar pescaria</button>
-        </div>
-      </div>
-      <div class="panel-card" style="margin-top:10px">
-        <h3>Resumo da sessão</h3>
-        <div id="tripSummary" class="empty">Nenhuma sessão encerrada neste navegador.</div>
-      </div>
-    </div>
-  </section>
-
-  <div id="map"></div>
-  <div class="nearby-panel" id="nearbyPanel">
-    <h3>📍 Pontos próximos</h3>
-    <p id="nearbyStatus">Ordenados pela distância da sua posição.</p>
-    <div class="nearby-list" id="nearbyList"></div>
-  </div>
-
-  <div class="maptop">
-    <div class="mapgroup">
-      <button class="mapbtn active" id="mapBase">Mapa</button>
-      <button class="mapbtn" id="mapNautical">Náutico</button>
-    </div>
-    <div class="mapgroup">
-      <button class="mapbtn" id="bestBtn">⚡ Melhores agora</button>
-      <button class="mapbtn" id="mapLocate">◎ Minha posição</button>
-    </div>
-  </div>
-  <div class="maplegend">
-    <span><i class="ldot" style="background:#2dd4bf"></i>Terra</span>
-    &nbsp; <span><i class="ldot" style="background:#38bdf8"></i>Embarcado</span>
-  </div>
-
-  <div class="tripbar" id="tripBar">
-    <div class="trip-active"><i></i><div><b>Pescaria em andamento</b><br><small id="tripBarText">00:00 • 0 pontos</small></div></div>
-    <button class="btn" id="tripBarOpen">Abrir sessão</button>
-  </div>
-
-  <section class="drawer" id="drawer">
-    <div class="dhead">
-      <div><h2 id="dName">Ponto</h2><p id="dArea">Rio de Janeiro</p></div>
-      <button class="close" id="dClose">×</button>
-    </div>
-    <div class="live"><i class="pulse"></i><span id="liveLabel">Buscando condições...</span></div>
-
-    <div class="simple-point-info">
-      <div class="simple-point-box"><span>Distância</span><b id="simpleDistance">--</b></div>
-      <div class="simple-point-box"><span>Tipo</span><b id="simpleType">--</b></div>
-      <div class="simple-point-box"><span>Profundidade</span><b id="simpleDepth">--</b></div>
-      <div class="simple-point-box"><span>Espécies</span><b id="simpleSpecies">--</b></div>
-    </div>
-    <button class="simple-navigate" id="simpleNavigate">🧭 Navegar até o ponto</button>
-    <button class="simple-close" id="simpleClose">Fechar</button>
-
-
-    <div class="two-scores">
-      <div class="scorebox"><span>Potencial de pesca</span><strong id="dFish">--/100</strong></div>
-      <div class="scorebox"><span>Segurança</span><strong id="dSafe">--/100</strong></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Agora neste ponto</div>
-      <div class="grid2">
-        <div class="metric"><span>Vento</span><strong id="dWind">--</strong><small id="dWindDir">--</small></div>
-        <div class="metric"><span>Onda / período</span><strong id="dWave">--</strong><small id="dPeriod">--</small></div>
-        <div class="metric"><span>Água</span><strong id="dSst">--</strong><small>SST</small></div>
-        <div class="metric"><span>Corrente</span><strong id="dCurrent">--</strong><small id="dCurrentDir">--</small></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Próximas horas</div>
-      <div class="hourstrip" id="hourStrip"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Planejamento 5 dias</div>
-      <div class="days" id="days"></div>
-    </div>
-
-
-    <div class="section">
-      <div class="section-title">Check-in inteligente do ponto</div>
-      <div class="checkin-panel">
-        <h3>👀 O que você está vendo agora?</h3>
-        <p>Quatro toques. O Meira combina sua leitura com clima e mar e já diz o que tentar.</p>
-
-        <div class="check-grid">
-          <div class="check-card">
-            <label>Cor da água</label>
-            <select id="ciWaterColor">
-              <option>Azul</option><option>Verde</option><option>Clara</option><option>Turva</option><option>Barrenta</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Transparência</label>
-            <select id="ciVisibility">
-              <option>Alta</option><option>Média</option><option>Baixa</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Corrente</label>
-            <select id="ciCurrent">
-              <option>Parada</option><option>Fraca</option><option>Média</option><option>Forte</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Atividade na superfície</label>
-            <select id="ciSurface">
-              <option>Nenhuma</option><option>Pouca</option><option>Média</option><option>Alta</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Aves trabalhando?</label>
-            <select id="ciBirds"><option>Não</option><option>Sim</option></select>
-          </div>
-          <div class="check-card">
-            <label>Isca natural presente?</label>
-            <select id="ciBaitfish">
-              <option>Não vi</option><option>Sardinha</option><option>Manjuba</option><option>Camarão</option><option>Lula</option><option>Outro</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Sonar / peixe marcado</label>
-            <select id="ciSonar">
-              <option>Não uso / não vi</option><option>Poucos peixes</option><option>Cardume</option><option>Peixe no fundo</option><option>Peixe em meia-água</option>
-            </select>
-          </div>
-          <div class="check-card">
-            <label>Estrutura predominante</label>
-            <select id="ciStructure">
-              <option>Não sei</option><option>Pedra</option><option>Laje</option><option>Queda</option><option>Canal</option><option>Areia</option><option>Cascalho</option>
-            </select>
-          </div>
-        </div>
-
-        
-
-        <button class="btn primary" id="runCheckin" style="width:100%;margin-top:10px">Analisar o ponto agora</button>
-
-        <div class="rec-card" id="recommendationCard" style="display:none">
-          <h4>🎯 Melhor estratégia agora</h4>
-          <div class="rec-main" id="recMain">--</div>
-          <div class="rec-copy" id="recCopy"></div>
-          <div class="rec-steps" id="recSteps"></div>
-        </div>
-
-        <div id="feedbackArea" style="display:none;margin-top:10px">
-          <div class="section-title" style="margin-bottom:5px">Depois de alguns minutos, o que aconteceu?</div>
-          <div class="feedback-grid">
-            <button class="feedback-btn" data-feedback="capture">🐟 Capturei</button>
-            <button class="feedback-btn" data-feedback="attack">⚡ Tive ataque</button>
-            <button class="feedback-btn" data-feedback="follow">👀 Seguiu a isca</button>
-            <button class="feedback-btn" data-feedback="nothing">❌ Nada aconteceu</button>
-          </div>
-          <div class="adapt-card" id="adaptCard"><b id="adaptTitle">Ajuste sugerido</b><p id="adaptText"></p></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Score por espécie</div>
-      <div class="species-rank" id="speciesScores"></div>
-      <button class="btn explain-btn" id="explainScoreBtn">? Por que esse score?</button>
-      <div id="scoreExplanation" style="display:none"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Sobre o ponto</div>
-      <div class="tags" id="dTags"></div>
-      <div class="notice" id="dNote"></div>
-      <div class="source" id="dSource"></div>
-    </div>
-
-    <div class="navpanel" id="navPanel">
-      <div class="compass"><div class="needle" id="needle"></div></div>
-      <div class="navinfo"><strong id="navDistance">--</strong><small id="navBearing">Ative o GPS.</small><small>As coordenadas do ponto não são exibidas.</small></div>
-    </div>
-
-
-    <div class="exact-nav-card" id="exactNavCard" style="display:none">
-      <h4>🧭 Navegação para o waypoint</h4>
-      <div class="exact-nav-grid">
-        <div class="exact-nav-box"><span>Distância</span><b id="exactDistance">--</b></div>
-        <div class="exact-nav-box"><span>Rumo</span><b id="exactBearing">--</b></div>
-      </div>
-      <div class="arrival-status" id="arrivalStatus">Ative o GPS para iniciar.</div>
-      <div class="route-line-label">A coordenada exata é usada internamente para navegação e não é exibida na interface.</div>
-      <div class="exact-actions">
-        <button class="btn primary" id="startExactNav">Iniciar navegação</button>
-        <button class="btn" id="stopExactNav">Parar</button>
-      </div>
-    </div>
-
+    <p id="dWhy" style="margin-bottom:14px"></p>
     <div class="actions">
-      <button class="btn" id="favBtn">☆ Favoritar</button>
-      <button class="btn primary" id="navBtn">🧭 Navegar</button>
-      <button class="btn" id="captureHere">＋ Registrar captura</button>
-      <button class="btn warn" id="refreshBtn">↻ Atualizar dados</button>
-    </div>
-
-    <div class="notice">
-      * O nível do mar é uma estimativa modelada, não uma tábua de maré oficial. Para navegação e segurança consulte DHN/Marinha, avisos e publicações náuticas atualizadas.
-    </div>
-  </section>
-</main>
-</div>
-</div>
-
-<div class="points-start" id="pointsStart">
-  <div class="points-start-card">
-    <div class="points-start-logo">M</div>
-    <h1>Meira Fishing</h1>
-    <p>Encontre pontos de pesca perto de você e navegue direto até o waypoint.</p>
-    <button class="points-start-btn" id="pointsUseLocation">📍 Usar minha localização</button>
-    <button class="points-start-alt" id="pointsOpenMap">Abrir mapa sem localização</button>
-  </div>
-</div>
-
-<div class="modal" id="captureModal">
-  <div class="modalbox">
-    <div class="dhead"><div><h2>Registrar captura</h2><p>O sistema salva o ponto e as condições disponíveis junto da captura.</p></div><button class="close" data-close="captureModal">×</button></div>
-    <div class="formgrid">
-      <div class="field"><label>Espécie</label><input id="capSpecies" placeholder="Ex.: Anchova"></div>
-      <div class="field"><label>Peso (kg)</label><input id="capWeight" type="number" step="0.1" placeholder="4.2"></div>
-      <div class="field"><label>Técnica</label><select id="capTechnique"><option>Artificial</option><option>Jigging</option><option>Corrico</option><option>Isca viva</option><option>Fundo</option><option>Surfcasting</option><option>Outro</option></select></div>
-      <div class="field"><label>Isca</label><input id="capBait" placeholder="Ex.: Jumping jig"></div>
-      <div class="field"><label>Cor da água</label><select id="capWater"><option>Azul</option><option>Verde</option><option>Clara</option><option>Turva</option><option>Barrenta</option></select></div>
-      <div class="field"><label>Atividade</label><select id="capActivity"><option>Nenhuma</option><option>Pouca</option><option>Média</option><option>Alta</option></select></div>
-      <div class="field full"><label>Observações</label><textarea id="capNotes" placeholder="Corrente, aves, sonar, comportamento..."></textarea></div>
-    </div>
-    <div class="actions"><button class="btn" data-close="captureModal">Cancelar</button><button class="btn primary" id="saveCapture">Salvar captura</button></div>
-  </div>
-</div>
-
-<div class="modal" id="historyModal">
-  <div class="modalbox">
-    <div class="dhead"><div><h2>Minhas capturas</h2><p>Salvas somente neste navegador neste MVP.</p></div><button class="close" data-close="historyModal">×</button></div>
-    <div id="historyList"></div>
-  </div>
-</div>
-
-<div class="modal" id="favoritesModal">
-  <div class="modalbox">
-    <div class="dhead"><div><h2>Pontos favoritos</h2><p>Atalhos salvos neste aparelho.</p></div><button class="close" data-close="favoritesModal">×</button></div>
-    <div id="favoritesList"></div>
-  </div>
-</div>
-
-
-<div class="ci2-shell" id="ci2Shell">
-  <div class="ci2-card">
-    <div class="ci2-head">
-      <h2>👀 Check-in do ponto</h2>
-      <button class="ci2-close" id="ci2Close">×</button>
-    </div>
-    <div class="ci2-progress" id="ci2Progress"></div>
-
-    <div id="ci2QuestionWrap">
-      <div class="ci2-q">
-        <h3 id="ci2Title">Como está a água?</h3>
-        <p id="ci2Sub">Só toque no que mais parece.</p>
-        <div class="ci2-options" id="ci2Options"></div>
-      </div>
-    </div>
-
-    <div class="ci2-result" id="ci2Result">
-      <div class="ci2-score">
-        <div class="num" id="ci2Score">--</div>
-        <h3 id="ci2Label">Leitura do ponto</h3>
-        <p id="ci2Why">--</p>
-      </div>
-      <div class="ci2-action">
-        <h4>Faça isso agora</h4>
-        <div class="ci2-main" id="ci2Main">--</div>
-        <div id="ci2Technique" style="font-size:11px;color:#cbdde2;line-height:1.5"></div>
-        <div class="ci2-pills" id="ci2Pills"></div>
-      </div>
-      <div class="ci2-next">
-        <button class="ci2-btn" id="ci2Change">↻ Refazer leitura</button>
-        <button class="ci2-btn primary" id="ci2StartFeedback">Começar tentativa</button>
-      </div>
-      <div class="ci2-feedback" id="ci2Feedback">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">O que aconteceu?</div>
-        <div class="ci2-feedback-grid">
-          <button data-ci2fb="capture">🐟 Capturei</button>
-          <button data-ci2fb="attack">⚡ Ataque</button>
-          <button data-ci2fb="follow">👀 Seguiu</button>
-          <button data-ci2fb="nothing">❌ Nada</button>
-        </div>
-        <div class="ci2-adjust" id="ci2Adjust"><b id="ci2AdjustTitle"></b><p id="ci2AdjustText"></p></div>
-      </div>
+      <button class="go" id="goNow" type="button">Ir agora</button>
+      <button class="ghost" id="closeDetail" type="button">Voltar à lista</button>
     </div>
   </div>
-</div>
-
-
-<div class="quick-catch" id="quickCatch">
-  <div class="quick-catch-card">
-    <h3>🐟 O que você pegou?</h3>
-    <p>O Meira já salva automaticamente ponto, horário e condições.</p>
-    <div class="quick-species" id="quickSpecies"></div>
-    <div class="quick-catch-actions">
-      <button class="btn" id="quickCatchCancel">Cancelar</button>
-      <button class="btn primary" id="quickCatchOther">Outra espécie</button>
-    </div>
-  </div>
-</div>
+</section>
 
 <div class="toast" id="toast"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-// ===== V4 fluxo prático =====
-let qModeSelected='land', qSpeciesSelected='Todos', qRanked=[], qSelected=null;
-let qCheckAnswers={}, qCheckIndex=0;
-
-const qQuestions=[
-  {key:'water',title:'Como está a água?',sub:'Escolha o que mais parece.',opts:[['🔵','Azul'],['🟢','Verde'],['⚪','Clara'],['🟤','Turva']]},
-  {key:'current',title:'E a corrente?',sub:'Só uma leitura rápida.',opts:[['⏸','Parada'],['〰️','Fraca'],['➡️','Média'],['💨','Forte']]},
-  {key:'activity',title:'Tem atividade?',sub:'Olhe superfície e arredores.',opts:[['😶','Nenhuma'],['👀','Pouca'],['⚡','Alta'],['🐦','Aves trabalhando']]},
-  {key:'depth',title:'Onde está o peixe?',sub:'Se não souber, escolha “não sei”.',opts:[['❓','Não sei'],['⬆️','Superfície'],['↔️','Meia-água'],['⬇️','Fundo']]}
-];
-
-function qShow(id){
-  document.querySelectorAll('.quick-step').forEach(x=>x.classList.remove('show'));
-  $(id).classList.add('show');
-}
-document.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>qShow(b.dataset.qgo));
-document.querySelectorAll('[data-qback]').forEach(b=>b.onclick=()=>qShow('qHome'));
-
-$('openAdvanced').onclick=()=>{$('quickShell').classList.add('hidden');$('copilotHome').classList.remove('hidden')};
-$('homeTop').addEventListener('click',()=>{$('quickShell').classList.remove('hidden');$('copilotHome').classList.add('hidden');qShow('qHome')});
-
-function qSpeciesButtons(){
-  const common=['Todos','Anchova','Xaréu','Garoupa','Robalo','Corvina'];
-  $('qSpeciesChoices').innerHTML=common.map(s=>`<button class="qchoice" data-qspecies="${s}"><span class="e">${s==='Todos'?'🎣':'🐟'}</span>${s}</button>`).join('');
-  document.querySelectorAll('[data-qspecies]').forEach(b=>b.onclick=()=>{qSpeciesSelected=b.dataset.qspecies;qLoadResults()});
-}
-qSpeciesButtons();
-
-document.querySelectorAll('[data-qmode]').forEach(b=>b.onclick=()=>{
-  qModeSelected=b.dataset.qmode;
-  qShow('qTarget');
-});
-
-async function qLoadResults(){
-  qShow('qResults');
-  $('qResultsList').innerHTML='<div class="empty">Comparando pontos...</div>';
-  let arr=[];
-  for(const p of points.filter(x=>x.mode===qModeSelected)){
-    const d=await getConditions(p);
-    const base=scores(p,d);
-    const sc=speciesScore(p,base.fish,qSpeciesSelected);
-    const distance=userPos?dist(userPos,p):null;
-    arr.push({p,d,score:sc,safe:base.safe,distance});
-  }
-  arr.sort((a,b)=>b.score-a.score);
-  qRanked=arr;
-  $('qResultsList').innerHTML=arr.slice(0,3).map((r,i)=>`
-    <div class="qresult ${i===0?'best':''}" data-qresult="${r.p.id}">
-      <div class="qresult-head"><div><b>${i===0?'🥇 ':i===1?'🥈 ':'🥉 '}${r.p.name}</b><div class="qmeta">${r.p.area}${r.distance!==null?' • '+(r.distance<1?Math.round(r.distance*1000)+' m':r.distance.toFixed(1)+' km'):''}</div></div><div class="qscore">${r.score}</div></div>
-      <div class="qicons"><span class="qmini">🛟 ${r.safe}/100</span><span class="qmini">${r.p.type}</span>${qSpeciesSelected!=='Todos'?`<span class="qmini">🐟 ${qSpeciesSelected}</span>`:''}</div>
-    </div>`).join('');
-  document.querySelectorAll('[data-qresult]').forEach(e=>e.onclick=()=>qOpenPoint(arr.find(x=>x.p.id===e.dataset.qresult)));
-}
-function qLabel(score){
-  if(score>=85)return ['Excelente agora','As condições estão entre as melhores opções disponíveis.'];
-  if(score>=70)return ['Boa opção','Condição favorável, mas existem fatores para acompanhar.'];
-  if(score>=55)return ['Razoável','Dá para tentar, mas eu compararia outras opções.'];
-  return ['Fraco agora','Eu escolheria outro ponto neste momento.'];
-}
-function qOpenPoint(r){
-  if(!r)return;
-  qSelected=r;
-  selected=r.p;
-  const lab=qLabel(r.score);
-  $('qPointName').textContent=r.p.name;
-  $('qPointScore').textContent=r.score+'/100';
-  $('qPointLabel').textContent=lab[0];
-  $('qPointWhy').textContent=lab[1];
-  $('qPointSafe').textContent=r.safe+'/100';
-  $('qPointDistance').textContent=r.distance===null?'GPS':(r.distance<1?Math.round(r.distance*1000)+' m':r.distance.toFixed(1)+' km');
-  qShow('qPoint');
-}
-$('qNavigateBtn').onclick=()=>{
-  if(!qSelected)return;
-  mode=qSelected.p.mode;
-  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));
-  renderAll();
-  $('quickShell').classList.add('hidden');
-  $('copilotHome').classList.add('hidden');
-  selectPoint(qSelected.p);
-  setTimeout(()=>$('navBtn').click(),300);
-};
-$('qCheckinBtn').onclick=()=>qStartCheckin();
-$('qUseCurrentPoint').onclick=()=>{
-  if(selected){
-    const cached=weatherCache.get(selected.id)?.data;
-    if(cached){const sc=scores(selected,cached);qSelected={p:selected,d:cached,score:sc.fish,safe:sc.safe,distance:userPos?dist(userPos,selected):null}}
-    qStartCheckin();
-  }else{
-    qShow('qMode');
-  }
-};
-
-function qStartCheckin(){
-  qCheckAnswers={};qCheckIndex=0;qRenderQuestion();qShow('qCheckin');
-}
-function qRenderQuestion(){
-  const q=qQuestions[qCheckIndex];
-  document.querySelectorAll('.qprogress i').forEach((x,i)=>x.classList.toggle('on',i<=qCheckIndex));
-  $('qQuestionTitle').textContent=q.title;$('qQuestionSub').textContent=q.sub;
-  $('qAnswers').innerHTML=q.opts.map(o=>`<button data-qans="${o[1]}"><span style="font-size:22px;display:block">${o[0]}</span>${o[1]}</button>`).join('');
-  $('qAnswers').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    qCheckAnswers[q.key]=b.dataset.qans;
-    qCheckIndex++;
-    if(qCheckIndex<qQuestions.length)qRenderQuestion();else qBuildRecommendation();
-  });
-}
-function qBuildRecommendation(){
-  const a=qCheckAnswers;
-  let bait='Shad', text='Trabalhe meia-água com recolhimento variável.';
-  if(a.activity==='Aves trabalhando'||a.activity==='Alta'){bait='Minnow / Popper';text='Comece na superfície e sub-superfície. Faça arremessos rápidos antes de mudar de faixa.'}
-  if(a.depth==='Fundo'){bait=a.current==='Forte'?'Jig 60g':'Jig 40g';text='Trabalhe próximo ao fundo com toques curtos e controle da queda.'}
-  if(a.depth==='Meia-água'){bait='Jig 20–40g / Shad';text='Mantenha a isca na faixa de meia-água e varie a velocidade.'}
-  if(a.water==='Turva'){bait='Shad / Camarão artificial';text='Use uma apresentação mais lenta e com vibração. Priorize contraste.'}
-  if(a.current==='Forte'&&a.depth!=='Superfície'){bait='Jig 60g';text='Use peso suficiente para manter controle da profundidade na corrente.'}
-  $('qRecBait').textContent=bait;$('qRecText').textContent=text;qShow('qRecommend');
-}
-document.querySelectorAll('[data-qfeedback]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.qfeedback;let title='',text='',icon='🔄';
-  if(t==='capture'){icon='🐟';title='Funcionou';text='Mantenha a estratégia e registre a captura. O Meira usa isso no histórico.'}
-  if(t==='attack'){icon='⚡';title='Continue';text='Há atividade. Faça pequenas variações antes de trocar a isca.'}
-  if(t==='follow'){icon='👀';title='Ajuste fino';text='Reduza um pouco a velocidade ou o tamanho da isca.'}
-  if(t==='nothing'){icon='🔄';title='Mude uma coisa';text='Troque primeiro a faixa de profundidade. Se continuar sem ação, vá para o próximo ponto.'}
-  $('qAdjustIcon').textContent=icon;$('qAdjustTitle').textContent=title;$('qAdjustText').textContent=text;qShow('qAdjust');
-  if(t==='capture') setTimeout(()=>openModal('captureModal'),250);
-});
-$('qTryAgain').onclick=()=>qShow('qRecommend');
-$('qNextPoint').onclick=()=>{
-  if(!qRanked.length)return qShow('qMode');
-  const idx=qSelected?qRanked.findIndex(x=>x.p.id===qSelected.p.id):-1;
-  qOpenPoint(qRanked[Math.min(idx+1,qRanked.length-1)]||qRanked[0]);
-};
-
-document.querySelectorAll('[data-planfast]').forEach(b=>b.onclick=()=>{
-  qModeSelected=b.dataset.planfast;qSpeciesSelected='Todos';qLoadResults();
-});
-$('openPlannerAdvanced').onclick=()=>{$('quickShell').classList.add('hidden');openFlow('planner')};
-
-// make quick flow the default experience
-$('quickShell').classList.remove('hidden');
-
-
-// ===== Entrada por localização automática =====
-function openMapFromLocation(){
-  $('quickShell').classList.add('hidden');
-  $('copilotHome').classList.add('hidden');
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-}
-
-function renderNearbyPoints(){
-  if(!userPos)return;
-  const ranked=points.map(p=>({...p,_distance:dist(userPos,p)})).sort((a,b)=>a._distance-b._distance);
-  $('nearbyList').innerHTML=ranked.slice(0,8).map(p=>`
-    <div class="nearby-item" data-nearby="${p.id}">
-      <div class="nearby-top">
-        <b>${p.id} • ${p.name}</b>
-        <span class="nearby-dist">${p._distance<1?Math.round(p._distance*1000)+' m':p._distance.toFixed(1)+' km'}</span>
-      </div>
-      <small>${p.area} • ${p.mode==='land'?'Terra':'Embarcado'}${p.tags?.includes('Detectado')?' • Detectado':''}</small>
-    </div>`).join('');
-  document.querySelectorAll('[data-nearby]').forEach(e=>e.onclick=()=>{
-    const p=points.find(x=>x.id===e.dataset.nearby);
-    mode=p.mode;
-    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));
-    renderAll();
-    selectPoint(p);
-  });
-  $('nearbyPanel').classList.add('show');
-}
-
-function locationFirstStart(){
-  if(!navigator.geolocation){
-    toast('Seu navegador não oferece localização.');
-    openMapFromLocation();
-    return;
-  }
-  $('useLocationStart').innerHTML='<span class="emoji">◎</span><span><b>Lendo sua localização...</b><small>Autorize o acesso ao GPS.</small></span>';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-
-    if(!userMarker){
-      userMarker=L.circleMarker([userPos.lat,userPos.lng],{
-        radius:9,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1
-      }).addTo(map).bindTooltip('Você');
-    }else{
-      userMarker.setLatLng([userPos.lat,userPos.lng]);
-    }
-
-    openMapFromLocation();
-    map.setView([userPos.lat,userPos.lng],12);
-    renderNearbyPoints();
-
-    // Show all point modes around user initially
-    points.forEach(p=>{
-      const m=markerMap.get(p.id);
-      if(m && !map.hasLayer(m))m.addTo(map);
-    });
-
-    $('nearbyStatus').textContent='Pontos mais próximos da sua posição.';
-    toast('Localização encontrada.');
-    $('useLocationStart').innerHTML='<span class="emoji">📍</span><span><b>Usar minha localização</b><small>Autorize o GPS e veja os pontos próximos no mapa.</small></span>';
-  },err=>{
-    $('useLocationStart').innerHTML='<span class="emoji">📍</span><span><b>Tentar novamente</b><small>Não consegui acessar o GPS.</small></span>';
-    toast('Autorize a localização para ver os pontos próximos.');
-  },{
-    enableHighAccuracy:true,
-    timeout:12000,
-    maximumAge:15000
-  });
-}
-
-$('useLocationStart').onclick=locationFirstStart;
-
-// Keep nearby list updated whenever watchPosition refreshes userPos
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(userMarker) userMarker.setLatLng([userPos.lat,userPos.lng]);
-    if($('nearbyPanel').classList.contains('show')) renderNearbyPoints();
-  },()=>{},{
-    enableHighAccuracy:true,
-    maximumAge:20000,
-    timeout:20000
-  });
-}
-
-
-// ===== Check-in V2 adaptativo =====
-let ci2Mode='land', ci2Step=0, ci2Answers={}, ci2Last=null;
-
-function ci2QuestionsForMode(m){
-  const common=[
-    {key:'water',title:'Como está a água?',sub:'Escolha o que mais parece.',opts:[
-      ['🔵','Azul'],['🟢','Verde'],['⚪','Clara'],['🟤','Turva']
-    ]},
-    {key:'current',title:'E a corrente?',sub:'Uma leitura rápida já basta.',opts:[
-      ['⏸','Parada'],['〰️','Fraca'],['➡️','Média'],['💨','Forte']
-    ]},
-    {key:'activity',title:'Tem vida aí?',sub:'Olhe superfície, aves e pequenos peixes.',opts:[
-      ['😶','Nada'],['👀','Pouca'],['⚡','Muita'],['🐦','Aves']
-    ]}
-  ];
-
-  const land=[
-    {key:'structure',title:'Onde está a melhor estrutura?',sub:'Escolha o que mais chama atenção.',opts:[
-      ['🌊','Canal/vala'],['🪨','Pedra'],['🏖️','Praia aberta'],['🌫️','Espuma/quebra']
-    ]}
-  ];
-
-  const boat=[
-    {key:'sonar',title:'Onde está o peixe?',sub:'Se não souber, escolha “não sei”.',opts:[
-      ['❓','Não sei'],['⬆️','Superfície'],['↔️','Meia-água'],['⬇️','Fundo']
-    ]}
-  ];
-
-  return [...common,...(m==='boat'?boat:land)];
-}
-
-function ci2Open(){
-  if(!selected){toast('Selecione um ponto primeiro.');return}
-  ci2Mode=selected.mode||mode||'land';
-  ci2Step=0;ci2Answers={};ci2Last=null;
-  $('ci2Shell').classList.add('show');
-  $('ci2QuestionWrap').style.display='block';
-  $('ci2Result').classList.remove('show');
-  $('ci2Feedback').classList.remove('show');
-  $('ci2Adjust').classList.remove('show');
-  ci2Render();
-}
-function ci2Render(){
-  const qs=ci2QuestionsForMode(ci2Mode), q=qs[ci2Step];
-  $('ci2Progress').innerHTML=qs.map((_,i)=>`<i class="${i<=ci2Step?'on':''}"></i>`).join('');
-  $('ci2Title').textContent=q.title;$('ci2Sub').textContent=q.sub;
-  $('ci2Options').innerHTML=q.opts.map(o=>`<button class="ci2-opt" data-ci2="${o[1]}"><span>${o[0]}</span>${o[1]}</button>`).join('');
-  $('ci2Options').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    ci2Answers[q.key]=b.dataset.ci2;
-    ci2Step++;
-    if(ci2Step<qs.length)ci2Render();else ci2Finish();
-  });
-}
-function ci2Finish(){
-  const a=ci2Answers;
-  let score=60;
-  let primary='Artificial médio';
-  let alt='Shad';
-  let natural='Sardinha';
-  let technique='Trabalhe meia-água com variação de velocidade.';
-  let pills=[];
-
-  if(a.water==='Azul'||a.water==='Clara'){score+=8;pills.push('água limpa')}
-  if(a.water==='Turva'){score-=3;pills.push('água turva')}
-  if(a.current==='Média'){score+=10;pills.push('corrente boa')}
-  if(a.current==='Forte'){score-=5;pills.push('corrente forte')}
-  if(a.activity==='Muita'){score+=12;pills.push('atividade alta')}
-  if(a.activity==='Aves'){score+=15;pills.push('aves trabalhando')}
-  if(a.activity==='Nada'){score-=8;pills.push('sem atividade visível')}
-
-  if(ci2Mode==='boat'){
-    if(a.sonar==='Superfície'){
-      primary='Popper';
-      alt='Minnow';
-      natural='Sardinha';
-      technique='Comece na superfície. Faça uma sequência rápida antes de descer a faixa.';
-      score+=7;
-    } else if(a.sonar==='Meia-água'){
-      primary='Jig 20–40g';
-      alt='Shad';
-      natural='Sardinha';
-      technique='Segure a isca em meia-água e varie a velocidade.';
-      score+=8;
-    } else if(a.sonar==='Fundo'){
-      primary=a.current==='Forte'?'Jig 60g':'Jig 40g';
-      alt='Shad pesado';
-      natural='Lula / Sardinha';
-      technique='Trabalhe o fundo com toques curtos e controle da queda.';
-      score+=8;
-    } else {
-      primary='Jig 40g';
-      alt='Shad';
-      natural='Sardinha';
-      technique='Comece em meia-água e faça uma tentativa curta antes de descer.';
-    }
-
-    if(a.current==='Forte' && a.sonar!=='Superfície'){
-      primary='Jig 60g';
-      alt='Jig 40g';
-      technique='Priorize peso e controle de profundidade.';
-    }
-  } else {
-    if(a.structure==='Canal/vala'){
-      primary='Camarão artificial';
-      alt='Minnow pequeno';
-      natural='Camarão';
-      technique='Trabalhe a borda do canal/vala. Faça passadas paralelas à estrutura.';
-      score+=8;
-    } else if(a.structure==='Pedra'){
-      primary='Minnow';
-      alt='Shad';
-      natural='Sardinha';
-      technique='Explore a borda da pedra e a água de retorno.';
-      score+=7;
-    } else if(a.structure==='Espuma/quebra'){
-      primary='Artificial pequeno';
-      alt='Camarão artificial';
-      natural='Camarão';
-      technique='Arremesse na borda da espuma e deixe a isca atravessar a água mexida.';
-      score+=6;
-    } else {
-      primary='Minnow / plug';
-      alt='Shad';
-      natural='Sardinha';
-      technique='Procure valas e mudanças de cor e cubra diferentes faixas.';
-    }
-  }
-
-  if(a.water==='Turva'){
-    alt='Shad com vibração';
-    technique += ' Em água turva, reduza a velocidade e priorize vibração/contraste.';
-  }
-
-  score=Math.max(0,Math.min(100,score));
-  const label=score>=85?'Muito promissor':score>=70?'Boa leitura':score>=55?'Vale tentar':'Eu mudaria a abordagem';
-  const why=score>=70?'Há sinais favoráveis no ponto agora.':'A leitura está mediana; faça uma tentativa curta antes de insistir.';
-
-  ci2Last={score,primary,alt,natural,technique,pills,choiceIndex:0};
-  $('ci2QuestionWrap').style.display='none';
-  $('ci2Result').classList.add('show');
-  $('ci2Score').textContent=score+'/100';
-  $('ci2Label').textContent=label;
-  $('ci2Why').textContent=why;
-  $('ci2Main').textContent=primary;
-  $('ci2Technique').textContent=technique;
-  $('ci2Pills').innerHTML=
-    pills.map(x=>`<span class="ci2-pill">${x}</span>`).join('') +
-    `<span class="ci2-pill">Alternativa: ${alt}</span>` +
-    `<span class="ci2-pill">Natural: ${natural}</span>`;
-
-  let other=$('ci2OtherOption');
-  if(!other){
-    other=document.createElement('button');
-    other.id='ci2OtherOption';
-    other.className='ci2-btn';
-    other.style.width='100%';
-    other.style.marginTop='8px';
-    other.textContent='Mostrar outra opção';
-    $('ci2Main').parentElement.appendChild(other);
-  }
-  other.onclick=()=>{
-    ci2Last.choiceIndex=(ci2Last.choiceIndex+1)%3;
-    const choices=[ci2Last.primary,ci2Last.alt,ci2Last.natural];
-    $('ci2Main').textContent=choices[ci2Last.choiceIndex];
-  };
-}
-
-$('ci2Close').onclick=()=>$('ci2Shell').classList.remove('show');
-$('ci2Change').onclick=()=>{ci2Step=0;ci2Answers={};$('ci2QuestionWrap').style.display='block';$('ci2Result').classList.remove('show');ci2Render()};
-$('ci2StartFeedback').onclick=()=>$('ci2Feedback').classList.add('show');
-
-document.querySelectorAll('[data-ci2fb]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.ci2fb;let title='',text='';
-  if(t==='capture'){title='✅ Mantenha';text='A estratégia funcionou. Continue nessa faixa e registre a captura para reforçar o histórico do ponto.';setTimeout(()=>openModal('captureModal'),200)}
-  if(t==='attack'){title='⚡ Continue mais um pouco';text='Há peixe ativo. Faça pequenas variações antes de trocar a isca.'}
-  if(t==='follow'){title='👀 Ajuste fino';text='Reduza velocidade ou tamanho da isca. O peixe demonstrou interesse, mas não decidiu atacar.'}
-  if(t==='nothing'){title='🔄 Mude uma coisa só';text='Troque a faixa de profundidade ou a velocidade. Se continuar sem ação, vá para o próximo ponto.'}
-  $('ci2AdjustTitle').textContent=title;$('ci2AdjustText').textContent=text;$('ci2Adjust').classList.add('show');
-});
-
-// Override practical check-in buttons to use V2
-if($('qCheckinBtn')) $('qCheckinBtn').onclick=ci2Open;
-if($('qUseCurrentPoint')) $('qUseCurrentPoint').onclick=()=>{
-  if(selected) ci2Open(); else qShow('qMode');
-};
-
-// Also replace old drawer check-in action if available
-if($('runCheckin')){
-  $('runCheckin').textContent='Abrir check-in rápido';
-  $('runCheckin').onclick=ci2Open;
-}
-
-
-// ===== Captura com 1 toque =====
-function quickCatchOpen(){
-  const suggested = selected?.species?.length ? selected.species : ['Anchova','Xaréu','Robalo','Garoupa'];
-  const list=[...new Set([...suggested,'Corvina','Outros'])].slice(0,6);
-  $('quickSpecies').innerHTML=list.map(s=>`<button data-qcatch="${s}">${s}</button>`).join('');
-  $('quickSpecies').querySelectorAll('button').forEach(b=>b.onclick=()=>quickCatchSave(b.dataset.qcatch));
-  $('quickCatch').classList.add('show');
-}
-async function quickCatchSave(species){
-  let conditions=null;
-  if(selected){
-    const d=await getConditions(selected);
-    const sc=scores(selected,d);
-    conditions={
-      pointId:selected.id,
-      pointName:selected.name,
-      fishScore:sc.fish,
-      wind:d.weather.current?.wind_speed_10m,
-      wave:d.marine.current?.wave_height,
-      sst:d.marine.current?.sea_surface_temperature,
-      current:d.marine.current?.ocean_current_velocity
-    };
-  }
-  captures.unshift({
-    id:Date.now(),
-    date:new Date().toISOString(),
-    species,
-    weight:null,
-    technique:null,
-    bait:null,
-    water:ci2Answers?.water||null,
-    activity:ci2Answers?.activity||null,
-    notes:null,
-    conditions
-  });
-  localStorage.setItem('mf_captures',JSON.stringify(captures));
-  $('quickCatch').classList.remove('show');
-  toast(`${species} registrada.`);
-  updateHome();
-  updateTripUI();
-}
-$('quickCatchCancel').onclick=()=>$('quickCatch').classList.remove('show');
-$('quickCatchOther').onclick=()=>{$('quickCatch').classList.remove('show');openModal('captureModal')};
-
-// Override capture feedbacks to quick mode
-document.querySelectorAll('[data-ci2fb="capture"]').forEach(b=>b.onclick=()=>{
-  $('ci2AdjustTitle').textContent='✅ Estratégia confirmada';
-  $('ci2AdjustText').textContent='A captura já pode ser registrada com um toque.';
-  $('ci2Adjust').classList.add('show');
-  quickCatchOpen();
-});
-document.querySelectorAll('[data-qfeedback="capture"]').forEach(b=>b.onclick=()=>quickCatchOpen());
-
-// Main quick capture button also uses fast flow
-if($('captureTop')) $('captureTop').onclick=quickCatchOpen;
-if($('captureHere')) $('captureHere').onclick=quickCatchOpen;
-
-
-// ===== Navegação exata sem exibir coordenadas =====
-let exactNavActive=false;
-let exactRouteLine=null;
-let exactTargetCircle=null;
-let exactNavPointId=null;
-
-function metersBetween(a,b){
-  return dist(a,b)*1000;
-}
-function updateExactNavigation(){
-  if(!exactNavActive || !selected || !userPos) return;
-
-  const meters=metersBetween(userPos,selected);
-  const brg=bearing(userPos,selected);
-
-  $('exactDistance').textContent = meters < 1000 ? `${Math.round(meters)} m` : `${(meters/1000).toFixed(2)} km`;
-  $('exactBearing').textContent = `${Math.round(brg)}° ${degName(brg)}`;
-
-  const status=$('arrivalStatus');
-  status.className='arrival-status';
-
-  if(meters <= 20){
-    status.textContent='✅ Você chegou ao ponto.';
-    status.classList.add('arrived');
-    if(exactNavActive && exactNavPointId===selected.id){
-      if(!window.__mf_arrival_notified){
-        toast('Você chegou ao ponto.');
-        window.__mf_arrival_notified=true;
-        if(navigator.vibrate) navigator.vibrate([180,80,180]);
-      }
-    }
-  }else if(meters <= 50){
-    status.textContent=`Quase no ponto • ${Math.round(meters)} m`;
-    status.classList.add('near');
-    window.__mf_arrival_notified=false;
-  }else if(meters <= 100){
-    status.textContent=`Próximo do ponto • ${Math.round(meters)} m`;
-    status.classList.add('near');
-    window.__mf_arrival_notified=false;
-  }else{
-    status.textContent=`Navegando • faltam ${meters<1000?Math.round(meters)+' m':(meters/1000).toFixed(2)+' km'}`;
-    window.__mf_arrival_notified=false;
-  }
-
-  if(exactRouteLine) exactRouteLine.setLatLngs([[userPos.lat,userPos.lng],[selected.lat,selected.lng]]);
-  if(exactTargetCircle) exactTargetCircle.setLatLng([selected.lat,selected.lng]);
-  $('needle').style.transform=`rotate(${brg-heading}deg)`;
-}
-function startExactNavigation(){
-  if(!selected) return toast('Selecione um ponto.');
-  exactNavActive=true;
-  exactNavPointId=selected.id;
-  window.__mf_arrival_notified=false;
-  $('exactNavCard').style.display='block';
-  $('navPanel').classList.add('show');
-
-  locate(false);
-
-  if(exactRouteLine) exactRouteLine.remove();
-  if(exactTargetCircle) exactTargetCircle.remove();
-
-  exactRouteLine=L.polyline([[selected.lat,selected.lng],[selected.lat,selected.lng]],{
-    weight:3,dashArray:'8,8',opacity:.9
-  }).addTo(map);
-
-  exactTargetCircle=L.circle([selected.lat,selected.lng],{
-    radius:20,weight:2,fillOpacity:.08
-  }).addTo(map);
-
-  map.flyTo([selected.lat,selected.lng],15,{duration:.7});
-  compassOn();
-  updateExactNavigation();
-  toast('Navegação para o ponto iniciada.');
-}
-function stopExactNavigation(){
-  exactNavActive=false;
-  exactNavPointId=null;
-  $('arrivalStatus').textContent='Navegação parada.';
-  if(exactRouteLine){exactRouteLine.remove();exactRouteLine=null}
-  if(exactTargetCircle){exactTargetCircle.remove();exactTargetCircle=null}
-}
-$('startExactNav').onclick=startExactNavigation;
-$('stopExactNav').onclick=stopExactNavigation;
-
-// Make old Navigate button use exact navigation
-$('navBtn').onclick=startExactNavigation;
-
-// Show card whenever a point opens
-const originalSelectPointExact = selectPoint;
-selectPoint = async function(p,force=false){
-  await originalSelectPointExact(p,force);
-  $('exactNavCard').style.display='block';
-  $('exactDistance').textContent=userPos ? (metersBetween(userPos,p)<1000?Math.round(metersBetween(userPos,p))+' m':(metersBetween(userPos,p)/1000).toFixed(2)+' km') : '--';
-  if(userPos){
-    const br=bearing(userPos,p);
-    $('exactBearing').textContent=`${Math.round(br)}° ${degName(br)}`;
-  }else $('exactBearing').textContent='--';
-  $('arrivalStatus').textContent=userPos?'Pronto para iniciar.':'Ative o GPS para iniciar.';
-};
-
-// Keep route live as GPS updates
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(userMarker) userMarker.setLatLng([userPos.lat,userPos.lng]);
-    updateExactNavigation();
-  },()=>{},{
-    enableHighAccuracy:true,
-    maximumAge:5000,
-    timeout:15000
-  });
-}
-
-
-// ===== Meira Fishing Points: modo simples =====
-document.body.classList.add('points-simple');
-let simpleFilter='Todos';
-
-function simpleVisiblePoints(){
-  const q=$('search').value.toLowerCase().trim();
-  return points.filter(p=>{
-    const filterOk = simpleFilter==='Todos' || simpleFilter===p.mode || simpleFilter===p.type;
-    const qOk = !q || (`${p.name} ${p.area} ${p.type}`).toLowerCase().includes(q);
-    return filterOk && qOk;
-  });
-}
-function renderSimpleMarkers(){
-  const v=simpleVisiblePoints();
-  points.forEach(p=>{
-    const m=markerMap.get(p.id);
-    if(v.some(x=>x.id===p.id)){ if(!map.hasLayer(m))m.addTo(map); }
-    else if(map.hasLayer(m)){ map.removeLayer(m); }
-  });
-}
-function renderSimpleList(){
-  const v=simpleVisiblePoints();
-  $('pointList').innerHTML=v.length?v.map(p=>{
-    const dk=userPos?dist(userPos,p):null;
-    return `<div class="pcard" data-simplepoint="${p.id}">
-      <div class="phead"><b>${p.name}</b><span class="badge">${p.type}</span></div>
-      <div class="meta">${p.area}${dk!==null?' • '+(dk<1?Math.round(dk*1000)+' m':dk.toFixed(1)+' km'):''}</div>
-    </div>`;
-  }).join(''):'<div class="empty">Nenhum ponto encontrado.</div>';
-  document.querySelectorAll('[data-simplepoint]').forEach(el=>{
-    el.onclick=()=>openSimplePoint(points.find(p=>p.id===el.dataset.simplepoint));
-  });
-}
-function renderSimpleAll(){renderSimpleMarkers();renderSimpleList();}
-document.querySelectorAll('[data-simpletype]').forEach(b=>b.onclick=()=>{
-  simpleFilter=b.dataset.simpletype;
-  document.querySelectorAll('[data-simpletype]').forEach(x=>x.classList.toggle('active',x===b));
-  renderSimpleAll();
-});
-$('search').oninput=renderSimpleAll;
-
-function pointDepth(p){
-  if(p.type==='Offshore') return 'Variável';
-  if(p.type==='Lagoa') return 'Margem';
-  if(p.type==='Costão'||p.type==='Pedra') return 'Costeiro';
-  return '—';
-}
-function openSimplePoint(p){
-  if(!p)return;
-  selected=p;
-  $('dName').textContent=p.name;
-  $('dArea').textContent=p.area;
-  $('simpleType').textContent=p.type;
-  $('simpleDepth').textContent=pointDepth(p);
-  $('simpleSpecies').textContent=(p.species||[]).slice(0,2).join(' / ')||'—';
-  const dk=userPos?dist(userPos,p):null;
-  $('simpleDistance').textContent=dk===null?'Ative GPS':(dk<1?Math.round(dk*1000)+' m':dk.toFixed(1)+' km');
-  $('drawer').classList.add('show');
-  map.flyTo([p.lat,p.lng],14,{duration:.6});
-}
-$('simpleNavigate').onclick=()=>{if(selected)startExactNavigation();};
-$('simpleClose').onclick=()=>$('drawer').classList.remove('show');
-
-function pointsOpenMap(){
-  $('pointsStart').classList.add('hidden');
-  if($('quickShell'))$('quickShell').classList.add('hidden');
-  if($('copilotHome'))$('copilotHome').classList.add('hidden');
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-  renderSimpleAll();
-}
-$('pointsOpenMap').onclick=pointsOpenMap;
-$('pointsUseLocation').onclick=()=>{
-  if(!navigator.geolocation){toast('Localização indisponível.');pointsOpenMap();return;}
-  $('pointsUseLocation').textContent='Lendo localização...';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(!userMarker){
-      userMarker=L.circleMarker([userPos.lat,userPos.lng],{radius:9,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1}).addTo(map).bindTooltip('Você');
-    }else userMarker.setLatLng([userPos.lat,userPos.lng]);
-    pointsOpenMap();
-    map.setView([userPos.lat,userPos.lng],12);
-    renderSimpleAll();
-    toast('Pontos carregados perto de você.');
-  },()=>{
-    $('pointsUseLocation').textContent='📍 Usar minha localização';
-    toast('Autorize a localização para centralizar o mapa.');
-  },{enableHighAccuracy:true,timeout:12000,maximumAge:15000});
-};
-
-markerMap.forEach((marker,id)=>{
-  marker.off('click');
-  marker.on('click',()=>openSimplePoint(points.find(p=>p.id===id)));
-});
-renderSimpleAll();
-
-</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [
- {id:'C001',mode:'land',name:'Praça XV / Orla do Centro',area:'Centro / RJ',lat:-22.9037,lng:-43.1715,type:'Orla',confidence:58,tags:['Centro','Orla','Baía'],species:['Robalo','Xaréu'],note:'Referência pública de orla no Centro. Trate como área de interesse, não ponto secreto validado.',source:'Referência geográfica pública'},
- {id:'C002',mode:'land',name:'Praça Mauá / Pier Mauá',area:'Centro / RJ',lat:-22.8966,lng:-43.1807,type:'Orla',confidence:54,tags:['Centro','Pier','Baía'],species:['Robalo','Xaréu'],note:'Referência pública no trecho da orla do Centro.',source:'Referência geográfica pública'},
- {id:'C003',mode:'land',name:'Marina da Glória',area:'Glória / RJ',lat:-22.9190,lng:-43.1712,type:'Pier',confidence:63,tags:['Marina','Abrigo','Baía'],species:['Robalo','Xaréu'],note:'Referência pública na transição Centro/Aterro.',source:'Referência geográfica pública'},
- {id:'C004',mode:'land',name:'MAM / Aterro do Flamengo',area:'Aterro / RJ',lat:-22.9228,lng:-43.1756,type:'Orla',confidence:60,tags:['Aterro','Orla','Baía'],species:['Robalo','Corvina'],note:'Trecho amplo de referência no Aterro do Flamengo.',source:'Referência geográfica pública'},
- {id:'C005',mode:'land',name:'Monumento aos Pracinhas',area:'Aterro / RJ',lat:-22.9249,lng:-43.1761,type:'Orla',confidence:59,tags:['Aterro','Orla'],species:['Robalo','Corvina'],note:'Ponto de referência visual no Aterro, útil para organizar o mapa.',source:'Referência geográfica pública'},
- {id:'C006',mode:'land',name:'Praia do Flamengo — trecho norte',area:'Flamengo / RJ',lat:-22.9296,lng:-43.1734,type:'Praia',confidence:61,tags:['Praia','Baía'],species:['Robalo','Corvina'],note:'Área de referência entre Glória e Flamengo.',source:'Referência geográfica pública'},
- {id:'C007',mode:'land',name:'Praia do Flamengo — trecho sul',area:'Flamengo / RJ',lat:-22.9356,lng:-43.1770,type:'Praia',confidence:62,tags:['Praia','Baía'],species:['Robalo','Corvina'],note:'Trecho mais ao sul da Praia do Flamengo.',source:'Referência geográfica pública'},
- {id:'C008',mode:'land',name:'Enseada de Botafogo — norte',area:'Botafogo / RJ',lat:-22.9416,lng:-43.1796,type:'Orla',confidence:64,tags:['Enseada','Orla'],species:['Robalo','Xaréu'],note:'Referência pública na Enseada de Botafogo.',source:'Referência geográfica pública'},
- {id:'C009',mode:'land',name:'Enseada de Botafogo — sul',area:'Botafogo / RJ',lat:-22.9502,lng:-43.1838,type:'Orla',confidence:65,tags:['Enseada','Orla'],species:['Robalo','Xaréu'],note:'Trecho ao sul da Enseada, mais próximo de Botafogo/Urca.',source:'Referência geográfica pública'},
- {id:'C010',mode:'land',name:'Mureta da Urca',area:'Urca / RJ',lat:-22.9508,lng:-43.1653,type:'Orla',confidence:73,tags:['Urca','Mureta','Baía'],species:['Robalo','Xaréu'],note:'Ponto público bastante conhecido na Urca.',source:'Referência geográfica pública'},
- {id:'C011',mode:'land',name:'Praia Vermelha / Urca',area:'Urca / RJ',lat:-22.9555,lng:-43.1643,type:'Praia',confidence:68,tags:['Praia','Pedras','Baía'],species:['Robalo','Corvina'],note:'Referência pública na Urca.',source:'Referência geográfica pública'},
- {id:'C012',mode:'land',name:'Costão do Leme',area:'Leme / RJ',lat:-22.9636,lng:-43.1617,type:'Costão',confidence:80,tags:['Costão','Arremesso','Zona Sul'],species:['Robalo','Xaréu'],note:'Área de costão conhecida. Avalie ondas e acesso antes de se posicionar.',source:'Referência geográfica pública'},
- {id:'C013',mode:'land',name:'Forte de Copacabana / Posto 6',area:'Copacabana / RJ',lat:-22.9881,lng:-43.1912,type:'Pedra',confidence:74,tags:['Pedra','Arrebentação'],species:['Robalo','Xaréu'],note:'Referência pública na transição Copacabana/Arpoador.',source:'Referência geográfica pública'},
- {id:'C014',mode:'land',name:'Pedra do Arpoador',area:'Ipanema / RJ',lat:-22.99043,lng:-43.19099,type:'Costão',confidence:82,tags:['Pedra','Arremesso','Mar aberto'],species:['Anchova','Xaréu'],note:'Referência pública de costão.',source:'Referência geográfica pública'},
- {id:'C015',mode:'land',name:'Canal do Jardim de Alah',area:'Leblon / Ipanema / RJ',lat:-22.9848,lng:-43.2148,type:'Canal',confidence:69,tags:['Canal','Encontro de água'],species:['Robalo','Corvina'],note:'Referência pública do canal entre mar e Lagoa.',source:'Referência geográfica pública'},
-
- {id:'L001',mode:'land',name:'Lagoa — Corte do Cantagalo',area:'Lagoa / RJ',lat:-22.9738,lng:-43.2051,type:'Lagoa',confidence:66,tags:['Lagoa','Margem'],species:['Tilápia','Traíra'],note:'Referência pública na Lagoa Rodrigo de Freitas.',source:'Referência geográfica pública'},
- {id:'L002',mode:'land',name:'Lagoa — Parque dos Patins',area:'Lagoa / RJ',lat:-22.9739,lng:-43.2187,type:'Lagoa',confidence:67,tags:['Lagoa','Margem'],species:['Tilápia','Traíra'],note:'Trecho de referência visual na margem da Lagoa.',source:'Referência geográfica pública'},
- {id:'L003',mode:'land',name:'Lagoa — Fonte da Saudade',area:'Lagoa / RJ',lat:-22.9646,lng:-43.2036,type:'Lagoa',confidence:68,tags:['Lagoa','Margem'],species:['Tilápia','Traíra'],note:'Referência pública no lado leste da Lagoa.',source:'Referência geográfica pública'},
- {id:'L004',mode:'land',name:'Lagoa — Parque da Catacumba',area:'Lagoa / RJ',lat:-22.9686,lng:-43.1947,type:'Lagoa',confidence:67,tags:['Lagoa','Margem'],species:['Tilápia','Traíra'],note:'Referência pública próxima ao Parque da Catacumba.',source:'Referência geográfica pública'},
- {id:'L005',mode:'land',name:'Lagoa — Jardim Botânico',area:'Lagoa / RJ',lat:-22.9667,lng:-43.2188,type:'Lagoa',confidence:66,tags:['Lagoa','Margem'],species:['Tilápia','Traíra'],note:'Referência pública no setor oeste da Lagoa.',source:'Referência geográfica pública'},
- {id:'L006',mode:'land',name:'Lagoa — Piraquê',area:'Lagoa / RJ',lat:-22.9727,lng:-43.2299,type:'Lagoa',confidence:64,tags:['Lagoa','Clube','Margem'],species:['Tilápia','Traíra'],note:'Referência ampla na margem próxima ao Piraquê.',source:'Referência geográfica pública'},
-
- {id:'B001',mode:'boat',name:'Entorno das Ilhas Cagarras',area:'Mar de Ipanema / RJ',lat:-23.03028,lng:-43.20028,type:'Ilhas',confidence:78,tags:['Ilhas','Estrutura','Área protegida'],species:['Xaréu','Olho-de-boi'],note:'Área protegida. O app NÃO recomenda pesca em zonas proibidas. Consulte regras vigentes.',source:'Base pública / acidente geográfico'},
- {id:'B002',mode:'boat',name:'Ilhas Tijucas',area:'Barra da Tijuca / RJ',lat:-23.03083,lng:-43.29222,type:'Ilhas',confidence:84,tags:['Ilhas','Estrutura','Embarcado'],species:['Garoupa','Xaréu'],note:'O marcador representa o arquipélago.',source:'Base pública / acidente geográfico'},
- {id:'B003',mode:'boat',name:'Ilha Rasa — entorno',area:'Ao largo da Barra / RJ',lat:-23.06333,lng:-43.14583,type:'Ilha',confidence:77,tags:['Ilha','Farol','Mar aberto'],species:['Anchova','Olho-de-boi'],note:'Referência náutica pública.',source:'Base pública / acidente geográfico'},
- {id:'B004',mode:'boat',name:'Boca da Barra — referência',area:'Entrada da Baía de Guanabara / RJ',lat:-22.9558,lng:-43.1298,type:'Canal',confidence:62,tags:['Canal','Corrente','Tráfego'],species:['Xaréu','Robalo'],note:'Área com corrente e tráfego.',source:'Referência geográfica aproximada'},
- {id:'B005',mode:'boat',name:'Mar aberto — sul de Cagarras',area:'Costa do Rio / RJ',lat:-23.075,lng:-43.208,type:'Mar aberto',confidence:55,tags:['Mar aberto','Exploratório'],species:['Anchova'],note:'Ponto exploratório de demonstração.',source:'Demonstração — precisa validação'},
- {id:'B006',mode:'boat',name:'Setor externo das Tijucas',area:'Barra da Tijuca / RJ',lat:-23.053,lng:-43.315,type:'Mar aberto',confidence:58,tags:['Mar aberto','Exploratório'],species:['Xaréu','Garoupa'],note:'Área de demonstração para o MVP.',source:'Demonstração — precisa validação'},
- {id:'B007',mode:'boat',name:'Canal central da Guanabara',area:'Baía de Guanabara / RJ',lat:-22.9090,lng:-43.1535,type:'Canal',confidence:57,tags:['Baía','Canal','Corrente'],species:['Robalo','Xaréu'],note:'Referência pública do canal principal da Baía.',source:'Referência geográfica pública'},
- {id:'B008',mode:'boat',name:'Setor da Ilha Fiscal',area:'Baía de Guanabara / RJ',lat:-22.8978,lng:-43.1704,type:'Canal',confidence:56,tags:['Baía','Estrutura','Canal'],species:['Robalo','Xaréu'],note:'Referência pública embarcada na Baía de Guanabara.',source:'Referência geográfica pública'},
-
- {id:'O001',mode:'boat',name:'Quebra offshore 18 → 32 m',area:'Ao largo do Leme / RJ',lat:-22.9895,lng:-43.1150,type:'Offshore',confidence:72,tags:['Offshore','Quebra','Detectado'],species:['Anchova','Xaréu'],note:'Ponto offshore potencial de demonstração, representando uma quebra de profundidade. Precisa validação em campo.',source:'Detectado / demonstração'},
- {id:'O002',mode:'boat',name:'Cabeço submarino oeste',area:'Ao largo de Copacabana / RJ',lat:-23.0040,lng:-43.1450,type:'Offshore',confidence:74,tags:['Offshore','Cabeço','Detectado'],species:['Xaréu','Olho-de-boi'],note:'Estrutura offshore potencial, tratada como ponto detectado e não validado.',source:'Detectado / demonstração'},
- {id:'O003',mode:'boat',name:'Borda externa das Cagarras',area:'Costa do Rio / RJ',lat:-23.0540,lng:-43.1900,type:'Offshore',confidence:76,tags:['Offshore','Borda','Detectado'],species:['Anchova','Xaréu'],note:'Ponto offshore potencial próximo à borda externa da área das Cagarras. Validar regras e posição.',source:'Detectado / demonstração'},
- {id:'O004',mode:'boat',name:'Canal profundo sul',area:'Sul das Cagarras / RJ',lat:-23.0810,lng:-43.2250,type:'Offshore',confidence:71,tags:['Offshore','Canal','Detectado'],species:['Olho-de-boi','Anchova'],note:'Referência offshore de demonstração para canal/queda de profundidade.',source:'Detectado / demonstração'},
- {id:'O005',mode:'boat',name:'Quebra 22 → 41 m',area:'Ao largo do Arpoador / RJ',lat:-23.0260,lng:-43.1720,type:'Offshore',confidence:77,tags:['Offshore','Quebra','Detectado'],species:['Anchova','Xaréu'],note:'Ponto offshore potencial baseado em feição simulada de quebra.',source:'Detectado / demonstração'},
- {id:'O006',mode:'boat',name:'Alto fundo costeiro',area:'Leste das Cagarras / RJ',lat:-23.0300,lng:-43.1450,type:'Offshore',confidence:73,tags:['Offshore','Alto fundo','Detectado'],species:['Xaréu','Olho-de-boi'],note:'Estrutura offshore potencial, ainda sem histórico real dentro do sistema.',source:'Detectado / demonstração'},
- {id:'O007',mode:'boat',name:'Borda de canal norte',area:'Entrada oceânica da Guanabara / RJ',lat:-22.9450,lng:-43.0850,type:'Offshore',confidence:69,tags:['Offshore','Canal','Detectado'],species:['Xaréu','Robalo'],note:'Ponto offshore potencial ligado à borda de canal.',source:'Detectado / demonstração'},
- {id:'O008',mode:'boat',name:'Laje isolada offshore',area:'Entre Cagarras e Tijucas / RJ',lat:-23.0390,lng:-43.2450,type:'Offshore',confidence:75,tags:['Offshore','Laje','Detectado'],species:['Garoupa','Xaréu'],note:'Laje offshore potencial de demonstração.',source:'Detectado / demonstração'},
- {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,tags:['Offshore','Borda','Detectado'],species:['Garoupa','Xaréu'],note:'Ponto offshore potencial na borda externa das Tijucas.',source:'Detectado / demonstração'},
- {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,tags:['Offshore','Quebra','Detectado'],species:['Olho-de-boi','Anchova'],note:'Quebra offshore potencial de demonstração.',source:'Detectado / demonstração'}
-
+const POINTS = [
+ {id:'C001',mode:'land',name:'Praça XV / Orla do Centro',area:'Centro / RJ',lat:-22.9037,lng:-43.1715,type:'Orla',confidence:58,species:['Robalo','Xaréu']},
+ {id:'C002',mode:'land',name:'Praça Mauá / Pier Mauá',area:'Centro / RJ',lat:-22.8966,lng:-43.1807,type:'Orla',confidence:54,species:['Robalo','Xaréu']},
+ {id:'C003',mode:'land',name:'Marina da Glória',area:'Glória / RJ',lat:-22.9190,lng:-43.1712,type:'Pier',confidence:63,species:['Robalo','Xaréu']},
+ {id:'C004',mode:'land',name:'MAM / Aterro do Flamengo',area:'Aterro / RJ',lat:-22.9228,lng:-43.1756,type:'Orla',confidence:60,species:['Robalo','Corvina']},
+ {id:'C005',mode:'land',name:'Monumento aos Pracinhas',area:'Aterro / RJ',lat:-22.9249,lng:-43.1761,type:'Orla',confidence:59,species:['Robalo','Corvina']},
+ {id:'C006',mode:'land',name:'Praia do Flamengo — trecho norte',area:'Flamengo / RJ',lat:-22.9296,lng:-43.1734,type:'Praia',confidence:61,species:['Robalo','Corvina']},
+ {id:'C007',mode:'land',name:'Praia do Flamengo — trecho sul',area:'Flamengo / RJ',lat:-22.9356,lng:-43.1770,type:'Praia',confidence:62,species:['Robalo','Corvina']},
+ {id:'C008',mode:'land',name:'Enseada de Botafogo — norte',area:'Botafogo / RJ',lat:-22.9416,lng:-43.1796,type:'Orla',confidence:64,species:['Robalo','Xaréu']},
+ {id:'C009',mode:'land',name:'Enseada de Botafogo — sul',area:'Botafogo / RJ',lat:-22.9502,lng:-43.1838,type:'Orla',confidence:65,species:['Robalo','Xaréu']},
+ {id:'C010',mode:'land',name:'Mureta da Urca',area:'Urca / RJ',lat:-22.9508,lng:-43.1653,type:'Orla',confidence:73,species:['Robalo','Xaréu']},
+ {id:'C011',mode:'land',name:'Praia Vermelha / Urca',area:'Urca / RJ',lat:-22.9555,lng:-43.1643,type:'Praia',confidence:68,species:['Robalo','Corvina']},
+ {id:'C012',mode:'land',name:'Costão do Leme',area:'Leme / RJ',lat:-22.9636,lng:-43.1617,type:'Costão',confidence:80,species:['Robalo','Xaréu']},
+ {id:'C013',mode:'land',name:'Forte de Copacabana / Posto 6',area:'Copacabana / RJ',lat:-22.9881,lng:-43.1912,type:'Pedra',confidence:74,species:['Robalo','Xaréu']},
+ {id:'C014',mode:'land',name:'Pedra do Arpoador',area:'Ipanema / RJ',lat:-22.99043,lng:-43.19099,type:'Costão',confidence:82,species:['Anchova','Xaréu']},
+ {id:'C015',mode:'land',name:'Canal do Jardim de Alah',area:'Leblon / Ipanema / RJ',lat:-22.9848,lng:-43.2148,type:'Canal',confidence:69,species:['Robalo','Corvina']},
+ {id:'L001',mode:'land',name:'Lagoa — Corte do Cantagalo',area:'Lagoa / RJ',lat:-22.9738,lng:-43.2051,type:'Lagoa',confidence:66,species:['Tilápia','Traíra']},
+ {id:'L002',mode:'land',name:'Lagoa — Parque dos Patins',area:'Lagoa / RJ',lat:-22.9739,lng:-43.2187,type:'Lagoa',confidence:67,species:['Tilápia','Traíra']},
+ {id:'L003',mode:'land',name:'Lagoa — Fonte da Saudade',area:'Lagoa / RJ',lat:-22.9646,lng:-43.2036,type:'Lagoa',confidence:68,species:['Tilápia','Traíra']},
+ {id:'L004',mode:'land',name:'Lagoa — Parque da Catacumba',area:'Lagoa / RJ',lat:-22.9686,lng:-43.1947,type:'Lagoa',confidence:67,species:['Tilápia','Traíra']},
+ {id:'L005',mode:'land',name:'Lagoa — Jardim Botânico',area:'Lagoa / RJ',lat:-22.9667,lng:-43.2188,type:'Lagoa',confidence:66,species:['Tilápia','Traíra']},
+ {id:'L006',mode:'land',name:'Lagoa — Piraquê',area:'Lagoa / RJ',lat:-22.9727,lng:-43.2299,type:'Lagoa',confidence:64,species:['Tilápia','Traíra']},
+ {id:'B001',mode:'boat',name:'Entorno das Ilhas Cagarras',area:'Mar de Ipanema / RJ',lat:-23.03028,lng:-43.20028,type:'Ilhas',confidence:78,species:['Xaréu','Olho-de-boi']},
+ {id:'B002',mode:'boat',name:'Ilhas Tijucas',area:'Barra da Tijuca / RJ',lat:-23.03083,lng:-43.29222,type:'Ilhas',confidence:84,species:['Garoupa','Xaréu']},
+ {id:'B003',mode:'boat',name:'Ilha Rasa — entorno',area:'Ao largo da Barra / RJ',lat:-23.06333,lng:-43.14583,type:'Ilha',confidence:77,species:['Anchova','Olho-de-boi']},
+ {id:'B004',mode:'boat',name:'Boca da Barra — referência',area:'Entrada da Baía / RJ',lat:-22.9558,lng:-43.1298,type:'Canal',confidence:62,species:['Xaréu','Robalo']},
+ {id:'B005',mode:'boat',name:'Mar aberto — sul de Cagarras',area:'Costa do Rio / RJ',lat:-23.075,lng:-43.208,type:'Mar aberto',confidence:55,species:['Anchova']},
+ {id:'B006',mode:'boat',name:'Setor externo das Tijucas',area:'Barra da Tijuca / RJ',lat:-23.053,lng:-43.315,type:'Mar aberto',confidence:58,species:['Xaréu','Garoupa']},
+ {id:'B007',mode:'boat',name:'Canal central da Guanabara',area:'Baía de Guanabara / RJ',lat:-22.9090,lng:-43.1535,type:'Canal',confidence:57,species:['Robalo','Xaréu']},
+ {id:'B008',mode:'boat',name:'Setor da Ilha Fiscal',area:'Baía de Guanabara / RJ',lat:-22.8978,lng:-43.1704,type:'Canal',confidence:56,species:['Robalo','Xaréu']},
+ {id:'O001',mode:'boat',name:'Quebra offshore 18 → 32 m',area:'Ao largo do Leme / RJ',lat:-22.9895,lng:-43.1150,type:'Offshore',confidence:72,species:['Anchova','Xaréu']},
+ {id:'O002',mode:'boat',name:'Cabeço submarino oeste',area:'Ao largo de Copacabana / RJ',lat:-23.0040,lng:-43.1450,type:'Offshore',confidence:74,species:['Xaréu','Olho-de-boi']},
+ {id:'O003',mode:'boat',name:'Borda externa das Cagarras',area:'Costa do Rio / RJ',lat:-23.0540,lng:-43.1900,type:'Offshore',confidence:76,species:['Anchova','Xaréu']},
+ {id:'O004',mode:'boat',name:'Canal profundo sul',area:'Sul das Cagarras / RJ',lat:-23.0810,lng:-43.2250,type:'Offshore',confidence:71,species:['Olho-de-boi','Anchova']},
+ {id:'O005',mode:'boat',name:'Quebra 22 → 41 m',area:'Ao largo do Arpoador / RJ',lat:-23.0260,lng:-43.1720,type:'Offshore',confidence:77,species:['Anchova','Xaréu']},
+ {id:'O006',mode:'boat',name:'Alto fundo costeiro',area:'Leste das Cagarras / RJ',lat:-23.0300,lng:-43.1450,type:'Offshore',confidence:73,species:['Xaréu','Olho-de-boi']},
+ {id:'O007',mode:'boat',name:'Borda de canal norte',area:'Entrada oceânica da Guanabara / RJ',lat:-22.9450,lng:-43.0850,type:'Offshore',confidence:69,species:['Xaréu','Robalo']},
+ {id:'O008',mode:'boat',name:'Laje isolada offshore',area:'Entre Cagarras e Tijucas / RJ',lat:-23.0390,lng:-43.2450,type:'Offshore',confidence:75,species:['Garoupa','Xaréu']},
+ {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,species:['Garoupa','Xaréu']},
+ {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,species:['Olho-de-boi','Anchova']}
 ];
 
-let mode='land', selected=null, activeFilter='Todos', userPos=null, userMarker=null, heading=0, weatherCache=new Map(), markerMap=new Map();
-const favs=new Set(JSON.parse(localStorage.getItem('mf_favs')||'[]'));
-const captures=JSON.parse(localStorage.getItem('mf_captures')||'[]');
+const PLACES = [
+  {name:'Copacabana',lat:-22.971,lng:-43.182},
+  {name:'Ipanema',lat:-22.984,lng:-43.205},
+  {name:'Lagoa',lat:-22.972,lng:-43.210},
+  {name:'Urca',lat:-22.952,lng:-43.166},
+  {name:'Centro',lat:-22.906,lng:-43.173},
+  {name:'Barra',lat:-23.011,lng:-43.366}
+];
 
-const $=id=>document.getElementById(id);
-const map=L.map('map',{zoomControl:false}).setView([-23.01,-43.27],11);
+const $ = id => document.getElementById(id);
+const toast = t => {
+  const e = $('toast');
+  e.textContent = t;
+  e.classList.add('show');
+  setTimeout(() => e.classList.remove('show'), 2200);
+};
+const clamp = (n,a=0,b=100) => Math.max(a, Math.min(b,n));
+const km = (a,b) => {
+  const R=6371, dlat=(b.lat-a.lat)*Math.PI/180, dlng=(b.lng-a.lng)*Math.PI/180;
+  const x = Math.sin(dlat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dlng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+};
+const fmtKm = n => n<1 ? Math.round(n*1000)+' m' : n.toFixed(1)+' km';
+const matches = (p, filter) => {
+  if(filter==='terra') return p.mode==='land' && p.type!=='Lagoa';
+  if(filter==='barco') return p.mode==='boat';
+  if(filter==='lagoa') return p.type==='Lagoa';
+  return true;
+};
+
+let userPos = null;
+let userMarker = null;
+let filter = 'todos';
+let selected = null;
+let weather = null;
+let routeLine = null;
+const markers = new Map();
+
+const map = L.map('map',{zoomControl:false,attributionControl:true}).setView([-22.98,-43.20],12);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
-const base=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
-const nautical=L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{maxZoom:18,attribution:'OpenSeaMap'});
-const makeIcon=m=>L.divIcon({className:'',html:`<div class="marker ${m}"></div>`,iconSize:[26,34],iconAnchor:[13,34]});
 
-points.forEach(p=>{
- const m=L.marker([p.lat,p.lng],{icon:makeIcon(p.mode)}).bindTooltip(`${p.id} • ${p.name}`,{direction:'top',offset:[0,-28]});
- m.on('click',()=>selectPoint(p));
- markerMap.set(p.id,m);
+POINTS.forEach(p => {
+  const icon = L.divIcon({className:'',html:`<div class="marker ${p.mode}"></div>`,iconSize:[22,30],iconAnchor:[11,30]});
+  const m = L.marker([p.lat,p.lng],{icon}).bindTooltip(p.name,{direction:'top',offset:[0,-24]});
+  m.on('click', () => openPoint(p));
+  markers.set(p.id, m);
 });
 
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
-function degName(d){return ['N','NE','L','SE','S','SO','O','NO'][Math.round((d||0)/45)%8]}
-function clamp(n,a=0,b=100){return Math.max(a,Math.min(b,n))}
-function fmt(v,d=1,s=''){return Number.isFinite(v)?v.toFixed(d)+s:'--'}
-function visiblePoints(){let q=$('search').value.toLowerCase().trim();return points.filter(p=>p.mode===mode&&(activeFilter==='Todos'||p.type===activeFilter)&&(!q||(`${p.name} ${p.area} ${p.tags.join(' ')} ${p.species.join(' ')}`).toLowerCase().includes(q)))}
-function renderFilters(){
- const types=['Todos',...new Set(points.filter(p=>p.mode===mode).map(p=>p.type))];
- $('filters').innerHTML=types.map(t=>`<button class="chip ${t===activeFilter?'active':''}" data-filter="${t}">${t}</button>`).join('');
- $('filters').querySelectorAll('button').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;renderAll()});
-}
-function renderList(){
- const v=visiblePoints();
- $('pointList').innerHTML=v.length?v.map(p=>`<div class="pcard" data-id="${p.id}">
- <div class="phead"><b>${p.id} • ${p.name}</b><span class="badge">${p.confidence}/100 base</span></div>
- <div class="meta">${p.area} • ${p.type} ${favs.has(p.id)?' • ★':''}</div>
- <div class="tags">${p.species.map(x=>`<span class="tag">🐟 ${x}</span>`).join('')}</div>
- </div>`).join(''):'<div class="empty">Nenhum ponto encontrado.</div>';
- document.querySelectorAll('.pcard').forEach(c=>c.onclick=()=>selectPoint(points.find(p=>p.id===c.dataset.id)));
-}
-function renderMarkers(){
- points.forEach(p=>{const m=markerMap.get(p.id); if(p.mode===mode&&visiblePoints().some(x=>x.id===p.id)){if(!map.hasLayer(m))m.addTo(map)}else if(map.hasLayer(m))map.removeLayer(m)});
- const v=visiblePoints(); if(v.length){const g=L.featureGroup(v.map(p=>markerMap.get(p.id)));map.fitBounds(g.getBounds().pad(.18),{maxZoom:12})}
-}
-function renderAll(){renderFilters();renderList();renderMarkers();$('mapNautical').style.display=mode==='boat'?'':'none'}
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
- mode=b.dataset.mode;activeFilter='Todos';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));
- if(mode==='boat'&&!map.hasLayer(nautical))nautical.addTo(map); if(mode==='land'&&map.hasLayer(nautical))map.removeLayer(nautical);
- $('mapBase').classList.toggle('active',mode==='land');$('mapNautical').classList.toggle('active',mode==='boat');
- $('drawer').classList.remove('show');renderAll();
-});
-$('search').oninput=renderAll;
-$('mapBase').onclick=()=>{if(map.hasLayer(nautical))map.removeLayer(nautical);$('mapBase').classList.add('active');$('mapNautical').classList.remove('active')};
-$('mapNautical').onclick=()=>{if(!map.hasLayer(nautical))nautical.addTo(map);$('mapNautical').classList.add('active');$('mapBase').classList.remove('active')};
-
-async function getConditions(p,force=false){
- if(!force&&weatherCache.has(p.id)&&Date.now()-weatherCache.get(p.id).time<15*60*1000)return weatherCache.get(p.id).data;
- const w=`https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lng}&current=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=wind_speed_10m,wind_direction_10m,precipitation&daily=precipitation_sum,wind_speed_10m_max,wind_gusts_10m_max&timezone=America%2FSao_Paulo&forecast_days=5`;
- const m=`https://marine-api.open-meteo.com/v1/marine?latitude=${p.lat}&longitude=${p.lng}&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature,ocean_current_velocity,ocean_current_direction,sea_level_height_msl&hourly=wave_height,wave_period,sea_surface_temperature,ocean_current_velocity,sea_level_height_msl&daily=wave_height_max,swell_wave_height_max,wave_period_max&timezone=America%2FSao_Paulo&forecast_days=5&cell_selection=sea`;
- try{
-   const [wr,mr]=await Promise.all([fetch(w),fetch(m)]);
-   if(!wr.ok||!mr.ok)throw new Error('API indisponível');
-   const data={weather:await wr.json(),marine:await mr.json()};
-   weatherCache.set(p.id,{time:Date.now(),data}); return data;
- }catch(err){return demoConditions(p)}
-}
-function demoConditions(p){
- const h=new Date().getHours(), seed=(p.id.charCodeAt(1)+h)%10;
- const times=Array.from({length:120},(_,i)=>new Date(Date.now()+i*3600000).toISOString().slice(0,16));
- const wave=Array.from({length:120},(_,i)=>.55+(seed*.04)+.18*Math.sin(i/5));
- const wind=Array.from({length:120},(_,i)=>7+seed*.7+3*Math.sin(i/6));
- const sea=Array.from({length:120},(_,i)=>.1+.35*Math.sin(i/6));
- const sst=Array.from({length:120},()=>22.5+seed*.15);
- const cur=Array.from({length:120},(_,i)=>.25+.1*Math.sin(i/8));
- return {demo:true,weather:{current:{wind_speed_10m:wind[0],wind_direction_10m:65,wind_gusts_10m:wind[0]+6,precipitation:0},hourly:{time:times,wind_speed_10m:wind,wind_direction_10m:times.map(()=>65),precipitation:times.map(()=>0)},daily:{time:Array.from({length:5},(_,i)=>new Date(Date.now()+i*86400000).toISOString().slice(0,10)),wind_speed_10m_max:[15,19,12,10,17],wind_gusts_10m_max:[22,27,18,16,25],precipitation_sum:[0,1,0,0,2]}},marine:{current:{wave_height:wave[0],wave_direction:150,wave_period:8.2,swell_wave_height:.5,swell_wave_direction:160,swell_wave_period:9,sea_surface_temperature:sst[0],ocean_current_velocity:cur[0],ocean_current_direction:110,sea_level_height_msl:sea[0]},hourly:{time:times,wave_height:wave,wave_period:times.map((_,i)=>8+.4*Math.sin(i/4)),sea_surface_temperature:sst,ocean_current_velocity:cur,sea_level_height_msl:sea},daily:{time:Array.from({length:5},(_,i)=>new Date(Date.now()+i*86400000).toISOString().slice(0,10)),wave_height_max:[.9,1.2,.7,.6,1],swell_wave_height_max:[.7,.9,.5,.45,.8],wave_period_max:[9,10,8,8,9]}}}
-}
-function scores(p,d){
- const w=d.weather.current||{},m=d.marine.current||{};
- let safe=100, fish=50+p.confidence*.35;
- const wind=w.wind_speed_10m??99,wave=m.wave_height??99,gust=w.wind_gusts_10m??wind;
- if(mode==='boat'){safe-=Math.max(0,(wind-12)*2.2);safe-=Math.max(0,(gust-22)*1.4);safe-=Math.max(0,(wave-1)*30)}
- else{safe-=Math.max(0,(wind-18)*1.5);safe-=Math.max(0,(wave-1.3)*28)}
- const period=m.wave_period??7,sst=m.sea_surface_temperature??22,current=m.ocean_current_velocity??.4;
- fish += wave>=.3&&wave<=1.1?8:-4; fish += period>=7&&period<=12?7:0; fish += wind<=18?6:-5; fish += sst>=20&&sst<=26?7:0; fish += current>=.1&&current<=1.2?5:0;
- if((w.precipitation??0)>4) fish-=4;
- return {safe:Math.round(clamp(safe)),fish:Math.round(clamp(fish))}
-}
-function tideTrend(d){
- const a=d.marine.hourly?.sea_level_height_msl||[], t=d.marine.hourly?.time||[]; if(a.length<2)return 'indisponível';
- const now=Date.now(), idx=Math.max(0,t.findIndex(x=>new Date(x).getTime()>=now)); const a0=a[idx],a1=a[Math.min(idx+2,a.length-1)];
- if(!Number.isFinite(a0)||!Number.isFinite(a1))return 'indisponível'; return a1>a0+.03?'subindo (estim.)':a1<a0-.03?'descendo (estim.)':'quase estável';
-}
-function fillConditions(d,p){
- const w=d.weather.current||{},m=d.marine.current||{},s=scores(p,d);
- $('heroTitle').textContent=p.name;$('heroSub').textContent=`${p.area} • dados ${d.demo?'de demonstração':'ao vivo'}`;$('heroScore').textContent=s.fish;$('fishScore').textContent=s.fish+'/100';$('safeScore').textContent=s.safe+'/100';
- $('heroScore').style.borderColor=s.fish>=80?'var(--green)':s.fish>=60?'var(--yellow)':'var(--red)';
- $('mWind').textContent=fmt(w.wind_speed_10m,0,' km/h');$('mWindDir').textContent=fmt(w.wind_direction_10m,0,'° ') + degName(w.wind_direction_10m);
- $('mWave').textContent=fmt(m.wave_height,1,' m');$('mPeriod').textContent=fmt(m.wave_period,1,' s');
- $('mSst').textContent=fmt(m.sea_surface_temperature,1,'°C');$('mCurrent').textContent=fmt(m.ocean_current_velocity,2,' km/h');$('mCurrentDir').textContent=fmt(m.ocean_current_direction,0,'° ') + degName(m.ocean_current_direction);
- $('mTide').textContent=fmt(m.sea_level_height_msl,2,' m');$('mTideTrend').textContent=tideTrend(d);$('mRain').textContent=fmt(w.precipitation,1,' mm');
- return s;
-}
-async function selectPoint(p,force=false){
- selected=p;$('drawer').classList.add('show');$('dName').textContent=`${p.id} • ${p.name}`;$('dArea').textContent=`${p.area} • ${p.type}`;$('dTags').innerHTML=[...p.tags,...p.species.map(x=>'🐟 '+x)].map(x=>`<span class="tag">${x}</span>`).join('');$('dNote').textContent=p.note;$('dSource').textContent=`Base do ponto: ${p.source}`;$('liveLabel').textContent='Buscando condições ao vivo...';$('favBtn').textContent=favs.has(p.id)?'★ Favorito':'☆ Favoritar';
- map.flyTo([p.lat,p.lng],13,{duration:.7}); const d=await getConditions(p,force); const s=fillConditions(d,p); renderDrawer(d,s,p); updateNavigation();
-}
-function renderDrawer(d,s,p){
- const w=d.weather.current||{},m=d.marine.current||{};$('liveLabel').textContent=d.demo?'Modo demonstração — API não respondeu':'Condições atualizadas pela Open-Meteo';$('dFish').textContent=s.fish+'/100';$('dSafe').textContent=s.safe+'/100';
- $('dWind').textContent=fmt(w.wind_speed_10m,0,' km/h');$('dWindDir').textContent=fmt(w.wind_direction_10m,0,'° ') + degName(w.wind_direction_10m);$('dWave').textContent=fmt(m.wave_height,1,' m');$('dPeriod').textContent=fmt(m.wave_period,1,' s');$('dSst').textContent=fmt(m.sea_surface_temperature,1,'°C');$('dCurrent').textContent=fmt(m.ocean_current_velocity,2,' km/h');$('dCurrentDir').textContent=fmt(m.ocean_current_direction,0,'° ') + degName(m.ocean_current_direction);
- const ht=d.marine.hourly?.time||[],hw=d.marine.hourly?.wave_height||[],hp=d.marine.hourly?.wave_period||[]; let start=Math.max(0,ht.findIndex(x=>new Date(x).getTime()>=Date.now()));
- $('hourStrip').innerHTML=Array.from({length:8},(_,k)=>{let i=Math.min(start+k,ht.length-1),v=hw[i]??0,good=v<=1;return `<div class="hour ${good?'best':''}"><b>${(ht[i]||'').slice(11,16)}</b><span>🌊 ${fmt(v,1,'m')}</span><span>${fmt(hp[i],0,'s')}</span></div>`}).join('');
- const days=d.marine.daily?.time||[];$('days').innerHTML=days.slice(0,5).map((day,i)=>{let wave=d.marine.daily.wave_height_max?.[i]??2,wind=d.weather.daily?.wind_speed_10m_max?.[i]??25,score=Math.round(clamp(100-(Math.max(0,wave-0.6)*30)-(Math.max(0,wind-12)*1.7)+(p.confidence-60)*.2));return `<div class="day"><b>${new Date(day+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit'})}</b><div class="bar"><i style="width:${score}%"></i></div><strong>${score}</strong></div>`}).join('');
-}
-$('dClose').onclick=()=>$('drawer').classList.remove('show');$('refreshBtn').onclick=()=>selected&&selectPoint(selected,true);
-$('favBtn').onclick=()=>{if(!selected)return;favs.has(selected.id)?favs.delete(selected.id):favs.add(selected.id);localStorage.setItem('mf_favs',JSON.stringify([...favs]));$('favBtn').textContent=favs.has(selected.id)?'★ Favorito':'☆ Favoritar';renderList();toast(favs.has(selected.id)?'Ponto favoritado.':'Removido dos favoritos.')};
-
-function locate(center=true){
- if(!navigator.geolocation)return toast('Geolocalização indisponível.');
- navigator.geolocation.getCurrentPosition(pos=>{userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};if(!userMarker)userMarker=L.circleMarker([userPos.lat,userPos.lng],{radius:8,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1}).addTo(map).bindTooltip('Você');else userMarker.setLatLng([userPos.lat,userPos.lng]);if(center)map.flyTo([userPos.lat,userPos.lng],13);updateNavigation();toast('Posição atualizada.');},()=>toast('Autorize o acesso à localização.'),{enableHighAccuracy:true,timeout:9000,maximumAge:15000})
-}
-function dist(a,b){const R=6371,dlat=(b.lat-a.lat)*Math.PI/180,dlon=(b.lng-a.lng)*Math.PI/180,x=Math.sin(dlat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dlon/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
-function bearing(a,b){const p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dl=(b.lng-a.lng)*Math.PI/180,y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return (Math.atan2(y,x)*180/Math.PI+360)%360}
-function updateNavigation(){if(!selected||!userPos)return;const km=dist(userPos,selected),b=bearing(userPos,selected);$('navDistance').textContent=km<1?Math.round(km*1000)+' m':km.toFixed(1)+' km';$('navBearing').textContent=`Rumo ${Math.round(b)}° ${degName(b)}`;$('needle').style.transform=`rotate(${b-heading}deg)`}
-async function compassOn(){try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){if(await DeviceOrientationEvent.requestPermission()!=='granted')return}const fn=e=>{let h=typeof e.webkitCompassHeading==='number'?e.webkitCompassHeading:(typeof e.alpha==='number'?360-e.alpha:null);if(h!==null){heading=h;updateNavigation()}};window.addEventListener('deviceorientationabsolute',fn,true);window.addEventListener('deviceorientation',fn,true)}catch(e){}}
-$('navBtn').onclick=()=>{if(!selected)return;$('navPanel').classList.add('show');locate(false);compassOn();toast('Modo navegação ativado.')};
-['locateTop','mapLocate'].forEach(id=>$(id).onclick=()=>locate(true));
-if(navigator.geolocation)navigator.geolocation.watchPosition(p=>{userPos={lat:p.coords.latitude,lng:p.coords.longitude};if(userMarker)userMarker.setLatLng([userPos.lat,userPos.lng]);updateNavigation()},()=>{},{enableHighAccuracy:true,maximumAge:20000,timeout:20000});
-
-$('bestBtn').onclick=async()=>{
- const v=points.filter(p=>p.mode===mode);toast('Comparando pontos...');let results=[];
- for(const p of v.slice(0,8)){const d=await getConditions(p);results.push({p,s:scores(p,d).fish})}
- results.sort((a,b)=>b.s-a.s);activeFilter='Todos';renderAll(); if(results[0])selectPoint(results[0].p); toast(`Melhor agora: ${results[0]?.p.id} • ${results[0]?.s}/100`);
-};
-
-function openModal(id){$(id).classList.add('show')}function closeModal(id){$(id).classList.remove('show')}
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-$('captureTop').onclick=()=>openModal('captureModal');$('captureHere').onclick=()=>openModal('captureModal');
-$('saveCapture').onclick=async()=>{
- const species=$('capSpecies').value.trim();if(!species)return toast('Informe a espécie.');
- let conditions=null;if(selected){const d=await getConditions(selected);conditions={pointId:selected.id,pointName:selected.name,fishScore:scores(selected,d).fish,wind:d.weather.current?.wind_speed_10m,wave:d.marine.current?.wave_height,sst:d.marine.current?.sea_surface_temperature,current:d.marine.current?.ocean_current_velocity}}
- captures.unshift({id:Date.now(),date:new Date().toISOString(),species,weight:$('capWeight').value||null,technique:$('capTechnique').value,bait:$('capBait').value,water:$('capWater').value,activity:$('capActivity').value,notes:$('capNotes').value,conditions});
- localStorage.setItem('mf_captures',JSON.stringify(captures));closeModal('captureModal');['capSpecies','capWeight','capBait','capNotes'].forEach(i=>$(i).value='');toast('Captura registrada.');
-};
-$('historyBtn').onclick=()=>{renderHistory();openModal('historyModal')};
-function renderHistory(){$('historyList').innerHTML=captures.length?captures.map(c=>`<div class="pcard"><div class="phead"><b>🐟 ${c.species}${c.weight?' • '+c.weight+' kg':''}</b><span class="badge">${new Date(c.date).toLocaleDateString('pt-BR')}</span></div><div class="meta">${c.technique}${c.bait?' • '+c.bait:''}${c.conditions?' • '+c.conditions.pointId:''}</div><div class="tags">${c.conditions?`<span class="tag">🌊 ${fmt(c.conditions.wave,1,'m')}</span><span class="tag">💨 ${fmt(c.conditions.wind,0,'km/h')}</span><span class="tag">🌡️ ${fmt(c.conditions.sst,1,'°C')}</span>`:''}</div></div>`).join(''):'<div class="empty">Nenhuma captura registrada.</div>'}
-$('favoritesBtn').onclick=()=>{const a=points.filter(p=>favs.has(p.id));$('favoritesList').innerHTML=a.length?a.map(p=>`<div class="pcard" data-fav="${p.id}"><div class="phead"><b>${p.id} • ${p.name}</b><span class="badge">${p.mode==='land'?'Terra':'Embarcado'}</span></div><div class="meta">${p.area}</div></div>`).join(''):'<div class="empty">Nenhum favorito.</div>';document.querySelectorAll('[data-fav]').forEach(e=>e.onclick=()=>{closeModal('favoritesModal');const p=points.find(x=>x.id===e.dataset.fav);mode=p.mode;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));renderAll();selectPoint(p)});openModal('favoritesModal')};
-
-$('mobileBar').onclick=()=>$('sidebar').classList.toggle('collapsed');
-
-// ===== Copiloto / Planejador / Radar / Sessão =====
-let radarMapInstance=null, radarMarkers=[];
-let radarSpeciesFilter='Todos';
-let activeTrip=JSON.parse(localStorage.getItem('mf_active_trip')||'null');
-let lastTrip=JSON.parse(localStorage.getItem('mf_last_trip')||'null');
-let tripTimer=null;
-
-function allSpecies(){
-  return ['Todos',...new Set(points.flatMap(p=>p.species))];
-}
-function speciesScore(p,baseScore,species){
-  let s=baseScore;
-  if(species && species!=='Todos'){
-    s += p.species.includes(species)?10:-8;
-  }
-  return Math.round(clamp(s));
-}
-function distanceIfPossible(p){
-  if(!userPos) return null;
-  return dist(userPos,p);
-}
-function scoreReasons(p,d,species='Todos'){
-  const w=d.weather.current||{},m=d.marine.current||{};
-  const base = Math.round(p.confidence*.35);
-  const wave = (m.wave_height>=.3&&m.wave_height<=1.1)?8:-4;
-  const period = (m.wave_period>=7&&m.wave_period<=12)?7:0;
-  const wind = (w.wind_speed_10m<=18)?6:-5;
-  const temp = (m.sea_surface_temperature>=20&&m.sea_surface_temperature<=26)?7:0;
-  const current = (m.ocean_current_velocity>=.1&&m.ocean_current_velocity<=1.2)?5:0;
-  const sp = species==='Todos'?0:(p.species.includes(species)?10:-8);
-  return [
-    ['Base do ponto',base],['Onda',wave],['Período',period],['Vento',wind],
-    ['Temperatura',temp],['Corrente',current],['Espécie',sp]
-  ];
-}
-function showHome(){
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-  $('copilotHome').classList.remove('hidden');
-  updateHome();
-}
-function hideHome(){$('copilotHome').classList.add('hidden')}
-function openFlow(name){
-  hideHome();
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-  if(name==='planner')$('plannerPanel').classList.add('show');
-  if(name==='radar'){$('radarPanel').classList.add('show'); setTimeout(()=>initRadar(),80)}
-  if(name==='trip'){$('tripPanel').classList.add('show'); updateTripUI()}
-  if(name==='now'){document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show')); $('copilotHome').classList.add('hidden'); $('bestBtn').click()}
-}
-$('homeTop').onclick=showHome;
-document.querySelectorAll('[data-flow]').forEach(c=>c.onclick=()=>openFlow(c.dataset.flow));
-document.querySelectorAll('[data-flow-close]').forEach(b=>b.onclick=showHome);
-
-async function updateHome(){
-  $('homeCaptureCount').textContent=captures.length;
-  $('homeFavCount').textContent=favs.size;
-  const candidates=points.filter(p=>p.mode==='boat').slice(0,4);
-  let best=null;
-  for(const p of candidates){
-    const d=await getConditions(p);
-    const sc=scores(p,d).fish;
-    if(!best||sc>best.sc)best={p,d,sc};
-  }
-  if(best){
-    const m=best.d.marine.current||{},w=best.d.weather.current||{};
-    $('homeOppText').textContent=`${best.p.name} • ${best.p.area}`;
-    $('homeOppScore').textContent=best.sc+'/100';
-    $('homeOppStats').innerHTML=`<span class="mini-stat">🌊 ${fmt(m.wave_height,1,'m')}</span><span class="mini-stat">💨 ${fmt(w.wind_speed_10m,0,'km/h')}</span><span class="mini-stat">🌡️ ${fmt(m.sea_surface_temperature,1,'°C')}</span>`;
-    $('homeOppBtn').onclick=()=>{mode=best.p.mode;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));renderAll();hideHome();selectPoint(best.p)};
-  }
-}
-
-$('planSpecies').innerHTML=allSpecies().map(s=>`<option>${s}</option>`).join('');
-$('runPlanner').onclick=runPlanner;
-async function runPlanner(){
-  const pm=$('planMode').value, sp=$('planSpecies').value, radius=Number($('planRadius').value);
-  $('plannerResults').innerHTML='<div class="empty">Analisando condições dos pontos...</div>';
-  let arr=[];
-  for(const p of points.filter(x=>x.mode===pm)){
-    const dk=distanceIfPossible(p); if(dk!==null && dk>radius)continue;
-    const d=await getConditions(p);
-    const base=scores(p,d).fish, ss=speciesScore(p,base,sp), safe=scores(p,d).safe;
-    arr.push({p,d,score:ss,safe,dist:dk,reasons:scoreReasons(p,d,sp)});
-  }
-  arr.sort((a,b)=>b.score-a.score);
-  const labels=['Plano A','Plano B','Plano C'];
-  $('plannerResults').innerHTML=arr.slice(0,3).map((r,i)=>`
-    <div class="plan-card ${i===0?'top':''}" data-plan="${r.p.id}">
-      <div class="plan-head"><div><b>${labels[i]} • ${r.p.name}</b><div class="meta">${r.p.area}${r.dist!==null?' • '+r.dist.toFixed(1)+' km':''} • Segurança ${r.safe}/100</div></div><div class="plan-score">${r.score}</div></div>
-      <div class="reason-list">${r.reasons.filter(x=>x[1]!==0).slice(0,6).map(x=>`<div class="reason">${x[0]} ${x[1]>0?'+':''}${x[1]}</div>`).join('')}</div>
-    </div>`).join('') || '<div class="empty">Nenhum ponto dentro dos filtros.</div>';
-  document.querySelectorAll('[data-plan]').forEach(e=>e.onclick=()=>{const p=points.find(x=>x.id===e.dataset.plan);mode=p.mode;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));renderAll();document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));selectPoint(p)});
-}
-
-function initRadar(){
-  if(!radarMapInstance){
-    radarMapInstance=L.map('radarMap',{zoomControl:false}).setView([-23.02,-43.25],10);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(radarMapInstance);
-    L.control.zoom({position:'bottomright'}).addTo(radarMapInstance);
-  }
-  $('radarSpecies').innerHTML=allSpecies().map(s=>`<button class="chip ${s===radarSpeciesFilter?'active':''}" data-rspecies="${s}">${s}</button>`).join('');
-  $('radarSpecies').querySelectorAll('button').forEach(b=>b.onclick=()=>{radarSpeciesFilter=b.dataset.rspecies;initRadar()});
-  renderRadar();
-}
-async function renderRadar(){
-  radarMarkers.forEach(m=>m.remove());radarMarkers=[];
-  $('radarList').innerHTML='<div class="empty">Calculando potencial...</div>';
-  let arr=[];
-  for(const p of points){
-    const d=await getConditions(p), base=scores(p,d).fish, sc=speciesScore(p,base,radarSpeciesFilter);
-    arr.push({p,sc,d});
-    const col=sc>=80?'#34d399':sc>=65?'#facc15':'#fb7185';
-    const m=L.circleMarker([p.lat,p.lng],{radius:8+(sc/20),color:col,fillColor:col,fillOpacity:.35,weight:2}).addTo(radarMapInstance).bindTooltip(`${p.id} • ${sc}/100`);
-    m.on('click',()=>{showHome();hideHome();mode=p.mode;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));renderAll();selectPoint(p)});
-    radarMarkers.push(m);
-  }
-  arr.sort((a,b)=>b.sc-a.sc);
-  $('radarList').innerHTML=arr.map(r=>`<div class="radar-item" data-radar="${r.p.id}"><b>${r.p.id} • ${r.p.name}</b><small>${r.p.area} • ${radarSpeciesFilter==='Todos'?'Geral':radarSpeciesFilter}</small><div style="margin-top:6px;font-weight:950">${r.sc}/100</div></div>`).join('');
-  document.querySelectorAll('[data-radar]').forEach(e=>e.onclick=()=>{const p=points.find(x=>x.id===e.dataset.radar);const marker=radarMarkers[arr.findIndex(a=>a.p.id===p.id)];radarMapInstance.flyTo([p.lat,p.lng],13)});
-  const g=L.featureGroup(radarMarkers); if(radarMarkers.length)radarMapInstance.fitBounds(g.getBounds().pad(.15),{maxZoom:11});
-}
-
-const oldRenderDrawer = renderDrawer;
-renderDrawer = function(d,s,p){
-  oldRenderDrawer(d,s,p);
-  const species=[...new Set(p.species)];
-  $('speciesScores').innerHTML=species.map(sp=>`<button class="chip">${sp} • ${speciesScore(p,s.fish,sp)}/100</button>`).join('');
-  $('explainScoreBtn').onclick=()=>{
-    const box=$('scoreExplanation'); const open=box.style.display!=='none'; box.style.display=open?'none':'block';
-    if(!open){
-      const reasons=scoreReasons(p,d,'Todos');
-      box.innerHTML=reasons.map(r=>`<div class="score-explain"><span>${r[0]}</span><div class="bar"><i style="width:${Math.min(100,Math.abs(r[1])*4)}%"></i></div><b>${r[1]>0?'+':''}${r[1]}</b></div>`).join('');
-    }
-  };
-  if(activeTrip){
-    if(!activeTrip.points.includes(p.id)){activeTrip.points.push(p.id);localStorage.setItem('mf_active_trip',JSON.stringify(activeTrip));updateTripUI()}
-  }
-};
-
-function startTrip(){
-  if(activeTrip)return toast('Já existe uma pescaria em andamento.');
-  activeTrip={id:Date.now(),start:Date.now(),points:[],captureStart:captures.length};
-  localStorage.setItem('mf_active_trip',JSON.stringify(activeTrip));updateTripUI();startTripTimer();toast('Pescaria iniciada.');
-}
-function endTrip(){
-  if(!activeTrip)return toast('Nenhuma pescaria em andamento.');
-  const end=Date.now(), captured=Math.max(0,captures.length-activeTrip.captureStart);
-  lastTrip={...activeTrip,end,captures:captured,duration:end-activeTrip.start,success:captured>0};
-  localStorage.setItem('mf_last_trip',JSON.stringify(lastTrip));localStorage.removeItem('mf_active_trip');activeTrip=null;updateTripUI();toast(lastTrip.success?'Pescaria encerrada com captura.':'Pescaria encerrada sem captura — esse dado também conta.');
-}
-function tripElapsed(ms){const min=Math.floor(ms/60000),h=Math.floor(min/60),m=min%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`}
-function updateTripUI(){
-  const now=Date.now();
-  if(activeTrip){
-    const cap=Math.max(0,captures.length-activeTrip.captureStart),t=tripElapsed(now-activeTrip.start);
-    $('tripStatusTitle').textContent='Pescaria em andamento';$('tripStatusText').textContent='Cada ponto aberto durante a sessão entra no histórico da jornada.';
-    $('tripTime').textContent=t;$('tripPoints').textContent=activeTrip.points.length;$('tripCaptures').textContent=cap;$('tripStatusMini').textContent='Ativa';
-    $('tripBar').classList.add('show');$('tripBarText').textContent=`${t} • ${activeTrip.points.length} pontos • ${cap} capturas`;
-  }else{
-    $('tripStatusTitle').textContent='Nenhuma pescaria em andamento';$('tripStatusText').textContent='Inicie uma sessão para acompanhar tempo, pontos e capturas.';
-    $('tripTime').textContent='00:00';$('tripPoints').textContent='0';$('tripCaptures').textContent='0';$('tripStatusMini').textContent='Parado';$('tripBar').classList.remove('show');
-  }
-  if(lastTrip){
-    $('tripSummary').className='';
-    $('tripSummary').innerHTML=`<div class="plan-card"><div class="plan-head"><div><b>${lastTrip.success?'✅ Com captura':'○ Sem captura'}</b><div class="meta">${new Date(lastTrip.start).toLocaleString('pt-BR')}</div></div><div class="plan-score">${lastTrip.captures}</div></div><div class="tags"><span class="tag">⏱ ${tripElapsed(lastTrip.duration)}</span><span class="tag">📍 ${lastTrip.points.length} pontos</span></div></div>`;
-  }
-}
-function startTripTimer(){if(tripTimer)clearInterval(tripTimer);tripTimer=setInterval(()=>updateTripUI(),30000)}
-$('startTrip').onclick=startTrip;$('endTrip').onclick=endTrip;$('tripBarOpen').onclick=()=>openFlow('trip');
-if(activeTrip)startTripTimer();
-updateTripUI();
-
-
-// ===== Ranking dos melhores pontos embarcados =====
-async function renderBestBoatPoints(force=false){
-  const box=$('bestBoatBox');
-  const list=$('bestBoatList');
-  if(mode!=='boat'){
-    box.classList.remove('show');
-    return;
-  }
-  box.classList.add('show');
-  list.innerHTML='<div class="empty">Analisando condições dos pontos embarcados...</div>';
-
-  let ranked=[];
-  const boatPoints=points.filter(p=>p.mode==='boat');
-
-  for(const p of boatPoints){
-    const data=await getConditions(p, force);
-    const sc=scores(p,data);
-    const distKm=userPos?dist(userPos,p):null;
-    ranked.push({
-      p,
-      fish:sc.fish,
-      safe:sc.safe,
-      dist:distKm,
-      wave:data.marine?.current?.wave_height ?? null,
-      wind:data.weather?.current?.wind_speed_10m ?? null
-    });
-  }
-
-  ranked.sort((a,b)=>{
-    if(b.fish!==a.fish) return b.fish-a.fish;
-    return (a.dist ?? 9999) - (b.dist ?? 9999);
-  });
-
-  if(!ranked.length){
-    list.innerHTML='<div class="empty">Nenhum ponto embarcado encontrado.</div>';
-    return;
-  }
-
-  list.innerHTML=ranked.slice(0,5).map((r,i)=>`
-    <div class="best-boat-item" data-bestboat="${r.p.id}">
-      <div class="best-boat-row">
-        <div>
-          <b>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'📍'} ${r.p.name}</b>
-          <div class="best-boat-meta">${r.p.area}${r.dist!==null?' • '+(r.dist<1?Math.round(r.dist*1000)+' m':r.dist.toFixed(1)+' km'):''}</div>
-        </div>
-        <div class="best-boat-score">${r.fish}</div>
-      </div>
-      <div class="best-boat-pills">
-        <span class="best-boat-pill">🛟 ${r.safe}/100</span>
-        <span class="best-boat-pill">${r.p.type}</span>
-        ${r.wave!==null?`<span class="best-boat-pill">🌊 ${Number(r.wave).toFixed(1)} m</span>`:''}
-        ${r.wind!==null?`<span class="best-boat-pill">💨 ${Math.round(r.wind)} km/h</span>`:''}
-      </div>
-    </div>
-  `).join('');
-
-  document.querySelectorAll('[data-bestboat]').forEach(el=>{
-    el.onclick=()=>{
-      const p=points.find(x=>x.id===el.dataset.bestboat);
-      if(!p) return;
-      selectPoint(p);
-      if(window.innerWidth<=860){
-        $('sidebar').classList.add('collapsed');
-      }
-    };
-  });
-}
-
-const originalRenderAll = renderAll;
-renderAll = function(){
-  originalRenderAll();
-  renderBestBoatPoints(false);
-};
-
-$('refreshBoatBest').onclick=()=>renderBestBoatPoints(true);
-
-// if user changes to boat mode, calculate immediately
-document.querySelectorAll('.tabs button').forEach(btn=>{
-  const prev = btn.onclick;
-  btn.onclick = () => {
-    if(prev) prev();
-    setTimeout(()=>renderBestBoatPoints(false), 80);
-  };
-});
-
-renderAll();
-updateHome();
-renderBestBoatPoints(false);
-
-// ===== Check-in inteligente =====
-let tackleSelected = new Set(JSON.parse(localStorage.getItem('mf_tackle')||'[]'));
-let lastCheckin = null;
-
-function renderTackle(){
-  document.querySelectorAll('[data-tackle]').forEach(b=>{
-    b.classList.toggle('active',tackleSelected.has(b.dataset.tackle));
-    b.onclick=()=>{
-      const t=b.dataset.tackle;
-      tackleSelected.has(t)?tackleSelected.delete(t):tackleSelected.add(t);
-      localStorage.setItem('mf_tackle',JSON.stringify([...tackleSelected]));
-      
-    };
-  });
-}
-function chooseAvailable(preferred){
-  for(const p of preferred){
-    if(tackleSelected.has(p)) return p;
-  }
-  return tackleSelected.size ? [...tackleSelected][0] : preferred[0];
-}
-function buildStrategy(){
-  if(!selected) return null;
-  const water=$('ciWaterColor').value, vis=$('ciVisibility').value, cur=$('ciCurrent').value;
-  const surface=$('ciSurface').value, birds=$('ciBirds').value, bait=$('ciBaitfish').value;
-  const sonar=$('ciSonar').value, structure=$('ciStructure').value;
-
-  let zone='meia-água', technique='recolhimento variável', preferred=['Shad','Minnow','Jig 40g'];
-  let reasons=[], urgency=0;
-
-  if(surface==='Alta' || birds==='Sim'){
-    zone='superfície / sub-superfície'; technique='recolhimento rápido com pausas curtas';
-    preferred=['Popper','Minnow','Shad']; reasons.push('atividade visível na superfície'); urgency+=2;
-  }
-  if(sonar==='Peixe em meia-água'){
-    zone='meia-água'; technique='trabalhar na faixa marcada, alternando velocidade';
-    preferred=['Jig 20g','Jig 40g','Shad']; reasons.push('peixe marcado em meia-água'); urgency+=2;
-  }
-  if(sonar==='Peixe no fundo' || structure==='Pedra' || structure==='Laje' || structure==='Queda'){
-    zone='fundo / borda da estrutura'; technique='toques curtos e controle de queda';
-    preferred=cur==='Forte'?['Jig 60g','Jig 40g','Lula']:['Jig 40g','Jig 20g','Camarão natural'];
-    reasons.push('estrutura ou peixe concentrado no fundo');
-  }
-  if(bait==='Sardinha' || bait==='Manjuba'){
-    reasons.push(`presença de ${bait.toLowerCase()}`);
-    preferred=['Minnow','Shad','Jig 20g','Sardinha',...preferred];
-  }
-  if(bait==='Camarão'){
-    preferred=['Camarão artificial','Camarão natural','Shad',...preferred]; reasons.push('camarão presente no local');
-  }
-  if(vis==='Alta' && (water==='Azul'||water==='Clara')){
-    reasons.push('água limpa');
-  }
-  if(water==='Turva' || water==='Barrenta'){
-    technique='trabalhar mais devagar, com vibração e contraste';
-    preferred=['Shad','Camarão artificial','Jig 40g',...preferred]; reasons.push('visibilidade reduzida');
-  }
-  if(cur==='Forte'){
-    preferred=['Jig 60g','Jig 40g',...preferred]; reasons.push('corrente forte exige maior controle de profundidade');
-  }
-  if(cur==='Parada'){
-    technique='recolhimento mais natural, com pausas maiores'; reasons.push('corrente fraca/parada');
-  }
-
-  const lure=chooseAvailable(preferred);
-  let size='médio';
-  if(bait==='Manjuba') size='pequeno';
-  if(bait==='Sardinha') size='pequeno a médio';
-  if(surface==='Alta') size='compacto e fácil de lançar';
-
-  return {water,vis,cur,surface,birds,bait,sonar,structure,zone,technique,lure,size,reasons,urgency};
-}
-$('runCheckin').onclick=()=>{
-  const s=buildStrategy(); if(!s)return;
-  lastCheckin=s;
-  $('recommendationCard').style.display='block';
-  $('feedbackArea').style.display='block';
-  $('adaptCard').classList.remove('show');
-
-  const target = selected.species?.[0] || 'peixe ativo';
-  $('recMain').textContent=`${s.zone} • ${s.lure}`;
-  $('recCopy').textContent=`Para este ponto, eu priorizaria ${s.zone}. ${s.reasons.length?'Leitura: '+s.reasons.join(', ')+'.':''}`;
-  $('recSteps').innerHTML=`
-    <div class="rec-step"><b>Isca:</b> ${s.lure}${tackleSelected.size?' (entre as opções que você marcou)':''}</div>
-    <div class="rec-step"><b>Tamanho:</b> ${s.size}</div>
-    <div class="rec-step"><b>Técnica:</b> ${s.technique}</div>
-    <div class="rec-step"><b>Alvo inicial:</b> ${target}</div>
-    <div class="rec-step"><b>Plano B:</b> se não houver ação, mude a faixa de profundidade antes de abandonar o ponto.</div>`;
-  toast('Estratégia do ponto atualizada.');
-};
-
-document.querySelectorAll('[data-feedback]').forEach(b=>b.onclick=()=>{
-  if(!lastCheckin)return toast('Faça o check-in primeiro.');
-  const type=b.dataset.feedback;
-  const card=$('adaptCard'); card.classList.add('show');
-  let title='',text='';
-  if(type==='capture'){
-    title='✅ Estratégia confirmada';
-    text='Mantenha a faixa de profundidade, velocidade e tamanho de isca. Registre a captura para alimentar o histórico deste ponto.';
-    $('captureHere').click();
-  }
-  if(type==='attack'){
-    title='⚡ Há atividade no ponto';
-    text='Eu manteria a estratégia por mais alguns minutos. Se o ataque foi curto, faça pequenas variações de velocidade antes de trocar a isca.';
-  }
-  if(type==='follow'){
-    title='👀 Interesse sem compromisso';
-    text='Reduza um pouco a velocidade ou o tamanho da isca. Se a água estiver muito limpa, tente uma apresentação mais natural e discreta.';
-  }
-  if(type==='nothing'){
-    title='🔄 Ajuste antes de mudar de ponto';
-    let alt = lastCheckin.zone.includes('fundo') ? 'suba para meia-água' : 'desça uma faixa e trabalhe mais fundo';
-    text=`Primeiro ${alt}. Troque a cadência e faça mais um ciclo curto. Se continuar sem ação, compare o Plano B / próximo ponto no Meira.`;
-  }
-  $('adaptTitle').textContent=title;$('adaptText').textContent=text;
-});
-
-
-
-
-// ===== V4 fluxo prático =====
-let qModeSelected='land', qSpeciesSelected='Todos', qRanked=[], qSelected=null;
-let qCheckAnswers={}, qCheckIndex=0;
-
-const qQuestions=[
-  {key:'water',title:'Como está a água?',sub:'Escolha o que mais parece.',opts:[['🔵','Azul'],['🟢','Verde'],['⚪','Clara'],['🟤','Turva']]},
-  {key:'current',title:'E a corrente?',sub:'Só uma leitura rápida.',opts:[['⏸','Parada'],['〰️','Fraca'],['➡️','Média'],['💨','Forte']]},
-  {key:'activity',title:'Tem atividade?',sub:'Olhe superfície e arredores.',opts:[['😶','Nenhuma'],['👀','Pouca'],['⚡','Alta'],['🐦','Aves trabalhando']]},
-  {key:'depth',title:'Onde está o peixe?',sub:'Se não souber, escolha “não sei”.',opts:[['❓','Não sei'],['⬆️','Superfície'],['↔️','Meia-água'],['⬇️','Fundo']]}
-];
-
-function qShow(id){
-  document.querySelectorAll('.quick-step').forEach(x=>x.classList.remove('show'));
-  $(id).classList.add('show');
-}
-document.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>qShow(b.dataset.qgo));
-document.querySelectorAll('[data-qback]').forEach(b=>b.onclick=()=>qShow('qHome'));
-
-$('openAdvanced').onclick=()=>{$('quickShell').classList.add('hidden');$('copilotHome').classList.remove('hidden')};
-$('homeTop').addEventListener('click',()=>{$('quickShell').classList.remove('hidden');$('copilotHome').classList.add('hidden');qShow('qHome')});
-
-function qSpeciesButtons(){
-  const common=['Todos','Anchova','Xaréu','Garoupa','Robalo','Corvina'];
-  $('qSpeciesChoices').innerHTML=common.map(s=>`<button class="qchoice" data-qspecies="${s}"><span class="e">${s==='Todos'?'🎣':'🐟'}</span>${s}</button>`).join('');
-  document.querySelectorAll('[data-qspecies]').forEach(b=>b.onclick=()=>{qSpeciesSelected=b.dataset.qspecies;qLoadResults()});
-}
-qSpeciesButtons();
-
-document.querySelectorAll('[data-qmode]').forEach(b=>b.onclick=()=>{
-  qModeSelected=b.dataset.qmode;
-  qShow('qTarget');
-});
-
-async function qLoadResults(){
-  qShow('qResults');
-  $('qResultsList').innerHTML='<div class="empty">Comparando pontos...</div>';
-  let arr=[];
-  for(const p of points.filter(x=>x.mode===qModeSelected)){
-    const d=await getConditions(p);
-    const base=scores(p,d);
-    const sc=speciesScore(p,base.fish,qSpeciesSelected);
-    const distance=userPos?dist(userPos,p):null;
-    arr.push({p,d,score:sc,safe:base.safe,distance});
-  }
-  arr.sort((a,b)=>b.score-a.score);
-  qRanked=arr;
-  $('qResultsList').innerHTML=arr.slice(0,3).map((r,i)=>`
-    <div class="qresult ${i===0?'best':''}" data-qresult="${r.p.id}">
-      <div class="qresult-head"><div><b>${i===0?'🥇 ':i===1?'🥈 ':'🥉 '}${r.p.name}</b><div class="qmeta">${r.p.area}${r.distance!==null?' • '+(r.distance<1?Math.round(r.distance*1000)+' m':r.distance.toFixed(1)+' km'):''}</div></div><div class="qscore">${r.score}</div></div>
-      <div class="qicons"><span class="qmini">🛟 ${r.safe}/100</span><span class="qmini">${r.p.type}</span>${qSpeciesSelected!=='Todos'?`<span class="qmini">🐟 ${qSpeciesSelected}</span>`:''}</div>
-    </div>`).join('');
-  document.querySelectorAll('[data-qresult]').forEach(e=>e.onclick=()=>qOpenPoint(arr.find(x=>x.p.id===e.dataset.qresult)));
-}
-function qLabel(score){
-  if(score>=85)return ['Excelente agora','As condições estão entre as melhores opções disponíveis.'];
-  if(score>=70)return ['Boa opção','Condição favorável, mas existem fatores para acompanhar.'];
-  if(score>=55)return ['Razoável','Dá para tentar, mas eu compararia outras opções.'];
-  return ['Fraco agora','Eu escolheria outro ponto neste momento.'];
-}
-function qOpenPoint(r){
-  if(!r)return;
-  qSelected=r;
-  selected=r.p;
-  const lab=qLabel(r.score);
-  $('qPointName').textContent=r.p.name;
-  $('qPointScore').textContent=r.score+'/100';
-  $('qPointLabel').textContent=lab[0];
-  $('qPointWhy').textContent=lab[1];
-  $('qPointSafe').textContent=r.safe+'/100';
-  $('qPointDistance').textContent=r.distance===null?'GPS':(r.distance<1?Math.round(r.distance*1000)+' m':r.distance.toFixed(1)+' km');
-  qShow('qPoint');
-}
-$('qNavigateBtn').onclick=()=>{
-  if(!qSelected)return;
-  mode=qSelected.p.mode;
-  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));
-  renderAll();
-  $('quickShell').classList.add('hidden');
-  $('copilotHome').classList.add('hidden');
-  selectPoint(qSelected.p);
-  setTimeout(()=>$('navBtn').click(),300);
-};
-$('qCheckinBtn').onclick=()=>qStartCheckin();
-$('qUseCurrentPoint').onclick=()=>{
-  if(selected){
-    const cached=weatherCache.get(selected.id)?.data;
-    if(cached){const sc=scores(selected,cached);qSelected={p:selected,d:cached,score:sc.fish,safe:sc.safe,distance:userPos?dist(userPos,selected):null}}
-    qStartCheckin();
-  }else{
-    qShow('qMode');
-  }
-};
-
-function qStartCheckin(){
-  qCheckAnswers={};qCheckIndex=0;qRenderQuestion();qShow('qCheckin');
-}
-function qRenderQuestion(){
-  const q=qQuestions[qCheckIndex];
-  document.querySelectorAll('.qprogress i').forEach((x,i)=>x.classList.toggle('on',i<=qCheckIndex));
-  $('qQuestionTitle').textContent=q.title;$('qQuestionSub').textContent=q.sub;
-  $('qAnswers').innerHTML=q.opts.map(o=>`<button data-qans="${o[1]}"><span style="font-size:22px;display:block">${o[0]}</span>${o[1]}</button>`).join('');
-  $('qAnswers').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    qCheckAnswers[q.key]=b.dataset.qans;
-    qCheckIndex++;
-    if(qCheckIndex<qQuestions.length)qRenderQuestion();else qBuildRecommendation();
-  });
-}
-function qBuildRecommendation(){
-  const a=qCheckAnswers;
-  let bait='Shad', text='Trabalhe meia-água com recolhimento variável.';
-  if(a.activity==='Aves trabalhando'||a.activity==='Alta'){bait='Minnow / Popper';text='Comece na superfície e sub-superfície. Faça arremessos rápidos antes de mudar de faixa.'}
-  if(a.depth==='Fundo'){bait=a.current==='Forte'?'Jig 60g':'Jig 40g';text='Trabalhe próximo ao fundo com toques curtos e controle da queda.'}
-  if(a.depth==='Meia-água'){bait='Jig 20–40g / Shad';text='Mantenha a isca na faixa de meia-água e varie a velocidade.'}
-  if(a.water==='Turva'){bait='Shad / Camarão artificial';text='Use uma apresentação mais lenta e com vibração. Priorize contraste.'}
-  if(a.current==='Forte'&&a.depth!=='Superfície'){bait='Jig 60g';text='Use peso suficiente para manter controle da profundidade na corrente.'}
-  $('qRecBait').textContent=bait;$('qRecText').textContent=text;qShow('qRecommend');
-}
-document.querySelectorAll('[data-qfeedback]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.qfeedback;let title='',text='',icon='🔄';
-  if(t==='capture'){icon='🐟';title='Funcionou';text='Mantenha a estratégia e registre a captura. O Meira usa isso no histórico.'}
-  if(t==='attack'){icon='⚡';title='Continue';text='Há atividade. Faça pequenas variações antes de trocar a isca.'}
-  if(t==='follow'){icon='👀';title='Ajuste fino';text='Reduza um pouco a velocidade ou o tamanho da isca.'}
-  if(t==='nothing'){icon='🔄';title='Mude uma coisa';text='Troque primeiro a faixa de profundidade. Se continuar sem ação, vá para o próximo ponto.'}
-  $('qAdjustIcon').textContent=icon;$('qAdjustTitle').textContent=title;$('qAdjustText').textContent=text;qShow('qAdjust');
-  if(t==='capture') setTimeout(()=>openModal('captureModal'),250);
-});
-$('qTryAgain').onclick=()=>qShow('qRecommend');
-$('qNextPoint').onclick=()=>{
-  if(!qRanked.length)return qShow('qMode');
-  const idx=qSelected?qRanked.findIndex(x=>x.p.id===qSelected.p.id):-1;
-  qOpenPoint(qRanked[Math.min(idx+1,qRanked.length-1)]||qRanked[0]);
-};
-
-document.querySelectorAll('[data-planfast]').forEach(b=>b.onclick=()=>{
-  qModeSelected=b.dataset.planfast;qSpeciesSelected='Todos';qLoadResults();
-});
-$('openPlannerAdvanced').onclick=()=>{$('quickShell').classList.add('hidden');openFlow('planner')};
-
-// make quick flow the default experience
-$('quickShell').classList.remove('hidden');
-
-
-// ===== Entrada por localização automática =====
-function openMapFromLocation(){
-  $('quickShell').classList.add('hidden');
-  $('copilotHome').classList.add('hidden');
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-}
-
-function renderNearbyPoints(){
-  if(!userPos)return;
-  const ranked=points.map(p=>({...p,_distance:dist(userPos,p)})).sort((a,b)=>a._distance-b._distance);
-  $('nearbyList').innerHTML=ranked.slice(0,8).map(p=>`
-    <div class="nearby-item" data-nearby="${p.id}">
-      <div class="nearby-top">
-        <b>${p.id} • ${p.name}</b>
-        <span class="nearby-dist">${p._distance<1?Math.round(p._distance*1000)+' m':p._distance.toFixed(1)+' km'}</span>
-      </div>
-      <small>${p.area} • ${p.mode==='land'?'Terra':'Embarcado'}${p.tags?.includes('Detectado')?' • Detectado':''}</small>
-    </div>`).join('');
-  document.querySelectorAll('[data-nearby]').forEach(e=>e.onclick=()=>{
-    const p=points.find(x=>x.id===e.dataset.nearby);
-    mode=p.mode;
-    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));
-    renderAll();
-    selectPoint(p);
-  });
-  $('nearbyPanel').classList.add('show');
-}
-
-function locationFirstStart(){
-  if(!navigator.geolocation){
-    toast('Seu navegador não oferece localização.');
-    openMapFromLocation();
-    return;
-  }
-  $('useLocationStart').innerHTML='<span class="emoji">◎</span><span><b>Lendo sua localização...</b><small>Autorize o acesso ao GPS.</small></span>';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-
-    if(!userMarker){
-      userMarker=L.circleMarker([userPos.lat,userPos.lng],{
-        radius:9,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1
-      }).addTo(map).bindTooltip('Você');
-    }else{
-      userMarker.setLatLng([userPos.lat,userPos.lng]);
-    }
-
-    openMapFromLocation();
-    map.setView([userPos.lat,userPos.lng],12);
-    renderNearbyPoints();
-
-    // Show all point modes around user initially
-    points.forEach(p=>{
-      const m=markerMap.get(p.id);
-      if(m && !map.hasLayer(m))m.addTo(map);
-    });
-
-    $('nearbyStatus').textContent='Pontos mais próximos da sua posição.';
-    toast('Localização encontrada.');
-    $('useLocationStart').innerHTML='<span class="emoji">📍</span><span><b>Usar minha localização</b><small>Autorize o GPS e veja os pontos próximos no mapa.</small></span>';
-  },err=>{
-    $('useLocationStart').innerHTML='<span class="emoji">📍</span><span><b>Tentar novamente</b><small>Não consegui acessar o GPS.</small></span>';
-    toast('Autorize a localização para ver os pontos próximos.');
-  },{
-    enableHighAccuracy:true,
-    timeout:12000,
-    maximumAge:15000
-  });
-}
-
-$('useLocationStart').onclick=locationFirstStart;
-
-// Keep nearby list updated whenever watchPosition refreshes userPos
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(userMarker) userMarker.setLatLng([userPos.lat,userPos.lng]);
-    if($('nearbyPanel').classList.contains('show')) renderNearbyPoints();
-  },()=>{},{
-    enableHighAccuracy:true,
-    maximumAge:20000,
-    timeout:20000
-  });
-}
-
-
-// ===== Check-in V2 adaptativo =====
-let ci2Mode='land', ci2Step=0, ci2Answers={}, ci2Last=null;
-
-function ci2QuestionsForMode(m){
-  const common=[
-    {key:'water',title:'Como está a água?',sub:'Escolha o que mais parece.',opts:[
-      ['🔵','Azul'],['🟢','Verde'],['⚪','Clara'],['🟤','Turva']
-    ]},
-    {key:'current',title:'E a corrente?',sub:'Uma leitura rápida já basta.',opts:[
-      ['⏸','Parada'],['〰️','Fraca'],['➡️','Média'],['💨','Forte']
-    ]},
-    {key:'activity',title:'Tem vida aí?',sub:'Olhe superfície, aves e pequenos peixes.',opts:[
-      ['😶','Nada'],['👀','Pouca'],['⚡','Muita'],['🐦','Aves']
-    ]}
-  ];
-
-  const land=[
-    {key:'structure',title:'Onde você pescaria daqui?',sub:'Escolha a estrutura mais evidente.',opts:[
-      ['🌊','Canal/vala'],['🪨','Pedra'],['🏖️','Praia aberta'],['🌫️','Espuma/quebra']
-    ]},
-    {key:'bait',title:'Que isca você tem?',sub:'Escolha uma opção rápida.',opts:[
-      ['🦐','Camarão'],['🐟','Sardinha'],['🎣','Artificial'],['❓','Qualquer']
-    ]}
-  ];
-
-  const boat=[
-    {key:'sonar',title:'O sonar marcou onde?',sub:'Se não usa sonar, escolha “não sei”.',opts:[
-      ['❓','Não sei'],['⬆️','Superfície'],['↔️','Meia-água'],['⬇️','Fundo']
-    ]},
-    {key:'bait',title:'Que isca você tem?',sub:'Escolha uma opção rápida.',opts:[
-      ['⚙️','Jig leve'],['⚓','Jig pesado'],['🐟','Artificial'],['🦑','Natural']
-    ]}
-  ];
-
-  return [...common,...(m==='boat'?boat:land)];
-}
-
-function ci2Open(){
-  if(!selected){toast('Selecione um ponto primeiro.');return}
-  ci2Mode=selected.mode||mode||'land';
-  ci2Step=0;ci2Answers={};ci2Last=null;
-  $('ci2Shell').classList.add('show');
-  $('ci2QuestionWrap').style.display='block';
-  $('ci2Result').classList.remove('show');
-  $('ci2Feedback').classList.remove('show');
-  $('ci2Adjust').classList.remove('show');
-  ci2Render();
-}
-function ci2Render(){
-  const qs=ci2QuestionsForMode(ci2Mode), q=qs[ci2Step];
-  $('ci2Progress').innerHTML=qs.map((_,i)=>`<i class="${i<=ci2Step?'on':''}"></i>`).join('');
-  $('ci2Title').textContent=q.title;$('ci2Sub').textContent=q.sub;
-  $('ci2Options').innerHTML=q.opts.map(o=>`<button class="ci2-opt" data-ci2="${o[1]}"><span>${o[0]}</span>${o[1]}</button>`).join('');
-  $('ci2Options').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    ci2Answers[q.key]=b.dataset.ci2;
-    ci2Step++;
-    if(ci2Step<qs.length)ci2Render();else ci2Finish();
-  });
-}
-function ci2Finish(){
-  const a=ci2Answers;
-  let score=60, lure='Artificial médio', technique='Trabalhe meia-água com variação de velocidade.', pills=[];
-
-  if(a.water==='Azul'||a.water==='Clara'){score+=8;pills.push('água limpa')}
-  if(a.water==='Turva'){score-=3;pills.push('água turva')}
-  if(a.current==='Média'){score+=10;pills.push('corrente boa')}
-  if(a.current==='Forte'){score-=5;pills.push('corrente forte')}
-  if(a.activity==='Muita'){score+=12;pills.push('atividade alta')}
-  if(a.activity==='Aves'){score+=15;pills.push('aves trabalhando')}
-  if(a.activity==='Nada'){score-=8;pills.push('sem atividade visível')}
-
-  if(ci2Mode==='boat'){
-    if(a.sonar==='Superfície'){lure='Popper / Minnow';technique='Comece na superfície. Faça uma sequência rápida antes de descer a faixa.';score+=7}
-    if(a.sonar==='Meia-água'){lure=a.bait==='Jig leve'?'Jig leve':'Shad / Jig leve';technique='Segure a isca em meia-água e varie velocidade.';score+=8}
-    if(a.sonar==='Fundo'){lure=a.bait==='Jig pesado'?'Jig pesado':'Jig 40–60g';technique='Trabalhe o fundo com toques curtos e controle da queda.';score+=8}
-    if(a.current==='Forte'){lure='Jig pesado';technique='Priorize peso e controle de profundidade.'}
-    if(a.bait==='Natural'){lure='Isca natural';technique='Apresente na faixa onde houve marcação ou próximo da estrutura.'}
+function setUser(pos, center){
+  userPos = {lat:pos.lat, lng:pos.lng};
+  if(!userMarker){
+    userMarker = L.circleMarker([userPos.lat,userPos.lng],{
+      radius:8,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1
+    }).addTo(map).bindTooltip('Você');
   } else {
-    if(a.structure==='Canal/vala'){lure=a.bait==='Camarão'?'Camarão':'Artificial pequeno';technique='Trabalhe a borda do canal/vala. Faça passadas paralelas à estrutura.';score+=8}
-    if(a.structure==='Pedra'){lure=a.bait==='Sardinha'?'Sardinha':'Artificial médio';technique='Explore a borda da pedra e a água de retorno. Evite jogar direto na estrutura.';score+=7}
-    if(a.structure==='Espuma/quebra'){lure='Artificial pequeno / camarão';technique='Arremesse na borda da espuma e deixe a isca atravessar a água mexida.';score+=6}
-    if(a.bait==='Sardinha'){lure='Sardinha';technique='Apresente perto da estrutura ou zona de passagem.'}
-    if(a.bait==='Camarão'){lure='Camarão';technique='Trabalhe mais devagar e rente à estrutura.'}
+    userMarker.setLatLng([userPos.lat,userPos.lng]);
   }
-
-  score=Math.max(0,Math.min(100,score));
-  let label=score>=85?'Muito promissor':score>=70?'Boa leitura':score>=55?'Vale tentar':'Eu mudaria a abordagem';
-  let why=score>=70?'Há sinais favoráveis no ponto agora.':'A leitura está mediana; faça uma tentativa curta antes de insistir.';
-
-  ci2Last={score,lure,technique,pills};
-  $('ci2QuestionWrap').style.display='none';
-  $('ci2Result').classList.add('show');
-  $('ci2Score').textContent=score+'/100';$('ci2Label').textContent=label;$('ci2Why').textContent=why;
-  $('ci2Main').textContent=lure;$('ci2Technique').textContent=technique;
-  $('ci2Pills').innerHTML=pills.map(x=>`<span class="ci2-pill">${x}</span>`).join('');
-}
-$('ci2Close').onclick=()=>$('ci2Shell').classList.remove('show');
-$('ci2Change').onclick=()=>{ci2Step=0;ci2Answers={};$('ci2QuestionWrap').style.display='block';$('ci2Result').classList.remove('show');ci2Render()};
-$('ci2StartFeedback').onclick=()=>$('ci2Feedback').classList.add('show');
-
-document.querySelectorAll('[data-ci2fb]').forEach(b=>b.onclick=()=>{
-  const t=b.dataset.ci2fb;let title='',text='';
-  if(t==='capture'){title='✅ Mantenha';text='A estratégia funcionou. Continue nessa faixa e registre a captura para reforçar o histórico do ponto.';setTimeout(()=>openModal('captureModal'),200)}
-  if(t==='attack'){title='⚡ Continue mais um pouco';text='Há peixe ativo. Faça pequenas variações antes de trocar a isca.'}
-  if(t==='follow'){title='👀 Ajuste fino';text='Reduza velocidade ou tamanho da isca. O peixe demonstrou interesse, mas não decidiu atacar.'}
-  if(t==='nothing'){title='🔄 Mude uma coisa só';text='Troque a faixa de profundidade ou a velocidade. Se continuar sem ação, vá para o próximo ponto.'}
-  $('ci2AdjustTitle').textContent=title;$('ci2AdjustText').textContent=text;$('ci2Adjust').classList.add('show');
-});
-
-// Override practical check-in buttons to use V2
-if($('qCheckinBtn')) $('qCheckinBtn').onclick=ci2Open;
-if($('qUseCurrentPoint')) $('qUseCurrentPoint').onclick=()=>{
-  if(selected) ci2Open(); else qShow('qMode');
-};
-
-// Also replace old drawer check-in action if available
-if($('runCheckin')){
-  $('runCheckin').textContent='Abrir check-in rápido';
-  $('runCheckin').onclick=ci2Open;
+  if(center) map.setView([userPos.lat,userPos.lng],13);
 }
 
-
-// ===== Captura com 1 toque =====
-function quickCatchOpen(){
-  const suggested = selected?.species?.length ? selected.species : ['Anchova','Xaréu','Robalo','Garoupa'];
-  const list=[...new Set([...suggested,'Corvina','Outros'])].slice(0,6);
-  $('quickSpecies').innerHTML=list.map(s=>`<button data-qcatch="${s}">${s}</button>`).join('');
-  $('quickSpecies').querySelectorAll('button').forEach(b=>b.onclick=()=>quickCatchSave(b.dataset.qcatch));
-  $('quickCatch').classList.add('show');
+function scores(p,d){
+  const w = d?.weather?.current || {};
+  const m = d?.marine?.current || {};
+  let safe = 100, fish = 50 + p.confidence * .35;
+  const wind = w.wind_speed_10m ?? 12;
+  const wave = m.wave_height ?? .7;
+  const gust = w.wind_gusts_10m ?? wind;
+  const period = m.wave_period ?? 8;
+  const sst = m.sea_surface_temperature ?? 23;
+  if(p.mode==='boat'){
+    safe -= Math.max(0,(wind-12)*2.2);
+    safe -= Math.max(0,(gust-22)*1.4);
+    safe -= Math.max(0,(wave-1)*30);
+  } else {
+    safe -= Math.max(0,(wind-18)*1.5);
+    safe -= Math.max(0,(wave-1.3)*28);
+  }
+  if(p.type==='Lagoa'){ safe = clamp(safe+18); fish += wind<=14 ? 4 : 0; }
+  fish += wave>=.3 && wave<=1.1 ? 8 : -4;
+  fish += period>=7 && period<=12 ? 7 : 0;
+  fish += wind<=18 ? 6 : -5;
+  fish += sst>=20 && sst<=26 ? 7 : 0;
+  if((w.precipitation??0)>4) fish -= 4;
+  return {safe:Math.round(clamp(safe)), fish:Math.round(clamp(fish))};
 }
-async function quickCatchSave(species){
-  let conditions=null;
-  if(selected){
-    const d=await getConditions(selected);
-    const sc=scores(selected,d);
-    conditions={
-      pointId:selected.id,
-      pointName:selected.name,
-      fishScore:sc.fish,
-      wind:d.weather.current?.wind_speed_10m,
-      wave:d.marine.current?.wave_height,
-      sst:d.marine.current?.sea_surface_temperature,
-      current:d.marine.current?.ocean_current_velocity
+
+function verdict(p,d){
+  if(!d) return {key:'lendo',label:'Lendo…',why:'Buscando condição da região.'};
+  const s = scores(p,d);
+  const wave = d.marine?.current?.wave_height ?? 0;
+  const rock = p.type==='Costão' || p.type==='Pedra';
+  if(rock && wave>1.4) return {key:'evitar',label:'Evitar',why:'Mar alto no costão. Melhor outro ponto.',...s};
+  if(s.safe<50) return {key:'evitar',label:'Evitar',why:'Condição insegura agora.',...s};
+  if(s.fish>=70 && s.safe>=60) return {key:'ir',label:'Ir agora',why:'Boa janela perto de você.',...s};
+  if(s.fish>=55) return {key:'esperar',label:'Esperar',why:'Dá para ir, mas não é o pico.',...s};
+  return {key:'esperar',label:'Esperar',why:'Condição morna nesta região.',...s};
+}
+
+function ranked(){
+  return POINTS
+    .filter(p => matches(p, filter))
+    .map(p => ({p, distance: userPos ? km(userPos,p) : null, v: verdict(p, weather)}))
+    .sort((a,b) => {
+      if(a.distance==null) return 0;
+      return a.distance - b.distance;
+    });
+}
+
+function renderMarkers(){
+  const keep = new Set(ranked().map(x => x.p.id));
+  POINTS.forEach(p => {
+    const m = markers.get(p.id);
+    if(keep.has(p.id)){ if(!map.hasLayer(m)) m.addTo(map); }
+    else if(map.hasLayer(m)) map.removeLayer(m);
+  });
+}
+
+function renderList(){
+  const rows = ranked().slice(0,10);
+  $('listSub').textContent = userPos
+    ? `${rows.length} pontos mais próximos`
+    : 'Escolha um bairro para medir a distância';
+  $('list').innerHTML = rows.map(({p,distance,v}) => `
+    <button class="card" type="button" data-id="${p.id}">
+      <div>
+        <b>${p.name}</b>
+        <small>${distance==null?'—':fmtKm(distance)} · ${p.species.slice(0,2).join(' / ')}</small>
+      </div>
+      <span class="verdict ${v.key}">${v.label}</span>
+    </button>
+  `).join('');
+  $('list').querySelectorAll('[data-id]').forEach(btn => {
+    btn.onclick = () => openPoint(POINTS.find(p => p.id===btn.dataset.id));
+  });
+  renderMarkers();
+}
+
+function openPoint(p){
+  selected = p;
+  const distance = userPos ? km(userPos,p) : null;
+  const v = verdict(p, weather);
+  $('dName').textContent = p.name;
+  $('dArea').textContent = p.area;
+  $('dDist').textContent = distance==null ? '—' : fmtKm(distance);
+  $('dVerdict').textContent = v.label;
+  $('dSpecies').textContent = p.species.slice(0,2).join(' / ');
+  $('dType').textContent = p.mode==='boat' ? 'Embarcado' : p.type;
+  $('dWhy').textContent = v.why;
+  $('detail').classList.remove('hidden');
+  map.flyTo([p.lat,p.lng],14,{duration:.5});
+}
+
+function closeDetail(){
+  $('detail').classList.add('hidden');
+}
+
+function goNow(){
+  if(!selected) return;
+  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+  if(userPos){
+    routeLine = L.polyline([[userPos.lat,userPos.lng],[selected.lat,selected.lng]],{
+      color:'#38bdf8',weight:3,opacity:.85
+    }).addTo(map);
+    map.fitBounds(routeLine.getBounds().pad(.25));
+    $('navTitle').textContent = selected.name;
+    $('navMeta').textContent = fmtKm(km(userPos,selected)) + ' · rota no mapa';
+    $('navbar').classList.add('show');
+  }
+  closeDetail();
+  const dest = `${selected.lat},${selected.lng}`;
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=walking`,'_blank');
+}
+
+function stopNav(){
+  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+  $('navbar').classList.remove('show');
+  if(userPos) map.setView([userPos.lat,userPos.lng],13);
+}
+
+async function loadWeather(pos){
+  const w = `https://api.open-meteo.com/v1/forecast?latitude=${pos.lat}&longitude=${pos.lng}&current=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=America%2FSao_Paulo`;
+  const m = `https://marine-api.open-meteo.com/v1/marine?latitude=${pos.lat}&longitude=${pos.lng}&current=wave_height,wave_direction,wave_period,sea_surface_temperature,ocean_current_velocity,sea_level_height_msl&timezone=America%2FSao_Paulo&cell_selection=sea`;
+  try{
+    const [wr,mr] = await Promise.all([fetch(w),fetch(m)]);
+    if(!wr.ok) throw new Error('weather');
+    weather = {weather: await wr.json(), marine: mr.ok ? await mr.json() : {current:{}}};
+  }catch(e){
+    weather = {
+      weather:{current:{wind_speed_10m:12,wind_gusts_10m:16,precipitation:0}},
+      marine:{current:{wave_height:.7,wave_period:8,sea_surface_temperature:23}}
     };
   }
-  captures.unshift({
-    id:Date.now(),
-    date:new Date().toISOString(),
-    species,
-    weight:null,
-    technique:null,
-    bait:null,
-    water:ci2Answers?.water||null,
-    activity:ci2Answers?.activity||null,
-    notes:null,
-    conditions
-  });
-  localStorage.setItem('mf_captures',JSON.stringify(captures));
-  $('quickCatch').classList.remove('show');
-  toast(`${species} registrada.`);
-  updateHome();
-  updateTripUI();
+  renderList();
 }
-$('quickCatchCancel').onclick=()=>$('quickCatch').classList.remove('show');
-$('quickCatchOther').onclick=()=>{$('quickCatch').classList.remove('show');openModal('captureModal')};
 
-// Override capture feedbacks to quick mode
-document.querySelectorAll('[data-ci2fb="capture"]').forEach(b=>b.onclick=()=>{
-  $('ci2AdjustTitle').textContent='✅ Estratégia confirmada';
-  $('ci2AdjustText').textContent='A captura já pode ser registrada com um toque.';
-  $('ci2Adjust').classList.add('show');
-  quickCatchOpen();
-});
-document.querySelectorAll('[data-qfeedback="capture"]').forEach(b=>b.onclick=()=>quickCatchOpen());
-
-// Main quick capture button also uses fast flow
-if($('captureTop')) $('captureTop').onclick=quickCatchOpen;
-if($('captureHere')) $('captureHere').onclick=quickCatchOpen;
-
-
-// ===== Navegação exata sem exibir coordenadas =====
-let exactNavActive=false;
-let exactRouteLine=null;
-let exactTargetCircle=null;
-let exactNavPointId=null;
-
-function metersBetween(a,b){
-  return dist(a,b)*1000;
+function ready(pos, label){
+  setUser(pos, true);
+  $('boot').classList.add('hidden');
+  $('fallback').classList.add('hidden');
+  $('statusLine').textContent = label;
+  renderList();
+  loadWeather(pos);
 }
-function updateExactNavigation(){
-  if(!exactNavActive || !selected || !userPos) return;
 
-  const meters=metersBetween(userPos,selected);
-  const brg=bearing(userPos,selected);
-
-  $('exactDistance').textContent = meters < 1000 ? `${Math.round(meters)} m` : `${(meters/1000).toFixed(2)} km`;
-  $('exactBearing').textContent = `${Math.round(brg)}° ${degName(brg)}`;
-
-  const status=$('arrivalStatus');
-  status.className='arrival-status';
-
-  if(meters <= 20){
-    status.textContent='✅ Você chegou ao ponto.';
-    status.classList.add('arrived');
-    if(exactNavActive && exactNavPointId===selected.id){
-      if(!window.__mf_arrival_notified){
-        toast('Você chegou ao ponto.');
-        window.__mf_arrival_notified=true;
-        if(navigator.vibrate) navigator.vibrate([180,80,180]);
-      }
-    }
-  }else if(meters <= 50){
-    status.textContent=`Quase no ponto • ${Math.round(meters)} m`;
-    status.classList.add('near');
-    window.__mf_arrival_notified=false;
-  }else if(meters <= 100){
-    status.textContent=`Próximo do ponto • ${Math.round(meters)} m`;
-    status.classList.add('near');
-    window.__mf_arrival_notified=false;
-  }else{
-    status.textContent=`Navegando • faltam ${meters<1000?Math.round(meters)+' m':(meters/1000).toFixed(2)+' km'}`;
-    window.__mf_arrival_notified=false;
+function askGps(){
+  if(!navigator.geolocation){
+    $('boot').classList.add('hidden');
+    $('fallback').classList.remove('hidden');
+    return;
   }
-
-  if(exactRouteLine) exactRouteLine.setLatLngs([[userPos.lat,userPos.lng],[selected.lat,selected.lng]]);
-  if(exactTargetCircle) exactTargetCircle.setLatLng([selected.lat,selected.lng]);
-  $('needle').style.transform=`rotate(${brg-heading}deg)`;
+  navigator.geolocation.getCurrentPosition(pos => {
+    ready({lat:pos.coords.latitude,lng:pos.coords.longitude}, 'Perto da sua posição');
+  }, () => {
+    $('boot').classList.add('hidden');
+    $('fallback').classList.remove('hidden');
+  }, {enableHighAccuracy:true, timeout:12000, maximumAge:20000});
 }
-function startExactNavigation(){
-  if(!selected) return toast('Selecione um ponto.');
-  exactNavActive=true;
-  exactNavPointId=selected.id;
-  window.__mf_arrival_notified=false;
-  $('exactNavCard').style.display='block';
-  $('navPanel').classList.add('show');
 
-  locate(false);
-
-  if(exactRouteLine) exactRouteLine.remove();
-  if(exactTargetCircle) exactTargetCircle.remove();
-
-  exactRouteLine=L.polyline([[selected.lat,selected.lng],[selected.lat,selected.lng]],{
-    weight:3,dashArray:'8,8',opacity:.9
-  }).addTo(map);
-
-  exactTargetCircle=L.circle([selected.lat,selected.lng],{
-    radius:20,weight:2,fillOpacity:.08
-  }).addTo(map);
-
-  map.flyTo([selected.lat,selected.lng],15,{duration:.7});
-  compassOn();
-  updateExactNavigation();
-  toast('Navegação para o ponto iniciada.');
-}
-function stopExactNavigation(){
-  exactNavActive=false;
-  exactNavPointId=null;
-  $('arrivalStatus').textContent='Navegação parada.';
-  if(exactRouteLine){exactRouteLine.remove();exactRouteLine=null}
-  if(exactTargetCircle){exactTargetCircle.remove();exactTargetCircle=null}
-}
-$('startExactNav').onclick=startExactNavigation;
-$('stopExactNav').onclick=stopExactNavigation;
-
-// Make old Navigate button use exact navigation
-$('navBtn').onclick=startExactNavigation;
-
-// Show card whenever a point opens
-const originalSelectPointExact = selectPoint;
-selectPoint = async function(p,force=false){
-  await originalSelectPointExact(p,force);
-  $('exactNavCard').style.display='block';
-  $('exactDistance').textContent=userPos ? (metersBetween(userPos,p)<1000?Math.round(metersBetween(userPos,p))+' m':(metersBetween(userPos,p)/1000).toFixed(2)+' km') : '--';
-  if(userPos){
-    const br=bearing(userPos,p);
-    $('exactBearing').textContent=`${Math.round(br)}° ${degName(br)}`;
-  }else $('exactBearing').textContent='--';
-  $('arrivalStatus').textContent=userPos?'Pronto para iniciar.':'Ative o GPS para iniciar.';
+$('filters').querySelectorAll('[data-filter]').forEach(btn => {
+  btn.onclick = () => {
+    filter = btn.dataset.filter;
+    $('filters').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x===btn));
+    renderList();
+  };
+});
+$('relocate').onclick = () => {
+  $('boot').classList.remove('hidden');
+  $('statusLine').textContent = 'Achando você…';
+  askGps();
 };
+$('retryGps').onclick = () => {
+  $('fallback').classList.add('hidden');
+  $('boot').classList.remove('hidden');
+  askGps();
+};
+$('closeDetail').onclick = closeDetail;
+$('goNow').onclick = goNow;
+$('stopNav').onclick = stopNav;
+$('places').innerHTML = PLACES.map(p => `<button type="button" data-place="${p.name}">${p.name}</button>`).join('');
+$('places').querySelectorAll('[data-place]').forEach(btn => {
+  btn.onclick = () => {
+    const place = PLACES.find(x => x.name===btn.dataset.place);
+    ready(place, 'Perto de '+place.name);
+  };
+});
 
-// Keep route live as GPS updates
 if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(userMarker) userMarker.setLatLng([userPos.lat,userPos.lng]);
-    updateExactNavigation();
-  },()=>{},{
-    enableHighAccuracy:true,
-    maximumAge:5000,
-    timeout:15000
-  });
+  navigator.geolocation.watchPosition(pos => {
+    if(!userPos) return;
+    setUser({lat:pos.coords.latitude,lng:pos.coords.longitude}, false);
+    if(!$('detail').classList.contains('hidden') && selected){
+      $('dDist').textContent = fmtKm(km(userPos,selected));
+    }
+    if($('navbar').classList.contains('show') && selected){
+      $('navMeta').textContent = fmtKm(km(userPos,selected)) + ' · rota no mapa';
+    }
+  }, ()=>{}, {enableHighAccuracy:true, maximumAge:20000, timeout:20000});
 }
 
-
-// ===== Meira Fishing Points: modo simples =====
-document.body.classList.add('points-simple');
-let simpleFilter='Todos';
-
-function simpleVisiblePoints(){
-  const q=$('search').value.toLowerCase().trim();
-  return points.filter(p=>{
-    const filterOk = simpleFilter==='Todos' || simpleFilter===p.mode || simpleFilter===p.type;
-    const qOk = !q || (`${p.name} ${p.area} ${p.type}`).toLowerCase().includes(q);
-    return filterOk && qOk;
-  });
-}
-function renderSimpleMarkers(){
-  const v=simpleVisiblePoints();
-  points.forEach(p=>{
-    const m=markerMap.get(p.id);
-    if(v.some(x=>x.id===p.id)){ if(!map.hasLayer(m))m.addTo(map); }
-    else if(map.hasLayer(m)){ map.removeLayer(m); }
-  });
-}
-function renderSimpleList(){
-  const v=simpleVisiblePoints();
-  $('pointList').innerHTML=v.length?v.map(p=>{
-    const dk=userPos?dist(userPos,p):null;
-    return `<div class="pcard" data-simplepoint="${p.id}">
-      <div class="phead"><b>${p.name}</b><span class="badge">${p.type}</span></div>
-      <div class="meta">${p.area}${dk!==null?' • '+(dk<1?Math.round(dk*1000)+' m':dk.toFixed(1)+' km'):''}</div>
-    </div>`;
-  }).join(''):'<div class="empty">Nenhum ponto encontrado.</div>';
-  document.querySelectorAll('[data-simplepoint]').forEach(el=>{
-    el.onclick=()=>openSimplePoint(points.find(p=>p.id===el.dataset.simplepoint));
-  });
-}
-function renderSimpleAll(){renderSimpleMarkers();renderSimpleList();}
-document.querySelectorAll('[data-simpletype]').forEach(b=>b.onclick=()=>{
-  simpleFilter=b.dataset.simpletype;
-  document.querySelectorAll('[data-simpletype]').forEach(x=>x.classList.toggle('active',x===b));
-  renderSimpleAll();
-});
-$('search').oninput=renderSimpleAll;
-
-function pointDepth(p){
-  if(p.type==='Offshore') return 'Variável';
-  if(p.type==='Lagoa') return 'Margem';
-  if(p.type==='Costão'||p.type==='Pedra') return 'Costeiro';
-  return '—';
-}
-function openSimplePoint(p){
-  if(!p)return;
-  selected=p;
-  $('dName').textContent=p.name;
-  $('dArea').textContent=p.area;
-  $('simpleType').textContent=p.type;
-  $('simpleDepth').textContent=pointDepth(p);
-  $('simpleSpecies').textContent=(p.species||[]).slice(0,2).join(' / ')||'—';
-  const dk=userPos?dist(userPos,p):null;
-  $('simpleDistance').textContent=dk===null?'Ative GPS':(dk<1?Math.round(dk*1000)+' m':dk.toFixed(1)+' km');
-  $('drawer').classList.add('show');
-  map.flyTo([p.lat,p.lng],14,{duration:.6});
-}
-$('simpleNavigate').onclick=()=>{if(selected)startExactNavigation();};
-$('simpleClose').onclick=()=>$('drawer').classList.remove('show');
-
-function pointsOpenMap(){
-  $('pointsStart').classList.add('hidden');
-  if($('quickShell'))$('quickShell').classList.add('hidden');
-  if($('copilotHome'))$('copilotHome').classList.add('hidden');
-  document.querySelectorAll('.flow-panel').forEach(x=>x.classList.remove('show'));
-  renderSimpleAll();
-}
-$('pointsOpenMap').onclick=pointsOpenMap;
-$('pointsUseLocation').onclick=()=>{
-  if(!navigator.geolocation){toast('Localização indisponível.');pointsOpenMap();return;}
-  $('pointsUseLocation').textContent='Lendo localização...';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
-    if(!userMarker){
-      userMarker=L.circleMarker([userPos.lat,userPos.lng],{radius:9,color:'#fff',weight:2,fillColor:'#38bdf8',fillOpacity:1}).addTo(map).bindTooltip('Você');
-    }else userMarker.setLatLng([userPos.lat,userPos.lng]);
-    pointsOpenMap();
-    map.setView([userPos.lat,userPos.lng],12);
-    renderSimpleAll();
-    toast('Pontos carregados perto de você.');
-  },()=>{
-    $('pointsUseLocation').textContent='📍 Usar minha localização';
-    toast('Autorize a localização para centralizar o mapa.');
-  },{enableHighAccuracy:true,timeout:12000,maximumAge:15000});
-};
-
-markerMap.forEach((marker,id)=>{
-  marker.off('click');
-  marker.on('click',()=>openSimplePoint(points.find(p=>p.id===id)));
-});
-renderSimpleAll();
-
+askGps();
 </script>
 </body>
 </html>
