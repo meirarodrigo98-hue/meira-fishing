@@ -45,7 +45,6 @@ export function initLogin(onReady) {
   const form = $('loginForm');
   const userInput = $('loginUser');
   const passInput = $('loginPass');
-  const rememberInput = $('loginRemember');
   const submitBtn = $('loginSubmit');
   const togglePass = $('loginTogglePass');
 
@@ -65,7 +64,7 @@ export function initLogin(onReady) {
     submitBtn.disabled = true;
     submitBtn.classList.add('is-loading');
 
-    const result = await login(userInput.value, passInput.value, rememberInput?.checked !== false);
+    const result = await login(userInput.value, passInput.value, true);
 
     submitBtn.disabled = false;
     submitBtn.classList.remove('is-loading');

@@ -744,32 +744,6 @@ body.login-pending{
 .login-eye.is-visible .login-eye-open{display:none}
 .login-eye.is-visible .login-eye-shut{display:block}
 
-.login-remember{
-  display:flex;align-items:center;gap:12px;
-  margin:2px 0 0;padding:13px 14px;border-radius:14px;
-  background:rgba(255,255,255,.55);border:1.5px solid rgba(13,40,64,.1);
-  cursor:pointer;user-select:none
-}
-.login-remember input{
-  position:absolute;opacity:0;width:0;height:0;pointer-events:none
-}
-.login-check{
-  width:20px;height:20px;flex-shrink:0;border-radius:6px;
-  border:1.5px solid rgba(13,40,64,.22);background:#fff;
-  display:grid;place-items:center;transition:.2s ease
-}
-.login-check::after{
-  content:'';width:5px;height:9px;border-right:2px solid #fff;border-bottom:2px solid #fff;
-  transform:rotate(45deg) scale(0);margin-top:-2px;transition:transform .15s ease
-}
-.login-remember input:checked + .login-check{
-  background:var(--login-teal);border-color:var(--login-teal)
-}
-.login-remember input:checked + .login-check::after{transform:rotate(45deg) scale(1)}
-.login-remember-text{
-  font-size:14px;font-weight:600;color:rgba(13,40,64,.72);line-height:1.2
-}
-
 .login-error{
   margin:-6px 0 2px;padding:0;border:none;background:none;
   text-align:center;font-size:13px;font-weight:800;letter-spacing:1.2px;
