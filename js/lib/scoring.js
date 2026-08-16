@@ -1,4 +1,4 @@
-import { clamp } from './utils.js';
+import { clamp, isShorePoint } from './utils.js';
 import {
   isLagoon,
   waveAtPoint,
@@ -150,7 +150,7 @@ function resolveWeather(point, getWeather) {
 export function rankPoints(points, userPos, filter, getWeather) {
   const rows = points
     .filter((p) => {
-      if (filter === 'costa' || filter === 'terra') return p.mode === 'land' && p.type !== 'Lagoa';
+      if (filter === 'costa' || filter === 'terra') return isShorePoint(p);
       if (filter === 'barco') return p.mode === 'boat';
       if (filter === 'lagoa') return p.type === 'Lagoa';
       return true;

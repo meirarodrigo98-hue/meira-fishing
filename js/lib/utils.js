@@ -30,6 +30,43 @@ export const fmtKm = (n) => (n < 1 ? `${Math.round(n * 1000)} m` : `${n.toFixed(
 /** Raio do radar — pontos além disso ficam fora após ligar. */
 export const NEARBY_KM = 30;
 export const NEARBY_LIMIT = 12;
+/** Marca pessoal só entra no modo Terra se estiver perto de um ponto costeiro real. */
+export const PERSONAL_SHORE_KM = 0.35;
+
+const SHORE_TYPES = new Set(['Orla', 'Praia', 'Pedra', 'Costão', 'Pier', 'Canal']);
+const SHORE_WATERS = new Set(['bay', 'ocean', 'canal']);
+const INLAND_HINT =
+  /rodovia|br-\d{2,3}|autoestrada|linha amarela|linha vermelha|túnel|viaduto|highway|via light|posto de pedágio|km \d{2,3}/i;
+
+let shoreCatalog = [];
+
+export function setShoreCatalog(points) {
+  shoreCatalog = (points || []).filter((p) => isCatalogShorePoint(p));
+}
+
+function isCatalogShorePoint(point) {
+  if (point.mode !== 'land' || point.personal) return false;
+  if (point.type === 'Lagoa' || point.coast?.water === 'lagoon') return false;
+  if (isReferencePoint(point)) return false;
+  if (!point.coast || !SHORE_WATERS.has(point.coast.water)) return false;
+  return SHORE_TYPES.has(point.type);
+}
+
+function isPersonalOnShore(point) {
+  if (!point.personal || !shoreCatalog.length) return false;
+  const text = `${point.name || ''} ${point.access || ''}`;
+  if (INLAND_HINT.test(text)) return false;
+  return shoreCatalog.some((ref) => km(point, ref) <= PERSONAL_SHORE_KM);
+}
+
+/** Ponto de pesca de costa (mar/baía/canal) — exclui lagoa, barco, referência e marcas em terra firme. */
+export function isShorePoint(point) {
+  if (point.mode !== 'land') return false;
+  if (point.type === 'Lagoa' || point.coast?.water === 'lagoon') return false;
+  if (isReferencePoint(point)) return false;
+  if (point.personal) return isPersonalOnShore(point);
+  return isCatalogShorePoint(point);
+}
 
 export function filterNearby(rows, maxKm = NEARBY_KM, limit = NEARBY_LIMIT) {
   const near = rows.filter((r) => r.distance != null && r.distance <= maxKm);
@@ -39,7 +76,7 @@ export function filterNearby(rows, maxKm = NEARBY_KM, limit = NEARBY_LIMIT) {
 
 export function matchesFilter(point, filter) {
   if (filter === 'meus') return point.personal === true;
-  if (filter === 'costa' || filter === 'terra') return point.mode === 'land' && point.type !== 'Lagoa';
+  if (filter === 'costa' || filter === 'terra') return isShorePoint(point);
   if (filter === 'barco') return point.mode === 'boat';
   if (filter === 'lagoa') return point.type === 'Lagoa';
   return true;

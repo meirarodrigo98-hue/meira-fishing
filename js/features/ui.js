@@ -1,4 +1,4 @@
-import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
+import { filterNearby, mapPointIds, setShoreCatalog } from '../lib/utils.js';
 import { getPointWeather, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
@@ -188,6 +188,7 @@ function renderMapMarkers() {
 function reloadAllPoints() {
   const pts = mergePoints(POINTS);
   pointsRef = pts;
+  setShoreCatalog(pts);
   syncMapPoints(pts, openPoint);
   renderList(pts, { nearby: isRadarOn() });
   syncMenuMeta();
@@ -782,6 +783,7 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
 
 export function setPoints(points) {
   pointsRef = points;
+  setShoreCatalog(points);
 }
 
 export function renderPlaces(places, onPick) {

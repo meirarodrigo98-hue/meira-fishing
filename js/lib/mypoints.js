@@ -13,14 +13,6 @@ import { fetchMyRemotePoints, upsertRemotePoint, deleteRemotePoint } from './sup
 
 const ADMIN_KEY = 'mf_admin';
 
-const DEFAULT_COAST = {
-  exposure: 'media',
-  facing: 180,
-  bottom: 'misto',
-  bestTide: 'both',
-  water: 'ocean',
-};
-
 export async function initMyPoints() {
   await initPointStore();
   let local = loadMyPoints();
@@ -105,7 +97,6 @@ export function addMyPoint({ name, lat, lng, type = 'Pedra', note = '', accuracy
     species: ['Robalo', 'Xaréu'],
     access: note.trim() || 'Marcado por você neste local exato',
     accuracy: accuracy ?? null,
-    coast: { ...DEFAULT_COAST },
   });
   const list = loadMyPoints();
   list.push(point);
