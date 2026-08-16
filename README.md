@@ -20,6 +20,12 @@ Site: https://meirarodrigo98-hue.github.io/meira-fishing/
 | `js/boot-cache.js` | Auto-update quando sair versão nova |
 | `css/app.css` | Visual |
 | `index.html` | Estrutura das telas (só HTML) |
+| `supabase/migrations/` | Schema PostgreSQL (Supabase) |
+| `docs/SUPABASE.md` | Como criar o banco no Supabase |
+
+## Banco Supabase
+
+Pontos, perfis e equipamento podem ficar no Supabase. Passo a passo: **`docs/SUPABASE.md`**.
 
 ## Fluxo do app
 
