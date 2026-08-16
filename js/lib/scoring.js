@@ -1,4 +1,13 @@
 import { clamp } from './utils.js';
+import {
+  isLagoon,
+  waveAtPoint,
+  scoreWindForCoast,
+  scoreTideForCoast,
+  scoreLagoon,
+  coastLabel,
+  coastWhyExtra,
+} from './coast.js';
 
 /** Motor de score e veredito — edite aqui para mudar "Ir agora / Esperar / Evitar". */
 export function scores(point, data) {
@@ -8,15 +17,32 @@ export function scores(point, data) {
   let safe = 100;
   let fish = 50 + point.confidence * 0.35;
   const wind = w.wind_speed_10m ?? 12;
-  const wave = m.wave_height ?? 0.7;
+  const waveRaw = m.wave_height ?? 0.7;
+  const wave = waveAtPoint(point, waveRaw);
   const gust = w.wind_gusts_10m ?? wind;
   const period = m.wave_period ?? 8;
   const sst = m.sea_surface_temperature ?? 23;
+  const windFrom = w.wind_direction_10m;
+
+  if (isLagoon(point)) {
+    safe = clamp(safe + 15);
+    fish += scoreLagoon(point, data);
+    if ((w.precipitation ?? 0) > 4) fish -= 4;
+    return { safe: Math.round(clamp(safe)), fish: Math.round(clamp(fish)) };
+  }
 
   if (point.mode === 'boat') {
     safe -= Math.max(0, (wind - 12) * 2.2);
     safe -= Math.max(0, (gust - 22) * 1.4);
-    safe -= Math.max(0, (wave - 1) * 30);
+    safe -= Math.max(0, (waveRaw - 1) * 30);
+  } else if (point.coast) {
+    const exp = point.coast.exposure ?? 'media';
+    const waveLimit = exp === 'alta' ? 1.1 : exp === 'media' ? 1.3 : 1.5;
+    const windLimit = exp === 'alta' ? 16 : 18;
+    safe -= Math.max(0, (wind - windLimit) * (exp === 'alta' ? 1.8 : 1.4));
+    safe -= Math.max(0, (wave - waveLimit) * (exp === 'alta' ? 32 : 24));
+    fish += scoreWindForCoast(point, windFrom, wind);
+    fish += scoreTideForCoast(point, tide);
   } else {
     safe -= Math.max(0, (wind - 18) * 1.5);
     safe -= Math.max(0, (wave - 1.3) * 28);
@@ -25,18 +51,25 @@ export function scores(point, data) {
   if (point.type === 'Lagoa') {
     safe = clamp(safe + 18);
     fish += wind <= 14 ? 4 : 0;
-  } else if (tide?.trend === 'rising') {
-    fish += point.mode === 'land' ? 7 : 4;
-  } else if (tide?.trend === 'falling' && (point.type === 'Costão' || point.type === 'Pedra')) {
-    fish += 3;
-  } else if (tide?.trend === 'slack') {
-    fish -= 2;
+  } else if (!point.coast) {
+    if (tide?.trend === 'rising') {
+      fish += point.mode === 'land' ? 7 : 4;
+    } else if (tide?.trend === 'falling' && (point.type === 'Costão' || point.type === 'Pedra')) {
+      fish += 3;
+    } else if (tide?.trend === 'slack') {
+      fish -= 2;
+    }
   }
 
-  fish += wave >= 0.3 && wave <= 1.1 ? 8 : -4;
-  fish += period >= 7 && period <= 12 ? 7 : 0;
-  fish += wind <= 18 ? 6 : -5;
-  fish += sst >= 20 && sst <= 26 ? 7 : 0;
+  if (!isLagoon(point)) {
+    fish += wave >= 0.3 && wave <= 1.1 ? 8 : -4;
+    fish += period >= 7 && period <= 12 ? 7 : 0;
+    if (!point.coast) {
+      fish += wind <= 18 ? 6 : -5;
+    }
+    fish += sst >= 20 && sst <= 26 ? 7 : 0;
+  }
+
   if ((w.precipitation ?? 0) > 4) fish -= 4;
 
   return { safe: Math.round(clamp(safe)), fish: Math.round(clamp(fish)) };
@@ -62,9 +95,15 @@ function whyFor(point, data, s) {
   const tide = data.tide?.label;
   const bits = [];
 
+  const coast = coastLabel(point);
+  if (coast) bits.push(coast);
+
   if (wind != null) bits.push(`vento ${Math.round(wind)} km/h`);
-  if (wave != null) bits.push(`onda ${wave.toFixed(1)} m`);
-  if (tide && point.type !== 'Lagoa') bits.push(tide.toLowerCase());
+  if (wave != null && !isLagoon(point)) bits.push(`onda ${wave.toFixed(1)} m`);
+  if (tide && !isLagoon(point)) bits.push(tide.toLowerCase());
+
+  const extra = coastWhyExtra(point, data);
+  if (extra) bits.push(extra.replace(/\.$/, ''));
 
   const cond = bits.length ? bits.join(', ') : 'condição local';
 
@@ -79,11 +118,16 @@ export function verdict(point, data) {
   }
 
   const s = scores(point, data);
-  const wave = data.marine?.current?.wave_height ?? 0;
+  const waveRaw = data.marine?.current?.wave_height ?? 0;
+  const wave = waveAtPoint(point, waveRaw);
   const rock = point.type === 'Costão' || point.type === 'Pedra';
+  const exp = point.coast?.exposure;
 
-  if (rock && wave > 1.4) {
+  if (rock && wave > (exp === 'alta' ? 1.2 : 1.4)) {
     return { key: 'evitar', label: 'Evitar', why: 'Mar alto no costão — onda forte aqui.', ...s };
+  }
+  if (point.coast?.exposure === 'alta' && waveRaw > 1.6) {
+    return { key: 'evitar', label: 'Evitar', why: 'Spot exposto com swell forte.', ...s };
   }
   if (s.safe < 50) {
     return { key: 'evitar', label: 'Evitar', why: 'Condição insegura neste ponto.', ...s };

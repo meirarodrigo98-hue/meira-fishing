@@ -1,4 +1,5 @@
 import { hasBait, hasExtra, hasSinker, gearPower, labelFor } from './gear.js';
+import { coastLabel, isLagoon } from './coast.js';
 
 /** Checklist no local — observações + material → estratégia. */
 export const OBS_GROUPS = [
@@ -132,6 +133,9 @@ function pickTechnique(point, gear, obs, bait) {
 
   if (point.type === 'Costão' || point.type === 'Pedra') {
     if (obs.wave === 'strong') return 'Não entre na rebentação — arremesse de bolsão abrigado';
+    if (point.coast?.exposure === 'alta' && obs.tide === 'rising') {
+      return 'Arremessos paralelos ao costão — maré enchendo neste spot exposto';
+    }
     if (obs.tide === 'rising') return 'Arremessos paralelos ao costão com maré enchendo';
     if (obs.tide === 'falling') return 'Trabalhe canais entre rochas com maré vazando';
     if (b === 'jig') return 'Jig na volta da onda, 2–3 toques e pausa';
@@ -148,6 +152,10 @@ function pickTechnique(point, gear, obs, bait) {
     return 'Circule a estrutura; alterne fundo e meia-água';
   }
 
+  if (point.coast?.water === 'bay' && obs.wave === 'calm') {
+    return 'Orla abrigada — isca natural perto de estrutura e mole';
+  }
+
   if (obs.wind === 'strong') return 'Arremessos mais curtos com vento de frente';
   if (obs.activity === 'nothing') return 'Isca natural, recolhimento lento, teste 3 distâncias';
   return 'Arremessos médios; mude profundidade a cada 10 min';
@@ -159,6 +167,14 @@ function pickPosition(point, obs) {
   if (obs.structure === 'vegetation') return 'Margem com vegetação ou sombra de ponte';
   if (obs.structure === 'sand') return 'Reentrâncias e mudança de fundo na praia';
 
+  const bottom = point.coast?.bottom;
+  if (bottom === 'areia' && obs.structure === 'sand') {
+    return 'Reentrância na areia — fundo variando com maré';
+  }
+  if (bottom === 'rocha' && obs.structure === 'rocks') {
+    return 'Borda da rocha onde a onda quebra — não pise no seco';
+  }
+
   const byType = {
     Costão: 'Pontos de quebra com bolsão abrigado',
     Pedra: 'Canal entre pedras onde a onda passa',
@@ -168,6 +184,8 @@ function pickPosition(point, obs) {
     Offshore: 'Quebra de fundo e bordas de canal',
   };
   let pos = byType[point.type] || 'Estrutura com variação de fundo';
+  const coast = coastLabel(point);
+  if (coast) pos = `${pos} (${coast})`;
 
   if (obs.tide === 'rising') pos += ' · maré enchendo puxa peixe para dentro';
   if (obs.tide === 'falling') pos += ' · maré vazando expõe passagem';
@@ -182,6 +200,15 @@ function buildWarnings(point, gear, obs) {
 
   if (obs.wave === 'strong' && (point.type === 'Costão' || point.type === 'Pedra')) {
     w.push('Onda forte no costão — não vire costas para o mar');
+  }
+  if (point.coast?.exposure === 'alta' && obs.wave !== 'calm') {
+    w.push('Spot exposto — evite a rebentação');
+  }
+  if (point.coast?.water === 'bay' && obs.water === 'murky') {
+    w.push('Baía turva — isca com cheiro (camarão)');
+  }
+  if (isLagoon(point) && obs.wind === 'strong') {
+    w.push('Vento forte na lagoa — pesque abrigado na margem');
   }
   if (obs.wave === 'strong' && power < 5) {
     w.push('Sua vara/linha estão leves para onda forte');

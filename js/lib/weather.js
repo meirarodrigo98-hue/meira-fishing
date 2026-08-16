@@ -18,7 +18,7 @@ async function fetchJson(url) {
 
 function fallbackBundle() {
   return {
-    weather: { current: { wind_speed_10m: 12, wind_gusts_10m: 16, precipitation: 0 } },
+    weather: { current: { wind_speed_10m: 12, wind_gusts_10m: 16, wind_direction_10m: 135, precipitation: 0 } },
     marine: { current: { wave_height: 0.7, wave_period: 8, sea_surface_temperature: 23 } },
     tide: null,
   };

@@ -5,6 +5,7 @@ import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '.
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
 import { STYLE, LEVEL, loadProfile, saveProfile, profileSummary } from '../lib/profile.js';
+import { coastLabel } from '../lib/coast.js';
 import {
   clearRoute,
   drawRoute,
@@ -312,7 +313,7 @@ function paint(row, i) {
 
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}`;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
   $('cardConditions').textContent = formatConditions(wx) || 'Consultando condições…';
   $('cardVerdict').textContent = v.key === 'ir' ? 'Vale ir' : v.label;
   $('cardVerdict').className = `pill ${v.key}`;
