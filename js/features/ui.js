@@ -55,11 +55,6 @@ function closePanel() {
   showFab();
 }
 
-function togglePanel() {
-  if ($('sheet')?.classList.contains('open')) closePanel();
-  else openPanel();
-}
-
 export function bindUi({ onRelocate }) {
   onRefresh = () => renderList(pointsRef);
 
