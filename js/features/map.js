@@ -100,7 +100,7 @@ export function setUser(pos, opts = {}) {
     return;
   }
 
-  if (options.follow !== false && state.followUser && !state.navigating) {
+  if (options.follow !== false && state.followUser && !state.navigating && !document.body.classList.contains('spots-open')) {
     map.panTo([pos.lat, pos.lng], { animate: true, duration: 0.35 });
   }
 }

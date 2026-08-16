@@ -241,7 +241,7 @@ function closeSpots() {
 }
 
 export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
-  onRefresh = () => renderList(pointsRef);
+  onRefresh = () => renderList(pointsRef, { soft: true });
   onFilterChange = onFilter;
 
   $('captureLocation').onclick = onCapture;
@@ -293,9 +293,10 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   $('profileClose').onclick = () => hideProfileEditor();
   $('profileSave').onclick = saveProfileDraft;
   $('followBtn').onclick = () => {
-    setFollowUser(!state.followUser);
-    if (state.followUser && state.userPos) recenterUser();
-    else toast(state.followUser ? 'Mapa vai te acompanhar' : 'Arraste o mapa livremente');
+    const next = !state.followUser;
+    setFollowUser(next);
+    toast(next ? 'Mapa vai te acompanhar' : 'Arraste o mapa livremente');
+    if (next && state.userPos) recenterUser();
   };
   $('relocate').onclick = () => {
     setFollowUser(true);
@@ -566,11 +567,31 @@ function step(delta) {
 }
 
 export function renderList(points, opts = {}) {
-  applyRows(points, opts);
+  const { nearby = isRadarOn(), soft = false } = opts;
+  applyRows(points, { nearby });
   syncChrome();
 
+  if (soft) {
+    if (!rows.length) {
+      paintEmpty();
+      renderMapMarkers();
+      return;
+    }
+    const idx = lastId ? rows.findIndex((r) => r.p.id === lastId) : -1;
+    const at = idx >= 0 ? idx : 0;
+    index = at;
+    paint(rows[at], at);
+    $('pointCounter').textContent = `${at + 1} / ${rows.length}`;
+    $('pointPrev').disabled = at <= 0;
+    $('pointNext').disabled = at >= rows.length - 1;
+    setBestPointId(rows[0]?.p?.id ?? null);
+    renderMapMarkers();
+    return;
+  }
+
   const preserve = lastId && rows.some((r) => r.p.id === lastId) ? lastId : rows[0]?.p?.id;
-  showAt(idxOf(preserve), { fly: isOpen() });
+  const idx = preserve ? rows.findIndex((r) => r.p.id === preserve) : 0;
+  showAt(idx >= 0 ? idx : 0, { fly: isOpen() });
 }
 
 function closeChecklist() {
