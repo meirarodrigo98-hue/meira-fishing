@@ -172,6 +172,12 @@ body.follow-on .hud-btn#followBtn.on{box-shadow:0 0 0 2px rgba(56,189,248,.35)}
   box-shadow:0 12px 40px rgba(0,0,0,.45)
 }
 .perm-wait-box p{margin:0;font-size:13px;line-height:1.45;color:var(--muted)}
+.perm-wait-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.perm-loc-btn{
+  align-self:flex-start;min-height:36px;padding:8px 12px;border-radius:10px;
+  border:1px solid rgba(45,212,191,.45);background:rgba(45,212,191,.14);
+  color:#9ef0d0;font-size:12px;font-weight:800
+}
 .perm-wait-box strong{color:var(--a);font-weight:800}
 .perm-dot{
   width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--a);
@@ -539,6 +545,14 @@ body.mark-mode .mark-fab{opacity:.45;pointer-events:none}
   text-align:center;pointer-events:none
 }
 .loc-banner.is-hidden{display:none}
+.loc-settings-btn{
+  position:fixed;z-index:1101;left:50%;transform:translateX(-50%);
+  top:calc(var(--safe-t) + 92px);min-height:38px;padding:8px 14px;border-radius:12px;
+  border:1px solid rgba(45,212,191,.5);background:rgba(6,24,32,.94);
+  color:#9ef0d0;font-size:12px;font-weight:800;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)
+}
+.loc-settings-btn.is-hidden{display:none}
 body.loc-approx .hud-dot{background:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.6)}
 
 /* zoom sobe quando card aberto */
@@ -604,6 +618,15 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
   margin-top:0;margin-bottom:4px;
   border-color:rgba(45,212,191,.45);background:rgba(45,212,191,.12);color:#9ef0d0
 }
+.recover-loc-btn{margin-bottom:10px}
+
+.loc-settings-steps{
+  margin:0 0 14px;padding:0 0 0 20px;display:flex;flex-direction:column;gap:10px;
+  font-size:13px;line-height:1.45;color:var(--muted)
+}
+.loc-settings-steps li{padding-left:4px}
+#locSettingsPanel .ghost.primary{margin-bottom:8px}
+#locSettingsPanel .ghost{margin-top:0}
 
 .toast{
   position:fixed;z-index:2000;left:50%;top:max(70px,calc(var(--safe-t) + 56px));

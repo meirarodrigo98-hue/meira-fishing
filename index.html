@@ -91,7 +91,10 @@
 <div class="perm-wait is-hidden" id="permWait" aria-live="polite">
   <div class="perm-wait-box">
     <span class="perm-dot" aria-hidden="true"></span>
-    <p id="permWaitText">Toque em <strong>Permitir</strong> no popup — ou <strong>Permitir ao usar o site</strong> no iPhone</p>
+    <div class="perm-wait-copy">
+      <p id="permWaitText">Toque em <strong>Permitir</strong> no popup — ou <strong>Permitir ao usar o site</strong> no iPhone</p>
+      <button class="perm-loc-btn" id="openLocSettingsPerm" type="button">Abrir configurações de localização</button>
+    </div>
   </div>
 </div>
 
@@ -318,6 +321,7 @@
       <h2>GPS indisponível</h2>
       <p id="recoverHint">Escolha sua região para ligar o radar.</p>
     </div>
+    <button class="ghost primary recover-loc-btn" id="openLocSettingsRecover" type="button">Abrir configurações de localização</button>
     <button class="ghost primary" id="useApprox" type="button">Usar localização pela rede (imprecisa)</button>
     <p class="recover-or">ou escolha sua região</p>
     <div class="places" id="places"></div>
@@ -327,6 +331,20 @@
 
 <p class="weather-hint is-hidden" id="weatherNote">Condições estimadas — sem dados ao vivo.</p>
 <p class="loc-banner is-hidden" id="locBanner"></p>
+<button class="loc-settings-btn is-hidden" id="openLocSettingsHud" type="button">Abrir configurações de localização</button>
+
+<div class="sheet-panel" id="locSettingsPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">GPS</span>
+      <h3 class="checklist-title" id="locSettingsTitle">Liberar localização</h3>
+    </div>
+    <button class="checklist-close" id="locSettingsClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <ol class="loc-settings-steps" id="locSettingsSteps"></ol>
+  <button class="ghost primary" id="locSettingsOpen" type="button">Abrir configurações de localização</button>
+  <button class="ghost" id="locSettingsDone" type="button">Entendi — tentar de novo</button>
+</div>
 
 <div class="toast" id="toast"></div>
 

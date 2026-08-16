@@ -29,6 +29,41 @@ import {
   setMarkDraftPos,
 } from './map.js';
 import { capturePrecisePosition } from './location.js';
+import {
+  getLocationSettingsGuide,
+  getLocationPlatform,
+  openAndroidLocationSettings,
+  openLocationSettings,
+  tryOpenIosSettings,
+} from '../lib/location-settings.js';
+
+let onRelocateRef = null;
+
+function syncLocSettingsButtons() {
+  const guide = getLocationSettingsGuide();
+  const label = guide.openLabel || 'Liberar localização';
+  ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud', 'locSettingsOpen'].forEach((id) => {
+    const el = $(id);
+    if (el) el.textContent = label;
+  });
+}
+
+function showLocationHelp() {
+  const guide = getLocationSettingsGuide();
+  $('locSettingsTitle').textContent = guide.title;
+  const steps = $('locSettingsSteps');
+  if (steps) steps.innerHTML = guide.steps.map((s) => `<li>${s}</li>`).join('');
+  const openBtn = $('locSettingsOpen');
+  if (openBtn) {
+    openBtn.textContent = guide.openLabel || 'Abrir configurações de localização';
+    openBtn.classList.toggle('is-hidden', !guide.openLabel);
+  }
+  showSheet('locSettingsPanel');
+}
+
+function handleOpenLocationSettings() {
+  openLocationSettings(showLocationHelp);
+}
 
 const MARK_TYPES = [
   { id: 'Pedra', label: 'Pedra' },
@@ -387,6 +422,9 @@ function syncLocHud() {
     if (label) label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
     banner?.classList.add('is-hidden');
   }
+
+  const showLocBtn = !!state.userPos?.approx || weakGps;
+  $('openLocSettingsHud')?.classList.toggle('is-hidden', !showLocBtn);
 }
 
 function syncChrome() {
@@ -425,6 +463,8 @@ function closeSpots() {
 export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilterChange: onFilter }) {
   onRefresh = () => renderList(pointsRef, { soft: true });
   onFilterChange = onFilter;
+  onRelocateRef = onRelocate;
+  syncLocSettingsButtons();
 
   $('captureLocation').onclick = onCapture;
 
@@ -491,6 +531,19 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
   $('retryGps').onclick = onRelocate;
   const approxBtn = $('useApprox');
   if (approxBtn && onApprox) approxBtn.onclick = onApprox;
+  ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud'].forEach((id) => {
+    $(id)?.addEventListener('click', handleOpenLocationSettings);
+  });
+  $('locSettingsOpen')?.addEventListener('click', () => {
+    const { isAndroid } = getLocationPlatform();
+    if (isAndroid) openAndroidLocationSettings();
+    else tryOpenIosSettings();
+  });
+  $('locSettingsClose')?.addEventListener('click', () => hideSheet('locSettingsPanel'));
+  $('locSettingsDone')?.addEventListener('click', () => {
+    hideSheet('locSettingsPanel');
+    onRelocateRef?.();
+  });
   $('markFab').onclick = openMarkPointSheet;
   $('openMyPoints').onclick = openMyPointsPanel;
   $('markHereFromMenu').onclick = openMarkPointSheet;
@@ -599,6 +652,13 @@ export function showPermissionDenied() {
   $('recover')?.classList.remove('is-hidden');
   $('recoverDenied')?.classList.remove('is-hidden');
   $('recoverGps')?.classList.add('is-hidden');
+  syncLocSettingsButtons();
+  const hint = $('recoverDeniedHint');
+  if (hint) {
+    hint.textContent = getLocationPlatform().isIOS
+      ? 'Toque no botão abaixo para ver como liberar no iPhone.'
+      : 'Toque no botão abaixo para abrir as configurações do navegador.';
+  }
   setEntryVisible(false);
 }
 
@@ -611,6 +671,7 @@ export function showRecover(reason = 'unknown') {
   $('recover')?.classList.remove('is-hidden');
   $('recoverDenied')?.classList.add('is-hidden');
   $('recoverGps')?.classList.remove('is-hidden');
+  syncLocSettingsButtons();
 
   const hints = {
     timeout: 'GPS demorou — tente de novo ou use localização pela rede (pode errar km).',
@@ -827,6 +888,7 @@ function closeAllSheets() {
   hideSheet('gearPanel');
   hideSheet('markPointPanel');
   hideSheet('myPointsPanel');
+  hideSheet('locSettingsPanel');
   sheetOrigin = null;
   $('checklistObserve')?.classList.remove('is-hidden');
 }
