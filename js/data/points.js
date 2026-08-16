@@ -1,7 +1,9 @@
 /** Fonte dos pontos de pesca — locais reais com nome e instrução de acesso (Google Maps). */
 /** coast: exposure baixa|media|alta, facing° pro mar, bottom, bestTide, water bay|ocean|lagoon|canal */
 /** mode land = pesca de costa (orla/pedra/pier); boat = barco; reference = setor aproximado no mar */
-export const POINTS = [
+import { MARINHA_POINTS } from './marinha-points.js';
+
+const CATALOG_POINTS = [
   // ── Baía — Centro / Porto ──
   {id:'C001',mode:'land',name:'Praça XV — mureta da orla',area:'Centro / RJ',lat:-22.9034,lng:-43.1718,type:'Orla',confidence:58,species:['Robalo','Xaréu'],access:'Calçada da Praça XV, mureta voltada pra baía',coast:{exposure:'baixa',facing:95,bottom:'misto',bestTide:'rising',water:'bay'}},
   {id:'C002',mode:'land',name:'Pier Mauá — ponta do cais',area:'Centro / RJ',lat:-22.8962,lng:-43.1812,type:'Pier',confidence:56,species:['Robalo','Xaréu'],access:'Entrada do Pier Mauá; caminhe até a ponta do cais',coast:{exposure:'baixa',facing:115,bottom:'misto',bestTide:'rising',water:'bay'}},
@@ -132,3 +134,5 @@ export const POINTS = [
   {id:'O009',mode:'boat',name:'Borda externa das Tijucas',area:'Ao largo da Barra / RJ',lat:-23.0670,lng:-43.3330,type:'Offshore',confidence:79,species:['Garoupa','Xaréu'],reference:true},
   {id:'O010',mode:'boat',name:'Quebra 30 → 52 m',area:'Sul das Tijucas / RJ',lat:-23.0960,lng:-43.3050,type:'Offshore',confidence:78,species:['Olho-de-boi','Anchova'],reference:true},
 ];
+
+export const POINTS = [...CATALOG_POINTS, ...MARINHA_POINTS];
