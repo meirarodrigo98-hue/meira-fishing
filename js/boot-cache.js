@@ -2,6 +2,30 @@
 (function () {
   var KEY = 'mf_build';
   var CHECK_MS = 45000;
+  var SCROLL_ALLOW =
+    '.leaflet-container,#map,.sheet-panel,.gear-scroll,.my-points-list,.users-list,.recover-box,.spots-filters,.login-screen,.login-panel,.checklist-panel';
+
+  function canScroll(el) {
+    if (!el || el === document.body || el === document.documentElement) return false;
+    if (el.closest && el.closest(SCROLL_ALLOW)) return true;
+    var st = window.getComputedStyle(el);
+    if (
+      (st.overflowY === 'auto' || st.overflowY === 'scroll') &&
+      el.scrollHeight > el.clientHeight + 1
+    ) {
+      return true;
+    }
+    return canScroll(el.parentElement);
+  }
+
+  document.addEventListener(
+    'touchmove',
+    function (e) {
+      if (canScroll(e.target)) return;
+      e.preventDefault();
+    },
+    { passive: false },
+  );
 
   function readStored() {
     try {
