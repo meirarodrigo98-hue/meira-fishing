@@ -52,8 +52,8 @@ export function initLogin(onReady) {
   togglePass?.addEventListener('click', () => {
     const isPass = passInput.type === 'password';
     passInput.type = isPass ? 'text' : 'password';
+    togglePass.classList.toggle('is-visible', isPass);
     togglePass.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
-    togglePass.textContent = isPass ? '🙈' : '👁';
   });
 
   passInput?.addEventListener('input', () => showError(''));

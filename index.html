@@ -25,19 +25,29 @@
     </div>
     <div class="login-brand-lines" aria-hidden="true"><span></span><span>FISHING RADAR</span><span></span></div>
     <form class="login-form" id="loginForm">
-      <label class="login-field">
-        <span class="login-label">Usuário</span>
-        <input class="login-input" id="loginUser" type="text" name="username" autocomplete="username" placeholder="Seu usuário" required>
-      </label>
-      <label class="login-field login-field--pass">
-        <span class="login-label">Senha</span>
-        <input class="login-input" id="loginPass" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
-        <button class="login-eye" id="loginTogglePass" type="button" aria-label="Mostrar senha">👁</button>
-      </label>
+      <div class="login-fields">
+        <label class="login-field">
+          <span class="login-label">Usuário</span>
+          <div class="login-input-wrap">
+            <input class="login-input" id="loginUser" type="text" name="username" autocomplete="username" placeholder="Digite seu usuário" required>
+          </div>
+        </label>
+        <label class="login-field">
+          <span class="login-label">Senha</span>
+          <div class="login-input-wrap">
+            <input class="login-input" id="loginPass" type="password" name="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+            <button class="login-eye" id="loginTogglePass" type="button" aria-label="Mostrar senha">
+              <svg class="login-eye-icon login-eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C5.636 5 2 12 2 12s3.636 7 10 7 10-7 10-7-3.636-7-10-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/><circle cx="12" cy="12" r="2.2"/></svg>
+              <svg class="login-eye-icon login-eye-shut" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.27 3.27 20.73 20.73M10.58 10.58A2 2 0 0 0 12 15a2 2 0 0 0 1.42-3.42M9.88 5.09A10.94 10.94 0 0 1 12 5c6.364 0 10 7 10 7a18.82 18.82 0 0 1-4.35 5.22M6.11 6.11C3.6 7.86 2 12 2 12s1.79 4.92 5.11 6.89"/></svg>
+            </button>
+          </div>
+        </label>
+      </div>
       <p class="login-error is-hidden" id="loginError" role="alert"></p>
       <label class="login-remember">
         <input type="checkbox" id="loginRemember" checked>
-        <span>Manter conectado</span>
+        <span class="login-check" aria-hidden="true"></span>
+        <span class="login-remember-text">Manter conectado</span>
       </label>
       <button class="login-submit" id="loginSubmit" type="submit">
         <span class="login-submit-text">Entrar</span>
