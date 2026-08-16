@@ -1,21 +1,10 @@
-/** Sessão de login — estática, salva no aparelho. */
+/** Sessão de login — estática + usuários cadastrados no aparelho/repo. */
+import { hashPassword } from './password.js';
+import { getUsersMap } from './user-store.js';
+
 const SESSION_KEY = 'mf_session';
 const REMEMBER_DAYS = 30;
 const SESSION_HOURS = 12;
-
-/** SHA-256 de "100751rm" — altere a senha em hashPassword() e cole o novo hash aqui. */
-const USERS = {
-  rd: {
-    hash: 'e0adc2679d19b5405000c985be5b763fed121e380dfcc0d8592c084e7326c163',
-    name: 'RD',
-    admin: true,
-  },
-};
-
-async function hashPassword(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
 
 function readSession() {
   try {
@@ -47,7 +36,7 @@ export function logout() {
 
 export async function login(username, password, remember = true) {
   const user = (username || '').trim().toLowerCase();
-  const cred = USERS[user];
+  const cred = getUsersMap()[user];
   if (!cred) return { ok: false, message: 'Usuário não encontrado.', code: 'user_not_found' };
 
   const hash = await hashPassword(password || '');
@@ -70,5 +59,4 @@ export function sessionLabel(session) {
   return session.name || session.user;
 }
 
-/** Gera hash para trocar senha — rode no console: hashPassword('nova-senha') */
 export { hashPassword };

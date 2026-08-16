@@ -5,6 +5,15 @@ import { loadMissingWeather } from '../lib/weather.js';
 import { POINTS } from '../data/points.js';
 import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint, exportMyPointsFile, importMyPointsFromJson, exportAdminPointsSnippet, listSnapshots, restoreSnapshot, isAdmin, enableAdmin } from '../lib/mypoints.js';
 import { logout, getSession, sessionLabel } from '../lib/auth.js';
+import {
+  addUser,
+  exportUsersSnippet,
+  isSessionAdmin,
+  listUsers,
+  removeUser,
+  updateUserPassword,
+  usersSummary,
+} from '../lib/user-store.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
@@ -391,6 +400,115 @@ function copyAdminPointsSnippet() {
     });
 }
 
+function userSourceLabel(source) {
+  if (source === 'repo') return 'site';
+  if (source === 'local') return 'aparelho';
+  return 'principal';
+}
+
+function renderUsersList() {
+  const root = $('usersList');
+  if (!root) return;
+  const users = listUsers();
+  if (!users.length) {
+    root.innerHTML = '<p class="checklist-hint">Nenhum usuário cadastrado.</p>';
+    return;
+  }
+  root.innerHTML = users
+    .map((u) => {
+      const badges = [
+        u.admin ? '<span class="user-badge admin">admin</span>' : '',
+        u.locked ? '<span class="user-badge locked">fixo</span>' : '',
+      ].join('');
+      const canRemove = !u.locked && u.source !== 'repo';
+      return `<div class="user-row">
+        <div class="user-row-main">
+          <b>${u.name}${badges}</b>
+          <small>@${u.user} · ${userSourceLabel(u.source)}</small>
+        </div>
+        <div class="user-row-actions">
+          <button type="button" class="user-mini-btn" data-user-pass="${u.user}">Senha</button>
+          ${canRemove ? `<button type="button" class="user-mini-btn user-mini-btn--danger" data-user-del="${u.user}">✕</button>` : ''}
+        </div>
+      </div>`;
+    })
+    .join('');
+
+  root.querySelectorAll('[data-user-pass]').forEach((btn) => {
+    btn.onclick = async () => {
+      const pass = prompt(`Nova senha para @${btn.dataset.userPass}:`);
+      if (pass == null) return;
+      const result = await updateUserPassword(btn.dataset.userPass, pass);
+      toast(result.ok ? 'Senha atualizada.' : result.message);
+    };
+  });
+  root.querySelectorAll('[data-user-del]').forEach((btn) => {
+    btn.onclick = () => {
+      const user = btn.dataset.userDel;
+      if (!confirm(`Remover @${user}?`)) return;
+      const result = removeUser(user);
+      if (!result.ok) {
+        toast(result.message);
+        return;
+      }
+      renderUsersList();
+      syncMenuMeta();
+      toast('Usuário removido.');
+    };
+  });
+}
+
+function openUsersPanel() {
+  if (!isSessionAdmin()) {
+    toast('Somente administradores.');
+    return;
+  }
+  renderUsersList();
+  $('newUserLogin').value = '';
+  $('newUserName').value = '';
+  $('newUserPass').value = '';
+  $('newUserAdmin').checked = false;
+  hideSheet('optionsMenu');
+  showSheet('usersPanel');
+}
+
+async function saveNewUser() {
+  const result = await addUser({
+    username: $('newUserLogin')?.value,
+    name: $('newUserName')?.value,
+    password: $('newUserPass')?.value,
+    admin: $('newUserAdmin')?.checked,
+  });
+  if (!result.ok) {
+    toast(result.message);
+    return;
+  }
+  $('newUserLogin').value = '';
+  $('newUserName').value = '';
+  $('newUserPass').value = '';
+  $('newUserAdmin').checked = false;
+  renderUsersList();
+  syncMenuMeta();
+  toast(`Usuário @${result.user} cadastrado.`);
+}
+
+function copyUsersSnippet() {
+  const snippet = exportUsersSnippet();
+  navigator.clipboard
+    .writeText(snippet)
+    .then(() => toast('Copiado — cole em js/data/users.js e faça push.'))
+    .catch(() => {
+      const blob = new Blob([snippet], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'users.js';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Arquivo users.js baixado.');
+    });
+}
+
 function openMyPointsPanel() {
   sheetOrigin = 'menu';
   renderMyPointsList();
@@ -560,6 +678,13 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
   });
   $('markFab').onclick = openMarkPointSheet;
   $('openMyPoints').onclick = openMyPointsPanel;
+  $('openUsers')?.addEventListener('click', openUsersPanel);
+  $('usersClose')?.addEventListener('click', () => {
+    hideSheet('usersPanel');
+    if (sheetOrigin === 'menu') showSheet('optionsMenu');
+  });
+  $('newUserSave')?.addEventListener('click', saveNewUser);
+  $('usersExport')?.addEventListener('click', copyUsersSnippet);
   $('markHereFromMenu').onclick = openMarkPointSheet;
   $('markPointClose').onclick = closeMarkPointSheet;
   $('markPointSave').onclick = saveMarkedPoint;
@@ -902,6 +1027,7 @@ function closeAllSheets() {
   hideSheet('gearPanel');
   hideSheet('markPointPanel');
   hideSheet('myPointsPanel');
+  hideSheet('usersPanel');
   hideSheet('locSettingsPanel');
   sheetOrigin = null;
   $('checklistObserve')?.classList.remove('is-hidden');
@@ -921,6 +1047,8 @@ function syncMenuMeta() {
   $('menuGearMeta').textContent = isGearReady(gear) ? gearSummary(gear) : 'Cadastre vara, linha e iscas';
   $('menuMyPointsMeta').textContent = myPointsSummary();
   $('menuSessionMeta').textContent = session ? sessionLabel(session) : '—';
+  $('openUsers')?.classList.toggle('is-hidden', !isSessionAdmin());
+  $('menuUsersMeta').textContent = isSessionAdmin() ? usersSummary() : '—';
 }
 
 function showProfileEditor() {

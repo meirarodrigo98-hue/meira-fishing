@@ -195,6 +195,10 @@
       <span class="menu-item-label">Material de pesca</span>
       <span class="menu-item-meta" id="menuGearMeta">—</span>
     </button>
+    <button class="menu-item is-hidden" id="openUsers" type="button">
+      <span class="menu-item-label">Usuários</span>
+      <span class="menu-item-meta" id="menuUsersMeta">—</span>
+    </button>
     <button class="menu-item menu-item--danger" id="logoutBtn" type="button">
       <span class="menu-item-label">Sair da conta</span>
       <span class="menu-item-meta" id="menuSessionMeta">—</span>
@@ -247,6 +251,38 @@
   <div class="my-points-list" id="myPointsList"></div>
   <button class="gear-save secondary" id="myPointsAdminExport" type="button">Copiar para o repo (admin)</button>
   <button class="gear-save" id="markFromList" type="button">＋ Marcar onde estou agora</button>
+</div>
+
+<div class="sheet-panel" id="usersPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Admin</span>
+      <h3 class="checklist-title">Usuários</h3>
+    </div>
+    <button class="checklist-close" id="usersClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <p class="checklist-hint">Cadastre logins para outras pessoas usarem o app. Senhas ficam criptografadas no aparelho.</p>
+  <div class="users-form">
+    <label class="profile-field">
+      <span class="gear-field-label">Usuário</span>
+      <input class="profile-input" id="newUserLogin" type="text" maxlength="24" placeholder="Ex.: joao" autocomplete="off">
+    </label>
+    <label class="profile-field">
+      <span class="gear-field-label">Nome</span>
+      <input class="profile-input" id="newUserName" type="text" maxlength="40" placeholder="Ex.: João" autocomplete="off">
+    </label>
+    <label class="profile-field">
+      <span class="gear-field-label">Senha</span>
+      <input class="profile-input" id="newUserPass" type="password" maxlength="64" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+    </label>
+    <label class="users-admin-check">
+      <input type="checkbox" id="newUserAdmin">
+      <span>Administrador</span>
+    </label>
+    <button class="gear-save" id="newUserSave" type="button">Cadastrar usuário</button>
+  </div>
+  <div class="users-list" id="usersList"></div>
+  <button class="gear-save secondary" id="usersExport" type="button">Copiar para o repo (site)</button>
 </div>
 
 <div class="sheet-panel" id="profilePanel" aria-hidden="true">
