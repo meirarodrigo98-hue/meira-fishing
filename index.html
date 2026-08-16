@@ -395,35 +395,6 @@ body.points-simple .drawer{width:360px}
   .points-start h1{font-size:24px}
 }
 
-
-/* ===== Ficha limpa: ponto + condições ===== */
-.point-clean-section{margin-top:12px}
-.point-clean-title{
-  font-size:9px;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.8px;font-weight:900;margin-bottom:7px
-}
-.point-clean-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.point-clean-box{
-  border:1px solid var(--line);border-radius:11px;padding:9px;
-  background:rgba(255,255,255,.025)
-}
-.point-clean-box span{
-  display:block;font-size:8px;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.4px
-}
-.point-clean-box b{display:block;font-size:14px;margin-top:3px}
-.point-clean-note{
-  border:1px solid var(--line);border-radius:11px;padding:9px;
-  background:rgba(255,255,255,.02);font-size:10px;color:#c8d8dd;line-height:1.45
-}
-.point-live{
-  display:flex;align-items:center;gap:6px;
-  color:#bff6da;font-size:9px;font-weight:900;margin-bottom:7px
-}
-.point-live i{
-  width:7px;height:7px;border-radius:50%;background:var(--green)
-}
-
 </style>
 </head>
 <body>
@@ -759,44 +730,173 @@ body.points-simple .drawer{width:360px}
     <button class="btn" id="tripBarOpen">Abrir sessão</button>
   </div>
 
-  
   <section class="drawer" id="drawer">
     <div class="dhead">
-      <div>
-        <h2 id="dName">Ponto</h2>
-        <p id="dArea">Rio de Janeiro</p>
-      </div>
+      <div><h2 id="dName">Ponto</h2><p id="dArea">Rio de Janeiro</p></div>
       <button class="close" id="dClose">×</button>
     </div>
+    <div class="live"><i class="pulse"></i><span id="liveLabel">Buscando condições...</span></div>
 
-    <div class="point-clean-section">
-      <div class="point-clean-title">Informações do ponto</div>
-      <div class="point-clean-grid">
-        <div class="point-clean-box"><span>Distância</span><b id="simpleDistance">--</b></div>
-        <div class="point-clean-box"><span>Tipo</span><b id="simpleType">--</b></div>
-        <div class="point-clean-box"><span>Profundidade</span><b id="simpleDepth">--</b></div>
-        <div class="point-clean-box"><span>Espécies</span><b id="simpleSpecies">--</b></div>
-      </div>
-      <div class="point-clean-note" id="simplePointNote" style="margin-top:7px">--</div>
+    <div class="simple-point-info">
+      <div class="simple-point-box"><span>Distância</span><b id="simpleDistance">--</b></div>
+      <div class="simple-point-box"><span>Tipo</span><b id="simpleType">--</b></div>
+      <div class="simple-point-box"><span>Profundidade</span><b id="simpleDepth">--</b></div>
+      <div class="simple-point-box"><span>Espécies</span><b id="simpleSpecies">--</b></div>
     </div>
-
-    <div class="point-clean-section">
-      <div class="point-clean-title">Condições neste ponto</div>
-      <div class="point-live"><i></i><span id="simpleConditionsStatus">Buscando condições...</span></div>
-      <div class="point-clean-grid">
-        <div class="point-clean-box"><span>Vento</span><b id="simpleWind">--</b></div>
-        <div class="point-clean-box"><span>Ondas</span><b id="simpleWave">--</b></div>
-        <div class="point-clean-box"><span>Período</span><b id="simplePeriod">--</b></div>
-        <div class="point-clean-box"><span>Água</span><b id="simpleSst">--</b></div>
-        <div class="point-clean-box"><span>Corrente</span><b id="simpleCurrent">--</b></div>
-        <div class="point-clean-box"><span>Chuva</span><b id="simpleRain">--</b></div>
-      </div>
-    </div>
-
     <button class="simple-navigate" id="simpleNavigate">🧭 Navegar até o ponto</button>
     <button class="simple-close" id="simpleClose">Fechar</button>
-  </section>
 
+
+    <div class="two-scores">
+      <div class="scorebox"><span>Potencial de pesca</span><strong id="dFish">--/100</strong></div>
+      <div class="scorebox"><span>Segurança</span><strong id="dSafe">--/100</strong></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Agora neste ponto</div>
+      <div class="grid2">
+        <div class="metric"><span>Vento</span><strong id="dWind">--</strong><small id="dWindDir">--</small></div>
+        <div class="metric"><span>Onda / período</span><strong id="dWave">--</strong><small id="dPeriod">--</small></div>
+        <div class="metric"><span>Água</span><strong id="dSst">--</strong><small>SST</small></div>
+        <div class="metric"><span>Corrente</span><strong id="dCurrent">--</strong><small id="dCurrentDir">--</small></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Próximas horas</div>
+      <div class="hourstrip" id="hourStrip"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Planejamento 5 dias</div>
+      <div class="days" id="days"></div>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">Check-in inteligente do ponto</div>
+      <div class="checkin-panel">
+        <h3>👀 O que você está vendo agora?</h3>
+        <p>Quatro toques. O Meira combina sua leitura com clima e mar e já diz o que tentar.</p>
+
+        <div class="check-grid">
+          <div class="check-card">
+            <label>Cor da água</label>
+            <select id="ciWaterColor">
+              <option>Azul</option><option>Verde</option><option>Clara</option><option>Turva</option><option>Barrenta</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Transparência</label>
+            <select id="ciVisibility">
+              <option>Alta</option><option>Média</option><option>Baixa</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Corrente</label>
+            <select id="ciCurrent">
+              <option>Parada</option><option>Fraca</option><option>Média</option><option>Forte</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Atividade na superfície</label>
+            <select id="ciSurface">
+              <option>Nenhuma</option><option>Pouca</option><option>Média</option><option>Alta</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Aves trabalhando?</label>
+            <select id="ciBirds"><option>Não</option><option>Sim</option></select>
+          </div>
+          <div class="check-card">
+            <label>Isca natural presente?</label>
+            <select id="ciBaitfish">
+              <option>Não vi</option><option>Sardinha</option><option>Manjuba</option><option>Camarão</option><option>Lula</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Sonar / peixe marcado</label>
+            <select id="ciSonar">
+              <option>Não uso / não vi</option><option>Poucos peixes</option><option>Cardume</option><option>Peixe no fundo</option><option>Peixe em meia-água</option>
+            </select>
+          </div>
+          <div class="check-card">
+            <label>Estrutura predominante</label>
+            <select id="ciStructure">
+              <option>Não sei</option><option>Pedra</option><option>Laje</option><option>Queda</option><option>Canal</option><option>Areia</option><option>Cascalho</option>
+            </select>
+          </div>
+        </div>
+
+        
+
+        <button class="btn primary" id="runCheckin" style="width:100%;margin-top:10px">Analisar o ponto agora</button>
+
+        <div class="rec-card" id="recommendationCard" style="display:none">
+          <h4>🎯 Melhor estratégia agora</h4>
+          <div class="rec-main" id="recMain">--</div>
+          <div class="rec-copy" id="recCopy"></div>
+          <div class="rec-steps" id="recSteps"></div>
+        </div>
+
+        <div id="feedbackArea" style="display:none;margin-top:10px">
+          <div class="section-title" style="margin-bottom:5px">Depois de alguns minutos, o que aconteceu?</div>
+          <div class="feedback-grid">
+            <button class="feedback-btn" data-feedback="capture">🐟 Capturei</button>
+            <button class="feedback-btn" data-feedback="attack">⚡ Tive ataque</button>
+            <button class="feedback-btn" data-feedback="follow">👀 Seguiu a isca</button>
+            <button class="feedback-btn" data-feedback="nothing">❌ Nada aconteceu</button>
+          </div>
+          <div class="adapt-card" id="adaptCard"><b id="adaptTitle">Ajuste sugerido</b><p id="adaptText"></p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Score por espécie</div>
+      <div class="species-rank" id="speciesScores"></div>
+      <button class="btn explain-btn" id="explainScoreBtn">? Por que esse score?</button>
+      <div id="scoreExplanation" style="display:none"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Sobre o ponto</div>
+      <div class="tags" id="dTags"></div>
+      <div class="notice" id="dNote"></div>
+      <div class="source" id="dSource"></div>
+    </div>
+
+    <div class="navpanel" id="navPanel">
+      <div class="compass"><div class="needle" id="needle"></div></div>
+      <div class="navinfo"><strong id="navDistance">--</strong><small id="navBearing">Ative o GPS.</small><small>As coordenadas do ponto não são exibidas.</small></div>
+    </div>
+
+
+    <div class="exact-nav-card" id="exactNavCard" style="display:none">
+      <h4>🧭 Navegação para o waypoint</h4>
+      <div class="exact-nav-grid">
+        <div class="exact-nav-box"><span>Distância</span><b id="exactDistance">--</b></div>
+        <div class="exact-nav-box"><span>Rumo</span><b id="exactBearing">--</b></div>
+      </div>
+      <div class="arrival-status" id="arrivalStatus">Ative o GPS para iniciar.</div>
+      <div class="route-line-label">A coordenada exata é usada internamente para navegação e não é exibida na interface.</div>
+      <div class="exact-actions">
+        <button class="btn primary" id="startExactNav">Iniciar navegação</button>
+        <button class="btn" id="stopExactNav">Parar</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="favBtn">☆ Favoritar</button>
+      <button class="btn primary" id="navBtn">🧭 Navegar</button>
+      <button class="btn" id="captureHere">＋ Registrar captura</button>
+      <button class="btn warn" id="refreshBtn">↻ Atualizar dados</button>
+    </div>
+
+    <div class="notice">
+      * O nível do mar é uma estimativa modelada, não uma tábua de maré oficial. Para navegação e segurança consulte DHN/Marinha, avisos e publicações náuticas atualizadas.
+    </div>
+  </section>
 </main>
 </div>
 </div>
@@ -1543,39 +1643,18 @@ function pointDepth(p){
   if(p.type==='Costão'||p.type==='Pedra') return 'Costeiro';
   return '—';
 }
-async function openSimplePoint(p){
+function openSimplePoint(p){
   if(!p)return;
   selected=p;
   $('dName').textContent=p.name;
   $('dArea').textContent=p.area;
   $('simpleType').textContent=p.type;
   $('simpleDepth').textContent=pointDepth(p);
-  $('simpleSpecies').textContent=(p.species||[]).slice(0,3).join(' / ')||'—';
-  $('simplePointNote').textContent=p.note||'Sem observações adicionais.';
-
+  $('simpleSpecies').textContent=(p.species||[]).slice(0,2).join(' / ')||'—';
   const dk=userPos?dist(userPos,p):null;
   $('simpleDistance').textContent=dk===null?'Ative GPS':(dk<1?Math.round(dk*1000)+' m':dk.toFixed(1)+' km');
-
-  $('simpleConditionsStatus').textContent='Buscando condições...';
-  ['simpleWind','simpleWave','simplePeriod','simpleSst','simpleCurrent','simpleRain'].forEach(id=>$(id).textContent='--');
-
   $('drawer').classList.add('show');
   map.flyTo([p.lat,p.lng],14,{duration:.6});
-
-  try{
-    const d=await getConditions(p);
-    const w=d.weather?.current||{};
-    const m=d.marine?.current||{};
-    $('simpleWind').textContent=Number.isFinite(w.wind_speed_10m)?`${Math.round(w.wind_speed_10m)} km/h`:'--';
-    $('simpleWave').textContent=Number.isFinite(m.wave_height)?`${m.wave_height.toFixed(1)} m`:'--';
-    $('simplePeriod').textContent=Number.isFinite(m.wave_period)?`${m.wave_period.toFixed(1)} s`:'--';
-    $('simpleSst').textContent=Number.isFinite(m.sea_surface_temperature)?`${m.sea_surface_temperature.toFixed(1)}°C`:'--';
-    $('simpleCurrent').textContent=Number.isFinite(m.ocean_current_velocity)?`${m.ocean_current_velocity.toFixed(2)} km/h`:'--';
-    $('simpleRain').textContent=Number.isFinite(w.precipitation)?`${w.precipitation.toFixed(1)} mm`:'--';
-    $('simpleConditionsStatus').textContent=d.demo?'Dados de demonstração':'Condições atualizadas';
-  }catch(e){
-    $('simpleConditionsStatus').textContent='Condições indisponíveis';
-  }
 }
 $('simpleNavigate').onclick=()=>{if(selected)startExactNavigation();};
 $('simpleClose').onclick=()=>$('drawer').classList.remove('show');
