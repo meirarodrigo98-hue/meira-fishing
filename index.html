@@ -27,9 +27,12 @@
     <span class="hud-label" id="hudLabel">Radar ativo</span>
     <span class="hud-count" id="hudCount">—</span>
   </div>
+  <button class="hud-btn" id="followBtn" type="button" aria-label="Seguir minha localização" title="Seguir você">◎</button>
   <button class="hud-btn" id="gearBtn" type="button" aria-label="Opções">⚙</button>
-  <button class="hud-btn" id="relocate" type="button" aria-label="Atualizar localização">◎</button>
+  <button class="hud-btn" id="relocate" type="button" aria-label="Centralizar em mim">⌖</button>
 </header>
+
+<button class="mark-fab is-hidden" id="markFab" type="button" aria-label="Marcar ponto aqui">＋</button>
 
 <div class="radar-dock" id="radarDock">
   <div class="radar-dock-inner">
@@ -62,6 +65,7 @@
   <div class="spots-filters" id="filters">
     <button class="chip on" data-filter="todos" type="button">Todos</button>
     <button class="chip" data-filter="terra" type="button">Terra</button>
+    <button class="chip" data-filter="meus" type="button">Meus</button>
     <button class="chip" data-filter="barco" type="button">Barco</button>
     <button class="chip" data-filter="lagoa" type="button">Lagoa</button>
   </div>
@@ -129,6 +133,14 @@
     <button class="checklist-close" id="optionsMenuClose" type="button" aria-label="Fechar">✕</button>
   </div>
   <div class="menu-list">
+    <button class="menu-item" id="openMyPoints" type="button">
+      <span class="menu-item-label">Meus pontos</span>
+      <span class="menu-item-meta" id="menuMyPointsMeta">—</span>
+    </button>
+    <button class="menu-item" id="markHereFromMenu" type="button">
+      <span class="menu-item-label">Marcar ponto aqui</span>
+      <span class="menu-item-meta">GPS atual</span>
+    </button>
     <button class="menu-item" id="openProfile" type="button">
       <span class="menu-item-label">Meu perfil</span>
       <span class="menu-item-meta" id="menuProfileMeta">—</span>
@@ -138,6 +150,43 @@
       <span class="menu-item-meta" id="menuGearMeta">—</span>
     </button>
   </div>
+</div>
+
+<div class="sheet-panel" id="markPointPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Marcar</span>
+      <h3 class="checklist-title">Salvar este local</h3>
+    </div>
+    <button class="checklist-close" id="markPointClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <p class="checklist-hint">Usa sua posição GPS exata. Salvo só no seu aparelho.</p>
+  <label class="profile-field">
+    <span class="gear-field-label">Nome do ponto</span>
+    <input class="profile-input" id="markPointName" type="text" maxlength="60" placeholder="Ex.: Pedra do João">
+  </label>
+  <div class="gear-field">
+    <p class="gear-field-label">Tipo</p>
+    <div class="gear-options" id="markPointType"></div>
+  </div>
+  <label class="profile-field">
+    <span class="gear-field-label">Como chegar (opcional)</span>
+    <input class="profile-input" id="markPointNote" type="text" maxlength="120" placeholder="Ex.: escada após o quiosque">
+  </label>
+  <button class="gear-save" id="markPointSave" type="button">Salvar ponto aqui</button>
+</div>
+
+<div class="sheet-panel" id="myPointsPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Seus spots</span>
+      <h3 class="checklist-title">Meus pontos</h3>
+    </div>
+    <button class="checklist-close" id="myPointsClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <p class="checklist-hint">Toque para abrir no mapa · ✕ remove</p>
+  <div class="my-points-list" id="myPointsList"></div>
+  <button class="gear-save" id="markFromList" type="button">＋ Marcar onde estou agora</button>
 </div>
 
 <div class="sheet-panel" id="profilePanel" aria-hidden="true">

@@ -1,5 +1,4 @@
-import { toast } from './lib/utils.js';
-import { POINTS } from './data/points.js';
+import { mergePoints } from './lib/mypoints.js';
 import { PLACES } from './data/places.js';
 import { loadWeatherBatch, loadMissingWeather } from './lib/weather.js';
 import { filterNearby } from './lib/utils.js';
@@ -35,14 +34,19 @@ function endRadar() {
   radarBusy = false;
 }
 
+function allPoints() {
+  return mergePoints(POINTS);
+}
+
 function nearbyPoints() {
-  const ranked = rankPoints(POINTS, state.userPos, state.filter, null);
+  const ranked = rankPoints(allPoints(), state.userPos, state.filter, null);
   return filterNearby(ranked).map((r) => r.p);
 }
 
 async function boot() {
-  setPoints(POINTS);
-  createMap(POINTS, openPoint);
+  const points = allPoints();
+  setPoints(points);
+  createMap(points, openPoint);
 
   bindUi({
     onCapture: () =>
@@ -63,7 +67,7 @@ async function boot() {
       const missing = points.filter((p) => !getPointWeather(p.id));
       if (!missing.length) return;
       await loadMissingWeather(missing, setRadarProgress);
-      renderList(POINTS, { nearby: true });
+      renderList(allPoints(), { nearby: true });
     },
   });
 
@@ -82,7 +86,7 @@ async function finishRadar() {
   } catch {
     if (state.userPos) {
       await loadWeatherBatch(nearbyPoints(), setRadarProgress);
-      renderList(POINTS, { nearby: true });
+      renderList(allPoints(), { nearby: true });
       ready();
       beginTracking();
     } else {
@@ -122,7 +126,7 @@ async function handleReady() {
 
   if (estimated) toast('Alguns pontos usaram clima estimado.');
 
-  renderList(POINTS, { nearby: true });
+  renderList(allPoints(), { nearby: true });
   ready();
   beginTracking();
 }

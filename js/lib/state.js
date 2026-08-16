@@ -6,6 +6,7 @@ export const state = {
   weatherByPoint: new Map(),
   weatherEstimated: false,
   navigating: false,
+  followUser: true,
 };
 
 export function setUserPos(pos) {
@@ -40,4 +41,15 @@ export function setFilter(filter) {
 
 export function setNavigating(active) {
   state.navigating = active;
+}
+
+export function setFollowUser(on) {
+  state.followUser = !!on;
+  document.body.classList.toggle('follow-on', state.followUser);
+  const btn = document.getElementById('followBtn');
+  if (btn) btn.classList.toggle('on', state.followUser);
+  const label = document.getElementById('hudLabel');
+  if (label && document.body.classList.contains('app-ready')) {
+    label.textContent = state.followUser ? 'Seguindo você' : 'Radar ativo';
+  }
 }

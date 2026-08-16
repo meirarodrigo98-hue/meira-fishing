@@ -10,7 +10,7 @@ import {
   showSearching,
 } from './ui.js';
 
-/** GPS — pede posição no clique (sem await antes, senão o navegador bloqueia o popup). */
+/** GPS — pede posição no clique; watchPosition acompanha enquanto você anda. */
 let watchId = null;
 let locating = false;
 
@@ -19,6 +19,12 @@ const GEO_ATTEMPTS = [
   { enableHighAccuracy: false, timeout: 22000, maximumAge: 60000 },
   { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 },
 ];
+
+const WATCH_OPTS = {
+  enableHighAccuracy: true,
+  maximumAge: 4000,
+  timeout: 20000,
+};
 
 function clearWatch() {
   if (watchId != null) {
@@ -36,11 +42,11 @@ export function beginTracking() {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      setUser({ lat, lng }, false);
+      setUser({ lat, lng }, { follow: true });
       onUserMoved();
     },
     () => {},
-    { enableHighAccuracy: false, maximumAge: 30000, timeout: 25000 },
+    WATCH_OPTS,
   );
 }
 
@@ -94,7 +100,7 @@ function attemptGeo(onSuccess, onFallback, index = 0) {
       hideAwaitingPermission();
       showSearching();
       const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setUser(location, true);
+      setUser(location, { center: true });
       locating = false;
       onSuccess(location);
     })
@@ -149,6 +155,6 @@ export function useManualPlace(place, onReady) {
   clearWatch();
   hideRecover();
   hideAwaitingPermission();
-  setUser(place, true);
+  setUser(place, { center: true });
   onReady();
 }

@@ -38,6 +38,7 @@ export function filterNearby(rows, maxKm = NEARBY_KM, limit = NEARBY_LIMIT) {
 }
 
 export function matchesFilter(point, filter) {
+  if (filter === 'meus') return point.personal === true;
   if (filter === 'terra') return point.mode === 'land' && point.type !== 'Lagoa';
   if (filter === 'barco') return point.mode === 'boat';
   if (filter === 'lagoa') return point.type === 'Lagoa';

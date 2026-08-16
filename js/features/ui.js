@@ -1,7 +1,9 @@
 import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds } from '../lib/utils.js';
-import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected } from '../lib/state.js';
+import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigating, setSelected, setFollowUser } from '../lib/state.js';
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
+import { POINTS } from '../data/points.js';
+import { addMyPoint, loadMyPoints, mergePoints, myPointsSummary, removeMyPoint } from '../lib/mypoints.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
 import { loadGear, isGearReady, gearSummary } from '../lib/gear.js';
 import { initGearUi, loadGearDraft, saveGearDraft as persistGearDraft } from './gear-ui.js';
@@ -18,7 +20,18 @@ import {
   setBestPointId,
   updateRoute,
   onMapBackgroundClick,
+  syncMapPoints,
+  removeMapMarker,
 } from './map.js';
+
+const MARK_TYPES = [
+  { id: 'Pedra', label: 'Pedra' },
+  { id: 'Costão', label: 'Costão' },
+  { id: 'Orla', label: 'Orla' },
+  { id: 'Pier', label: 'Pier' },
+  { id: 'Canal', label: 'Canal' },
+];
+let markType = 'Pedra';
 
 /** Card de pontos estilo mapa nativo — abrir, navegar, ir. */
 let onRefresh = null;
@@ -61,6 +74,124 @@ function isOpen() {
 
 function renderMapMarkers() {
   renderMarkers(pointsRef, mapPointIds(pointsRef, state.filter));
+}
+
+function reloadAllPoints() {
+  const pts = mergePoints(POINTS);
+  pointsRef = pts;
+  syncMapPoints(pts, openPoint);
+  renderList(pts, { nearby: isRadarOn() });
+  syncMenuMeta();
+  return pts;
+}
+
+function setMarkFabVisible(show) {
+  $('markFab')?.classList.toggle('is-hidden', !show);
+}
+
+function renderMarkTypeOptions() {
+  const root = $('markPointType');
+  if (!root) return;
+  root.innerHTML = MARK_TYPES.map(
+    (t) => `<button type="button" class="gear-chip${markType === t.id ? ' on' : ''}" data-mark-type="${t.id}">${t.label}</button>`,
+  ).join('');
+  root.querySelectorAll('[data-mark-type]').forEach((btn) => {
+    btn.onclick = () => {
+      markType = btn.dataset.markType;
+      renderMarkTypeOptions();
+    };
+  });
+}
+
+function openMarkPointSheet() {
+  if (!isRadarOn()) {
+    toast('Ligue o radar primeiro.');
+    return;
+  }
+  if (!state.userPos) {
+    toast('Aguardando GPS… tente de novo em instantes.');
+    return;
+  }
+  sheetOrigin = 'menu';
+  $('markPointName').value = '';
+  $('markPointNote').value = '';
+  markType = 'Pedra';
+  renderMarkTypeOptions();
+  hideSheet('optionsMenu');
+  hideSheet('myPointsPanel');
+  showSheet('markPointPanel');
+}
+
+async function saveMarkedPoint() {
+  if (!state.userPos) {
+    toast('Sem GPS — não dá para marcar.');
+    return;
+  }
+  const result = addMyPoint({
+    name: $('markPointName').value,
+    lat: state.userPos.lat,
+    lng: state.userPos.lng,
+    type: markType,
+    note: $('markPointNote').value,
+  });
+  if (!result.ok) {
+    toast(result.message);
+    return;
+  }
+  hideSheet('markPointPanel');
+  reloadAllPoints();
+  await loadMissingWeather([result.point], setRadarProgress);
+  setFilter('meus');
+  $('filters')?.querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c.dataset.filter === 'meus'));
+  renderList(pointsRef, { nearby: isRadarOn() });
+  openPoint(result.point);
+  toast('Ponto salvo no seu aparelho.');
+  if (sheetOrigin === 'menu') showSheet('optionsMenu');
+}
+
+function renderMyPointsList() {
+  const root = $('myPointsList');
+  if (!root) return;
+  const list = loadMyPoints();
+  if (!list.length) {
+    root.innerHTML = '<p class="checklist-hint">Nenhum ponto ainda — marque onde você pesca.</p>';
+    return;
+  }
+  root.innerHTML = list
+    .map(
+      (p) => `<div class="my-point-row">
+        <button type="button" class="my-point-open" data-my-id="${p.id}">
+          <b>${p.name}</b>
+          <small>${p.type} · ${p.access.slice(0, 48)}</small>
+        </button>
+        <button type="button" class="my-point-del" data-del-id="${p.id}" aria-label="Remover">✕</button>
+      </div>`,
+    )
+    .join('');
+  root.querySelectorAll('[data-my-id]').forEach((btn) => {
+    btn.onclick = () => {
+      const p = loadMyPoints().find((x) => x.id === btn.dataset.myId);
+      if (!p) return;
+      closeAllSheets();
+      openPoint(p);
+    };
+  });
+  root.querySelectorAll('[data-del-id]').forEach((btn) => {
+    btn.onclick = () => {
+      removeMyPoint(btn.dataset.delId);
+      removeMapMarker(btn.dataset.delId);
+      reloadAllPoints();
+      renderMyPointsList();
+      toast('Ponto removido.');
+    };
+  });
+}
+
+function openMyPointsPanel() {
+  sheetOrigin = 'menu';
+  renderMyPointsList();
+  hideSheet('optionsMenu');
+  showSheet('myPointsPanel');
 }
 
 function rankAll(points) {
@@ -161,8 +292,34 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   $('openGearFromMenu').onclick = () => showGearEditor({ fromMenu: true });
   $('profileClose').onclick = () => hideProfileEditor();
   $('profileSave').onclick = saveProfileDraft;
-  $('relocate').onclick = onRelocate;
+  $('followBtn').onclick = () => {
+    setFollowUser(!state.followUser);
+    if (state.followUser && state.userPos) recenterUser();
+    else toast(state.followUser ? 'Mapa vai te acompanhar' : 'Arraste o mapa livremente');
+  };
+  $('relocate').onclick = () => {
+    setFollowUser(true);
+    if (state.userPos && isRadarOn()) {
+      recenterUser();
+      toast('Centralizado em você');
+      return;
+    }
+    onRelocate();
+  };
   $('retryGps').onclick = onRelocate;
+  $('markFab').onclick = openMarkPointSheet;
+  $('openMyPoints').onclick = openMyPointsPanel;
+  $('markHereFromMenu').onclick = openMarkPointSheet;
+  $('markPointClose').onclick = () => {
+    hideSheet('markPointPanel');
+    if (sheetOrigin === 'menu') showSheet('optionsMenu');
+  };
+  $('markPointSave').onclick = saveMarkedPoint;
+  $('myPointsClose').onclick = () => {
+    hideSheet('myPointsPanel');
+    if (sheetOrigin === 'menu') showSheet('optionsMenu');
+  };
+  $('markFromList').onclick = openMarkPointSheet;
   $('stopNav').onclick = stopNav;
 }
 
@@ -281,6 +438,8 @@ export function hideOverlays() {
 export function ready() {
   hideOverlays();
   document.body.classList.add('app-ready');
+  setFollowUser(true);
+  setMarkFabVisible(true);
   setRadarDockVisible(false);
   syncChrome();
   setTopbarVisible(true);
@@ -346,7 +505,7 @@ function paint(row, i) {
 
   $('cardRank').textContent = i === 0 ? 'Melhor agora' : `Ponto ${i + 1}`;
   $('cardName').textContent = p.name;
-  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
+  $('cardMeta').textContent = `${distance == null ? '—' : fmtKm(distance)} · ${p.species.slice(0, 2).join(', ')}${p.personal ? ' · seu ponto' : ''}${p.coast ? ` · ${coastLabel(p)}` : ''}`;
   const accessEl = $('cardAccess');
   if (accessEl) {
     accessEl.textContent = p.access ? `📍 ${p.access}` : '';
@@ -443,6 +602,8 @@ function closeAllSheets() {
   hideSheet('optionsMenu');
   hideSheet('profilePanel');
   hideSheet('gearPanel');
+  hideSheet('markPointPanel');
+  hideSheet('myPointsPanel');
   sheetOrigin = null;
   $('checklistObserve')?.classList.remove('is-hidden');
 }
@@ -458,6 +619,7 @@ function syncMenuMeta() {
   const gear = loadGear();
   $('menuProfileMeta').textContent = profileSummary(profile);
   $('menuGearMeta').textContent = isGearReady(gear) ? gearSummary(gear) : 'Cadastre vara, linha e iscas';
+  $('menuMyPointsMeta').textContent = myPointsSummary();
 }
 
 function showProfileEditor() {
