@@ -143,11 +143,25 @@ function stopLoadingHints() {
   }
 }
 
+export function showAwaitingPermission() {
+  $('permWait')?.classList.remove('is-hidden');
+  setRadarDockVisible(false);
+  $('recover')?.classList.add('is-hidden');
+  $('radarScan')?.classList.add('is-hidden');
+  $('statusLine').textContent = 'Aguardando permissão…';
+  setEntryVisible(false);
+}
+
+export function hideAwaitingPermission() {
+  $('permWait')?.classList.add('is-hidden');
+}
+
 export function showSearching() {
   stopLoadingHints();
+  hideAwaitingPermission();
   $('radarScan')?.classList.remove('is-hidden');
   setRadarDockVisible(false);
-  $('fallback')?.classList.add('is-hidden');
+  $('recover')?.classList.add('is-hidden');
   $('statusLine').textContent = 'Radar ativo…';
   setEntryVisible(false);
 
@@ -160,18 +174,48 @@ export function showSearching() {
   }, 1600);
 }
 
-export function showFallback() {
+export function showPermissionDenied() {
   stopLoadingHints();
+  hideAwaitingPermission();
   $('radarScan')?.classList.add('is-hidden');
   setRadarDockVisible(false);
-  $('fallback')?.classList.remove('is-hidden');
+  $('recover')?.classList.remove('is-hidden');
+  $('recoverDenied')?.classList.remove('is-hidden');
+  $('recoverGps')?.classList.add('is-hidden');
   setEntryVisible(false);
+}
+
+export function showRecover(reason = 'unknown') {
+  stopLoadingHints();
+  hideAwaitingPermission();
+  $('radarScan')?.classList.add('is-hidden');
+  setRadarDockVisible(false);
+  $('recover')?.classList.remove('is-hidden');
+  $('recoverDenied')?.classList.add('is-hidden');
+  $('recoverGps')?.classList.remove('is-hidden');
+
+  const hints = {
+    timeout: 'Demorou demais — escolha sua região ou tente de novo.',
+    unavailable: 'Não achamos sinal de GPS — escolha sua região.',
+    insecure: 'Localização só funciona em HTTPS.',
+    unsupported: 'Seu navegador não suporta GPS.',
+  };
+  const el = $('recoverHint');
+  if (el) el.textContent = hints[reason] || 'Escolha sua região para ligar o radar.';
+  setEntryVisible(false);
+}
+
+export function hideRecover() {
+  $('recover')?.classList.add('is-hidden');
+  $('recoverDenied')?.classList.add('is-hidden');
+  $('recoverGps')?.classList.add('is-hidden');
 }
 
 export function hideOverlays() {
   stopLoadingHints();
+  hideAwaitingPermission();
+  hideRecover();
   $('radarScan')?.classList.add('is-hidden');
-  $('fallback')?.classList.add('is-hidden');
 }
 
 export function ready() {

@@ -3,7 +3,7 @@ import { POINTS } from './data/points.js';
 import { PLACES } from './data/places.js';
 import { loadWeather } from './lib/weather.js';
 import { createMap } from './features/map.js';
-import { bindUi, openPoint, ready, renderList, renderPlaces, setPoints, showSearching } from './features/ui.js';
+import { bindUi, hideRecover, openPoint, ready, renderList, renderPlaces, setPoints, showSearching } from './features/ui.js';
 import { state } from './lib/state.js';
 import { captureLocation, retryLocation, useManualPlace } from './features/location.js';
 
@@ -17,6 +17,7 @@ async function boot() {
   });
 
   renderPlaces(PLACES, (place) => {
+    hideRecover();
     showSearching();
     useManualPlace(place, () => handleReady());
   });

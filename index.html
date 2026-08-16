@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Meira Fishing</title>
 <script src="js/boot-cache.js"></script>
-<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
@@ -23,10 +25,21 @@
 </header>
 
 <div class="radar-dock" id="radarDock">
-  <button class="radar-btn" id="captureLocation" type="button">
-    <span class="radar-icon" aria-hidden="true"></span>
-    Ligar radar de pontos
-  </button>
+  <div class="radar-dock-inner">
+    <p class="radar-tag">Meira Fishing</p>
+    <button class="radar-btn" id="captureLocation" type="button">
+      <span class="radar-icon" aria-hidden="true"></span>
+      Ligar radar de pontos
+    </button>
+    <p class="radar-note">Permita a localização quando o navegador pedir</p>
+  </div>
+</div>
+
+<div class="perm-wait is-hidden" id="permWait" aria-live="polite">
+  <div class="perm-wait-box">
+    <span class="perm-dot" aria-hidden="true"></span>
+    <p id="permWaitText">Toque em <strong>Permitir</strong> no popup do navegador</p>
+  </div>
 </div>
 
 <div class="spots-entry is-hidden" id="spotsEntry">
@@ -81,12 +94,21 @@
   <p class="radar-label" id="bootLoadingHint">Ligando radar…</p>
 </div>
 
-<section id="fallback" class="is-hidden">
-  <div class="fallbox">
-    <h2>Sem GPS</h2>
-    <p>Escolha um bairro para ligar o radar.</p>
+<section id="recover" class="is-hidden">
+  <div class="recover-box">
+    <div id="recoverDenied" class="recover-panel is-hidden">
+      <span class="recover-icon">⌖</span>
+      <h2>Localização bloqueada</h2>
+      <p>Toque no ícone de cadeado ou <strong>ⓘ</strong> na barra de endereço e permita a localização deste site.</p>
+    </div>
+    <div id="recoverGps" class="recover-panel is-hidden">
+      <span class="recover-icon">◎</span>
+      <h2>GPS indisponível</h2>
+      <p id="recoverHint">Escolha sua região para ligar o radar.</p>
+    </div>
+    <p class="recover-or">ou escolha sua região</p>
     <div class="places" id="places"></div>
-    <button class="ghost" id="retryGps" type="button">Ligar radar de novo</button>
+    <button class="ghost" id="retryGps" type="button">Tentar localização de novo</button>
   </div>
 </section>
 
