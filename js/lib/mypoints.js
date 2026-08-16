@@ -27,7 +27,7 @@ export function mergePoints(base) {
   return [...base, ...loadMyPoints()];
 }
 
-export function addMyPoint({ name, lat, lng, type = 'Pedra', note = '' }) {
+export function addMyPoint({ name, lat, lng, type = 'Pedra', note = '', accuracy = null }) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return { ok: false, message: 'Localização inválida.' };
   }
@@ -38,12 +38,13 @@ export function addMyPoint({ name, lat, lng, type = 'Pedra', note = '' }) {
     personal: true,
     name: label,
     area: 'Meus pontos',
-    lat,
-    lng,
+    lat: Number(lat.toFixed(7)),
+    lng: Number(lng.toFixed(7)),
     type,
     confidence: 78,
     species: ['Robalo', 'Xaréu'],
     access: note.trim() || 'Marcado por você neste local exato',
+    accuracy: accuracy ?? null,
     coast: { ...DEFAULT_COAST },
   };
   const list = loadMyPoints();

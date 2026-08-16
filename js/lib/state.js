@@ -10,7 +10,15 @@ export const state = {
 };
 
 export function setUserPos(pos) {
-  state.userPos = pos ? { lat: pos.lat, lng: pos.lng } : null;
+  state.userPos = pos
+    ? {
+        lat: pos.lat,
+        lng: pos.lng,
+        accuracy: pos.accuracy ?? null,
+        gps: pos.gps !== false && !pos.approx,
+        approx: !!pos.approx,
+      }
+    : null;
 }
 
 export function clearPointWeather() {

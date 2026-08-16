@@ -22,7 +22,12 @@ import {
   onMapBackgroundClick,
   syncMapPoints,
   removeMapMarker,
+  beginMarkMode,
+  endMarkMode,
+  getMarkDraftPos,
+  setMarkDraftPos,
 } from './map.js';
+import { capturePrecisePosition } from './location.js';
 
 const MARK_TYPES = [
   { id: 'Pedra', label: 'Pedra' },
@@ -103,41 +108,96 @@ function renderMarkTypeOptions() {
   });
 }
 
+function fmtCoords(lat, lng) {
+  return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+}
+
+function fmtAccuracy(acc) {
+  if (acc == null || !Number.isFinite(acc)) return 'calculando…';
+  if (acc <= 8) return `±${Math.round(acc)} m — excelente`;
+  if (acc <= 20) return `±${Math.round(acc)} m — bom`;
+  return `±${Math.round(acc)} m — aguarde ou arraste o pin`;
+}
+
+function syncMarkPanel(pos) {
+  const coords = $('markPointCoords');
+  const accEl = $('markPointAccuracy');
+  if (!pos) {
+    if (coords) coords.textContent = '—';
+    if (accEl) accEl.textContent = 'Buscando GPS fino…';
+    return;
+  }
+  if (coords) coords.textContent = fmtCoords(pos.lat, pos.lng);
+  if (accEl) accEl.textContent = fmtAccuracy(pos.accuracy);
+}
+
 function openMarkPointSheet() {
   if (!isRadarOn()) {
     toast('Ligue o radar primeiro.');
     return;
   }
-  if (!state.userPos) {
-    toast('Aguardando GPS… tente de novo em instantes.');
+  if (state.userPos?.approx) {
+    toast('Permita GPS no celular — localização de rede não é precisa o suficiente.');
     return;
   }
-  sheetOrigin = 'menu';
+
+  closeSpots();
+  closeAllSheets();
+  sheetOrigin = 'mark';
   $('markPointName').value = '';
   $('markPointNote').value = '';
   markType = 'Pedra';
   renderMarkTypeOptions();
-  hideSheet('optionsMenu');
-  hideSheet('myPointsPanel');
+  syncMarkPanel(null);
   showSheet('markPointPanel');
+
+  const start = state.userPos?.gps ? { ...state.userPos } : null;
+  if (start) {
+    beginMarkMode(start, syncMarkPanel);
+    syncMarkPanel(getMarkDraftPos());
+  }
+
+  capturePrecisePosition()
+    .then((reading) => {
+      setMarkDraftPos(reading);
+      syncMarkPanel(getMarkDraftPos());
+      toast(`GPS fino: ±${Math.round(reading.accuracy ?? 0)} m`);
+    })
+    .catch(() => {
+      if (state.userPos?.gps) {
+        syncMarkPanel(getMarkDraftPos());
+        toast('Use o pin no mapa — arraste para o local exato.');
+      } else {
+        toast('Sem GPS fino — permita localização e tente de novo.');
+        endMarkMode();
+        hideSheet('markPointPanel');
+      }
+    });
 }
 
 async function saveMarkedPoint() {
-  if (!state.userPos) {
-    toast('Sem GPS — não dá para marcar.');
+  const draft = getMarkDraftPos();
+  if (!draft) {
+    toast('Aguardando GPS — tente de novo em instantes.');
+    return;
+  }
+  if (state.userPos?.approx) {
+    toast('GPS necessário para marcar com precisão.');
     return;
   }
   const result = addMyPoint({
     name: $('markPointName').value,
-    lat: state.userPos.lat,
-    lng: state.userPos.lng,
+    lat: draft.lat,
+    lng: draft.lng,
     type: markType,
     note: $('markPointNote').value,
+    accuracy: draft.accuracy,
   });
   if (!result.ok) {
     toast(result.message);
     return;
   }
+  endMarkMode();
   hideSheet('markPointPanel');
   reloadAllPoints();
   await loadMissingWeather([result.point], setRadarProgress);
@@ -145,8 +205,14 @@ async function saveMarkedPoint() {
   $('filters')?.querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c.dataset.filter === 'meus'));
   renderList(pointsRef, { nearby: isRadarOn() });
   openPoint(result.point);
-  toast('Ponto salvo no seu aparelho.');
+  toast('Ponto salvo na posição exata.');
+}
+
+function closeMarkPointSheet() {
+  endMarkMode();
+  hideSheet('markPointPanel');
   if (sheetOrigin === 'menu') showSheet('optionsMenu');
+  sheetOrigin = null;
 }
 
 function renderMyPointsList() {
@@ -313,11 +379,18 @@ export function bindUi({ onCapture, onRelocate, onApprox, onFilterChange: onFilt
   $('markFab').onclick = openMarkPointSheet;
   $('openMyPoints').onclick = openMyPointsPanel;
   $('markHereFromMenu').onclick = openMarkPointSheet;
-  $('markPointClose').onclick = () => {
-    hideSheet('markPointPanel');
-    if (sheetOrigin === 'menu') showSheet('optionsMenu');
-  };
+  $('markPointClose').onclick = closeMarkPointSheet;
   $('markPointSave').onclick = saveMarkedPoint;
+  $('markPointRefresh').onclick = () => {
+    syncMarkPanel(null);
+    capturePrecisePosition()
+      .then((reading) => {
+        setMarkDraftPos(reading);
+        syncMarkPanel(getMarkDraftPos());
+        toast(`GPS atualizado: ±${Math.round(reading.accuracy ?? 0)} m`);
+      })
+      .catch(() => toast('Não consegui GPS fino — arraste o pin no mapa.'));
+  };
   $('myPointsClose').onclick = () => {
     hideSheet('myPointsPanel');
     if (sheetOrigin === 'menu') showSheet('optionsMenu');
@@ -623,6 +696,7 @@ function hideSheet(id) {
 }
 
 function closeAllSheets() {
+  endMarkMode();
   hideSheet('optionsMenu');
   hideSheet('profilePanel');
   hideSheet('gearPanel');

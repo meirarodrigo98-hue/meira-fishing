@@ -461,6 +461,25 @@ body.spots-open .spots-card{transform:translateY(0)}
 .mark-fab.is-hidden{display:none!important}
 .mark-fab:active{transform:scale(.94);opacity:.9}
 
+.mark-gps-line{margin:0 0 8px;font-size:12px;color:#8ec8d8;line-height:1.45}
+.mark-gps-line .gear-field-label{display:block;margin-bottom:2px}
+#markPointCoords,#markPointAccuracy{font-family:ui-monospace,monospace;font-size:11px;color:#b8e0ea;word-break:break-all}
+
+.mark-pin{
+  width:32px;height:32px;border-radius:50%;
+  border:3px solid #fbbf24;background:rgba(251,191,36,.25);
+  box-shadow:0 0 0 4px rgba(251,191,36,.35);position:relative
+}
+.mark-pin-core{
+  position:absolute;inset:0;margin:auto;width:8px;height:8px;border-radius:50%;background:#fbbf24
+}
+body.mark-mode .mark-fab{opacity:.45;pointer-events:none}
+
+.gear-save.secondary{
+  margin-bottom:8px;background:rgba(255,255,255,.06);color:var(--text);
+  border:1px solid var(--line)
+}
+
 .my-points-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:42vh;overflow:auto}
 .my-point-row{
   display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;

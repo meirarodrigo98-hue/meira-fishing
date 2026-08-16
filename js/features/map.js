@@ -5,6 +5,10 @@ import { filterNearby, mapPointIds } from '../lib/utils.js';
 /** Mapa Leaflet — marcadores, rota, destaque do melhor ponto. */
 let map = null;
 let userMarker = null;
+let accuracyRing = null;
+let markPin = null;
+let markDraft = null;
+let markDragCb = null;
 let routeLine = null;
 let bestPointId = null;
 let onPointClickRef = null;
@@ -95,14 +99,92 @@ export function setUser(pos, opts = {}) {
     userMarker.setLatLng([pos.lat, pos.lng]);
   }
 
+  const acc = pos.accuracy;
+  if (acc != null && Number.isFinite(acc) && acc < 120) {
+    if (!accuracyRing) {
+      accuracyRing = L.circle([pos.lat, pos.lng], {
+        radius: acc,
+        color: '#38bdf8',
+        weight: 1,
+        fillColor: '#38bdf8',
+        fillOpacity: 0.12,
+        interactive: false,
+      }).addTo(map);
+    } else {
+      accuracyRing.setLatLng([pos.lat, pos.lng]);
+      accuracyRing.setRadius(acc);
+    }
+    const label = acc <= 15 ? `±${Math.round(acc)} m` : `±${Math.round(acc)} m (GPS)`;
+    userMarker.bindTooltip(`Você · ${label}`, { direction: 'top', offset: [0, -8] });
+  } else if (pos.approx) {
+    if (accuracyRing && map) {
+      map.removeLayer(accuracyRing);
+      accuracyRing = null;
+    }
+    userMarker.bindTooltip('Você · aproximado', { direction: 'top', offset: [0, -8] });
+  }
+
   if (options.center) {
-    map.setView([pos.lat, pos.lng], Math.max(map.getZoom(), 15), { animate: true });
+    const zoom = options.zoom ?? 17;
+    map.setView([pos.lat, pos.lng], Math.max(map.getZoom(), zoom), { animate: true });
     return;
   }
 
-  if (options.follow !== false && state.followUser && !state.navigating && !document.body.classList.contains('spots-open')) {
+  if (options.follow !== false && state.followUser && !state.navigating && !document.body.classList.contains('spots-open') && !markPin) {
     map.panTo([pos.lat, pos.lng], { animate: true, duration: 0.35 });
   }
+}
+
+const markPinIcon = () =>
+  L.divIcon({
+    className: '',
+    html: '<div class="mark-pin"><span class="mark-pin-core"></span></div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+
+/** Modo marcar — pin arrastável no mapa para posição exata. */
+export function beginMarkMode(pos, onDrag) {
+  if (!map || !pos) return;
+  endMarkMode();
+  markDraft = { lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy ?? null };
+  markDragCb = onDrag;
+  document.body.classList.add('mark-mode');
+
+  markPin = L.marker([markDraft.lat, markDraft.lng], {
+    draggable: true,
+    icon: markPinIcon(),
+    zIndexOffset: 1000,
+  })
+    .addTo(map)
+    .bindTooltip('Arraste para o spot exato', { direction: 'top', offset: [0, -18] });
+
+  markPin.on('dragend', () => {
+    const ll = markPin.getLatLng();
+    markDraft = { lat: ll.lat, lng: ll.lng, accuracy: markDraft.accuracy };
+    markDragCb?.(markDraft);
+  });
+
+  map.setView([markDraft.lat, markDraft.lng], 19, { animate: true });
+}
+
+export function setMarkDraftPos(pos) {
+  if (!pos) return;
+  markDraft = { lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy ?? markDraft?.accuracy ?? null };
+  markPin?.setLatLng([markDraft.lat, markDraft.lng]);
+  if (map) map.setView([markDraft.lat, markDraft.lng], Math.max(map.getZoom(), 19), { animate: true });
+}
+
+export function getMarkDraftPos() {
+  return markDraft ? { ...markDraft } : null;
+}
+
+export function endMarkMode() {
+  document.body.classList.remove('mark-mode');
+  if (markPin && map) map.removeLayer(markPin);
+  markPin = null;
+  markDraft = null;
+  markDragCb = null;
 }
 
 export function flyToPoint(point) {

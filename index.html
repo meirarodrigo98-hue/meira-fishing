@@ -160,7 +160,9 @@
     </div>
     <button class="checklist-close" id="markPointClose" type="button" aria-label="Fechar">✕</button>
   </div>
-  <p class="checklist-hint">Usa sua posição GPS exata. Salvo só no seu aparelho.</p>
+  <p class="checklist-hint">Pin dourado no mapa — <strong>arraste</strong> até o spot exato antes de salvar.</p>
+  <p class="mark-gps-line"><span class="gear-field-label">Coordenadas</span> <span id="markPointCoords">—</span></p>
+  <p class="mark-gps-line"><span class="gear-field-label">Precisão GPS</span> <span id="markPointAccuracy">—</span></p>
   <label class="profile-field">
     <span class="gear-field-label">Nome do ponto</span>
     <input class="profile-input" id="markPointName" type="text" maxlength="60" placeholder="Ex.: Pedra do João">
@@ -173,7 +175,8 @@
     <span class="gear-field-label">Como chegar (opcional)</span>
     <input class="profile-input" id="markPointNote" type="text" maxlength="120" placeholder="Ex.: escada após o quiosque">
   </label>
-  <button class="gear-save" id="markPointSave" type="button">Salvar ponto aqui</button>
+  <button class="gear-save secondary" id="markPointRefresh" type="button">Atualizar GPS fino</button>
+  <button class="gear-save" id="markPointSave" type="button">Salvar neste pin</button>
 </div>
 
 <div class="sheet-panel" id="myPointsPanel" aria-hidden="true">
