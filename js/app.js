@@ -17,10 +17,12 @@ import {
   setRadarProgress,
   showRecover,
   showSearching,
+  showLocationHelp,
 } from './features/ui.js';
 import { state, getPointWeather } from './lib/state.js';
 import { beginTracking, captureLocation, retryLocation, refreshGpsPosition, useApproxLocation, useManualPlace, isInAppBrowser } from './features/location.js';
 import { initLogin } from './features/login.js';
+import { needsLocationPermission, promptLocationServicesOnEntry } from './lib/location-settings.js';
 
 const MIN_RADAR_MS = 1600;
 const MAX_RADAR_MS = 22000;
@@ -107,6 +109,34 @@ async function boot() {
   if (isInAppBrowser()) {
     toast('Abra no Chrome ou Safari para GPS preciso.');
   }
+
+  await requestLocationOnEntry();
+}
+
+async function requestLocationOnEntry() {
+  if (!window.isSecureContext || !navigator.geolocation) return;
+
+  const needs = await needsLocationPermission();
+  if (!needs) {
+    startRadar(() =>
+      captureLocation(
+        () => finishRadar(),
+        () => endRadar(),
+      ),
+    );
+    return;
+  }
+
+  promptLocationServicesOnEntry(showLocationHelp);
+
+  window.setTimeout(() => {
+    startRadar(() =>
+      captureLocation(
+        () => finishRadar(),
+        () => endRadar(),
+      ),
+    );
+  }, 600);
 }
 
 async function finishRadar() {

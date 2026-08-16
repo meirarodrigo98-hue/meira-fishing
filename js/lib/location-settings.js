@@ -25,7 +25,12 @@ function launchIntent(url) {
   window.location.assign(url);
 }
 
-/** Abre permissões do navegador (Chrome, Samsung, etc.). */
+/** Serviços de localização / GPS do celular. */
+export function openLocationServices() {
+  launchIntent('intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end');
+}
+
+/** Permissões do navegador (Chrome, Samsung, etc.). */
 export function openAndroidBrowserSettings() {
   const pkg = androidBrowserPackage();
   launchIntent(
@@ -33,20 +38,19 @@ export function openAndroidBrowserSettings() {
   );
 }
 
-/** Abre liga/desliga GPS do celular. */
 export function openAndroidGpsSettings() {
-  launchIntent('intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end');
+  openLocationServices();
 }
 
 export function openAndroidLocationSettings() {
-  openAndroidBrowserSettings();
+  openLocationServices();
 }
 
 export function getIosSettingsPath() {
   if (isStandalonePwa()) {
-    return 'Ajustes → Meira Fishing → Localização → Ao Usar o App';
+    return 'Ajustes → Privacidade e Segurança → Serviços de Localização → Meira Fishing → Ao Usar o App';
   }
-  return 'Ajustes → Apps → Safari → Localização → Permitir';
+  return 'Ajustes → Privacidade e Segurança → Serviços de Localização → Safari → Permitir';
 }
 
 export async function copyIosSettingsPath() {
@@ -61,44 +65,54 @@ export async function copyIosSettingsPath() {
   }
 }
 
+export async function needsLocationPermission() {
+  if (!navigator.geolocation) return false;
+  if (!navigator.permissions?.query) return true;
+  try {
+    const result = await navigator.permissions.query({ name: 'geolocation' });
+    return result.state !== 'granted';
+  } catch {
+    return true;
+  }
+}
+
 export function getLocationSettingsGuide() {
   const { isIOS, isAndroid } = getLocationPlatform();
 
   if (isAndroid) {
     return {
-      title: 'Liberar localização no Android',
-      notice: 'Toque no botão — abre direto as configurações do celular.',
+      title: 'Serviços de localização',
+      notice: 'Ative a localização do celular e permita o navegador.',
       steps: [
-        'Em Permissões, toque Localização → Permitir.',
-        'Se o GPS estiver desligado, use o botão GPS do celular abaixo.',
-        'Volte ao app e toque Tentar localização de novo.',
+        'Ligue **Usar localização** / **GPS**.',
+        'Volte ao app → toque Permissões do navegador se ainda pedir.',
+        'Permissões → Localização → Permitir.',
+        'Toque Tentar localização de novo.',
       ],
     };
   }
 
   if (isIOS) {
     return {
-      title: 'Liberar localização no iPhone',
+      title: 'Serviços de localização',
       notice:
-        'A Apple não permite sites abrirem os Ajustes automaticamente. Abra Ajustes manualmente e siga os passos:',
+        'A Apple não abre os Ajustes automaticamente. Vá em Serviços de Localização e permita o Safari:',
       steps: isStandalonePwa()
         ? [
-            'Abra Ajustes no iPhone.',
-            'Role até Meira Fishing (ícone na tela inicial).',
-            'Localização → Ao Usar o App ou Permitir.',
+            'Ajustes → Privacidade e Segurança → Serviços de Localização (ligado).',
+            'Role até Meira Fishing → Ao Usar o App ou Permitir.',
             'Volte ao app e toque Tentar localização de novo.',
           ]
         : [
-            'Abra Ajustes → Apps → Safari.',
-            'Localização → Permitir ou Ao Usar o App.',
             'Ajustes → Privacidade e Segurança → Serviços de Localização (ligado).',
+            'Role até Safari → Ao Usar o App ou Permitir.',
             'Volte ao Safari, recarregue e toque Permitir no popup.',
           ],
     };
   }
 
   return {
-    title: 'Liberar localização',
+    title: 'Serviços de localização',
     notice: null,
     steps: [
       'Clique no cadeado ao lado do endereço do site.',
@@ -108,18 +122,23 @@ export function getLocationSettingsGuide() {
   };
 }
 
-/** Android: abre configurações direto. iPhone: só guia (bloqueio da Apple). */
+/** Android: abre Serviços de localização. iPhone: guia. */
 export function openLocationSettings(onShowGuide) {
   const { isIOS, isAndroid } = getLocationPlatform();
 
   if (isAndroid) {
-    openAndroidBrowserSettings();
-    toast('Abrindo configurações… Permissões → Localização → Permitir.');
+    openLocationServices();
+    toast('Ative a localização (GPS) e volte ao app.');
     return 'android';
   }
 
   onShowGuide?.();
   return isIOS ? 'ios' : 'desktop';
+}
+
+/** Ao entrar no app — leva aos serviços de localização se ainda não liberou. */
+export function promptLocationServicesOnEntry(onShowGuide) {
+  return openLocationSettings(onShowGuide);
 }
 
 export function canOpenSettingsDirectly() {

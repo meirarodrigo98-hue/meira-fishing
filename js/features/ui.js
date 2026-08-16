@@ -35,7 +35,7 @@ import {
   getLocationSettingsGuide,
   getLocationPlatform,
   openAndroidBrowserSettings,
-  openAndroidGpsSettings,
+  openLocationServices,
   openLocationSettings,
 } from '../lib/location-settings.js';
 
@@ -43,7 +43,7 @@ let onRelocateRef = null;
 
 function syncLocSettingsButtons() {
   const direct = canOpenSettingsDirectly();
-  const label = direct ? 'Abrir configurações' : 'Como liberar no iPhone';
+  const label = direct ? 'Abrir serviços de localização' : 'Serviços de localização (iPhone)';
   ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud'].forEach((id) => {
     const el = $(id);
     if (el) el.textContent = label;
@@ -55,7 +55,11 @@ function showLocationHelp() {
   const { isIOS, isAndroid } = getLocationPlatform();
   $('locSettingsTitle').textContent = guide.title;
   const steps = $('locSettingsSteps');
-  if (steps) steps.innerHTML = guide.steps.map((s) => `<li>${s}</li>`).join('');
+  if (steps) {
+    steps.innerHTML = guide.steps
+      .map((s) => `<li>${s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}</li>`)
+      .join('');
+  }
   const notice = $('locSettingsNotice');
   if (notice) {
     notice.textContent = guide.notice || '';
@@ -66,6 +70,8 @@ function showLocationHelp() {
   $('locSettingsCopy')?.classList.toggle('is-hidden', !isIOS);
   showSheet('locSettingsPanel');
 }
+
+export { showLocationHelp };
 
 function handleOpenLocationSettings() {
   if (canOpenSettingsDirectly()) {
@@ -545,7 +551,7 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
     $(id)?.addEventListener('click', handleOpenLocationSettings);
   });
   $('locSettingsOpenBrowser')?.addEventListener('click', () => openAndroidBrowserSettings());
-  $('locSettingsOpenGps')?.addEventListener('click', () => openAndroidGpsSettings());
+  $('locSettingsOpenGps')?.addEventListener('click', () => openLocationServices());
   $('locSettingsCopy')?.addEventListener('click', () => copyIosSettingsPath());
   $('locSettingsClose')?.addEventListener('click', () => hideSheet('locSettingsPanel'));
   $('locSettingsDone')?.addEventListener('click', () => {
@@ -664,8 +670,8 @@ export function showPermissionDenied() {
   const hint = $('recoverDeniedHint');
   if (hint) {
     hint.textContent = canOpenSettingsDirectly()
-      ? 'Toque no botão abaixo — abre direto as configurações do navegador.'
-      : 'No iPhone, abra Ajustes manualmente — toque no botão para ver o caminho.';
+      ? 'Toque no botão — abre direto os Serviços de localização do celular.'
+      : 'No iPhone: Ajustes → Privacidade → Serviços de Localização.';
   }
   setEntryVisible(false);
 }
