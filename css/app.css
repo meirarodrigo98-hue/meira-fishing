@@ -361,7 +361,7 @@ body.spots-open .spots-card{transform:translateY(0)}
   border:1px solid rgba(251,113,133,.2)
 }
 
-.gear-panel{
+.sheet-panel{
   position:fixed;z-index:950;left:0;right:0;bottom:0;
   background:rgba(10,26,34,.98);backdrop-filter:blur(20px);
   border-radius:24px 24px 0 0;padding:16px 20px calc(16px + var(--safe-b));
@@ -371,7 +371,25 @@ body.spots-open .spots-card{transform:translateY(0)}
   border-top:1px solid rgba(255,255,255,.08);
   box-shadow:0 -12px 40px rgba(0,0,0,.35)
 }
-.gear-panel.show{transform:translateY(0);visibility:visible;pointer-events:auto}
+.sheet-panel.show{transform:translateY(0);visibility:visible;pointer-events:auto}
+
+.menu-list{display:flex;flex-direction:column;gap:8px}
+.menu-item{
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  width:100%;padding:14px 16px;border-radius:16px;text-align:left;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)
+}
+.menu-item:active{background:rgba(255,255,255,.08)}
+.menu-item-label{font-size:15px;font-weight:800;color:var(--text)}
+.menu-item-meta{font-size:12px;font-weight:600;color:var(--muted)}
+
+.profile-field{display:block;margin-bottom:14px}
+.profile-input{
+  width:100%;height:48px;margin-top:6px;padding:0 14px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.06);
+  color:var(--text);font:inherit;font-size:15px;font-weight:600
+}
+.profile-input::placeholder{color:var(--muted)}
 
 .gear-form{display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
 .gear-field-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px}

@@ -3,6 +3,7 @@ import { getPointWeather, isPointWeatherEstimated, state, setFilter, setNavigati
 import { rankPoints, formatConditions } from '../lib/scoring.js';
 import { OBS_GROUPS, emptyObservations, buildLiveStrategy, obsProgress } from '../lib/strategy.js';
 import { GEAR, loadGear, saveGear, isGearReady, gearSummary } from '../lib/gear.js';
+import { STYLE, LEVEL, loadProfile, saveProfile, profileSummary } from '../lib/profile.js';
 import {
   clearRoute,
   drawRoute,
@@ -27,7 +28,8 @@ let shouldAutoOpen = true;
 let checklistObs = emptyObservations();
 let checklistPoint = null;
 let draftGear = loadGear();
-let gearFromHud = false;
+let draftProfile = loadProfile();
+let sheetOrigin = null;
 
 export function setRadarProgress(done, total, name) {
   const hint = $('bootLoadingHint');
@@ -129,15 +131,19 @@ export function bindUi({ onCapture, onRelocate, onFilterChange: onFilter }) {
   };
   $('cardChecklist').onclick = () => openChecklist();
   $('checklistClose').onclick = closeChecklist;
-  $('editGearFromChecklist').onclick = () => showGearEditor();
-  $('gearEditorClose').onclick = hideGearEditor;
+  $('editGearFromChecklist').onclick = () => showGearEditor({ fromChecklist: true });
+  $('gearEditorClose').onclick = () => hideGearEditor();
   $('gearSave').onclick = saveGearDraft;
-  $('gearBtn').onclick = () => {
-    gearFromHud = true;
-    showGearEditor({ fromHud: true });
-  };
+  $('gearBtn').onclick = openOptionsMenu;
+  $('optionsMenuClose').onclick = closeAllSheets;
+  $('openProfile').onclick = () => showProfileEditor();
+  $('openGearFromMenu').onclick = () => showGearEditor({ fromMenu: true });
+  $('profileClose').onclick = () => hideProfileEditor();
+  $('profileSave').onclick = saveProfileDraft;
   renderGearForm();
+  renderProfileForm();
   syncGearBar();
+  syncMenuMeta();
   $('relocate').onclick = onRelocate;
   $('retryGps').onclick = onRelocate;
   $('stopNav').onclick = stopNav;
@@ -361,39 +367,131 @@ function closeChecklist() {
   const panel = $('checklistPanel');
   panel?.classList.remove('show');
   panel?.setAttribute('aria-hidden', 'true');
-  hideGearEditor();
+  if (sheetOrigin === 'checklist') closeAllSheets();
+  else {
+    hideGearEditor();
+    $('checklistObserve')?.classList.remove('is-hidden');
+  }
+}
+
+function showSheet(id) {
+  const el = $(id);
+  if (!el) return;
+  el.setAttribute('aria-hidden', 'false');
+  el.classList.remove('show');
+  requestAnimationFrame(() => el.classList.add('show'));
+}
+
+function hideSheet(id) {
+  const el = $(id);
+  el?.classList.remove('show');
+  el?.setAttribute('aria-hidden', 'true');
+}
+
+function closeAllSheets() {
+  hideSheet('optionsMenu');
+  hideSheet('profilePanel');
+  hideSheet('gearPanel');
+  sheetOrigin = null;
   $('checklistObserve')?.classList.remove('is-hidden');
 }
 
-function showGearEditor({ fromHud = false } = {}) {
-  gearFromHud = fromHud;
+function openOptionsMenu() {
+  sheetOrigin = 'menu';
+  syncMenuMeta();
+  showSheet('optionsMenu');
+}
+
+function syncMenuMeta() {
+  const profile = loadProfile();
+  const gear = loadGear();
+  $('menuProfileMeta').textContent = profileSummary(profile);
+  $('menuGearMeta').textContent = isGearReady(gear) ? gearSummary(gear) : 'Cadastre vara, linha e iscas';
+}
+
+function showProfileEditor() {
+  draftProfile = loadProfile();
+  renderProfileForm();
+  hideSheet('optionsMenu');
+  showSheet('profilePanel');
+}
+
+function hideProfileEditor() {
+  hideSheet('profilePanel');
+  if (sheetOrigin === 'menu') showSheet('optionsMenu');
+  else sheetOrigin = null;
+}
+
+function renderProfileForm() {
+  $('profileName').value = draftProfile.name || '';
+
+  const renderChips = (rootId, group, key, options) => {
+    const root = $(rootId);
+    if (!root) return;
+    root.innerHTML = options
+      .map((opt) => {
+        const on = draftProfile[key] === opt.id;
+        return `<button type="button" class="gear-chip${on ? ' on' : ''}" data-profile-key="${key}" data-profile-id="${opt.id}">${opt.label}</button>`;
+      })
+      .join('');
+    root.querySelectorAll('[data-profile-key]').forEach((chip) => {
+      chip.onclick = () => {
+        draftProfile[chip.dataset.profileKey] = chip.dataset.profileId;
+        renderProfileForm();
+      };
+    });
+  };
+
+  renderChips('profileStyle', 'style', 'style', STYLE);
+  renderChips('profileLevel', 'level', 'level', LEVEL);
+}
+
+function saveProfileDraft() {
+  draftProfile.name = $('profileName').value.trim();
+  if (!draftProfile.name) {
+    toast('Digite seu nome.');
+    return;
+  }
+  saveProfile(draftProfile);
+  syncMenuMeta();
+  toast('Perfil salvo.');
+  hideProfileEditor();
+}
+
+function showGearEditor({ fromChecklist = false, fromMenu = false } = {}) {
+  if (fromChecklist) sheetOrigin = 'checklist';
+  else if (fromMenu) sheetOrigin = 'menu';
+
   draftGear = loadGear();
   renderGearForm();
-  if (!fromHud) $('checklistObserve')?.classList.add('is-hidden');
+  if (fromChecklist) $('checklistObserve')?.classList.add('is-hidden');
 
-  const panel = $('gearPanel');
-  panel?.setAttribute('aria-hidden', 'false');
-  panel?.classList.remove('show');
-  requestAnimationFrame(() => panel?.classList.add('show'));
+  hideSheet('optionsMenu');
+  showSheet('gearPanel');
 
-  if (fromHud) return;
-
-  const checklist = $('checklistPanel');
-  if (!checklist?.classList.contains('show')) {
-    checklist?.setAttribute('aria-hidden', 'false');
-    requestAnimationFrame(() => checklist?.classList.add('show'));
+  if (fromChecklist) {
+    const checklist = $('checklistPanel');
+    if (!checklist?.classList.contains('show')) {
+      checklist?.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => checklist?.classList.add('show'));
+    }
   }
 }
 
 function hideGearEditor() {
-  $('gearPanel')?.classList.remove('show');
-  $('gearPanel')?.setAttribute('aria-hidden', 'true');
+  hideSheet('gearPanel');
 
-  if (gearFromHud) {
-    gearFromHud = false;
+  if (sheetOrigin === 'menu') {
+    syncMenuMeta();
+    showSheet('optionsMenu');
     return;
   }
-  $('checklistObserve')?.classList.remove('is-hidden');
+  if (sheetOrigin === 'checklist') {
+    $('checklistObserve')?.classList.remove('is-hidden');
+    sheetOrigin = null;
+    return;
+  }
+  sheetOrigin = null;
 }
 
 function syncGearBar() {
@@ -455,6 +553,7 @@ function saveGearDraft() {
   }
   saveGear(draftGear);
   syncGearBar();
+  syncMenuMeta();
   toast('Material salvo.');
   hideGearEditor();
   if (checklistPoint) updateStrategy(checklistPoint);
@@ -531,7 +630,7 @@ function openChecklist() {
   const row = rows[index];
   if (!row) return;
 
-  gearFromHud = false;
+  closeAllSheets();
   checklistPoint = row.p;
   checklistObs = emptyObservations();
 

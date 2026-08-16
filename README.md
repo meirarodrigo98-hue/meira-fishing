@@ -27,7 +27,7 @@ Site: https://meirarodrigo98-hue.github.io/meira-fishing/
 2. Permite GPS (ou escolhe região manual)
 3. Radar consulta clima de cada ponto próximo
 4. Abre card com melhor ponto → **Checklist** (marca o que vê) ou **Ir agora**
-5. Cadastre seu material no ⚙ do topo (salvo no aparelho)
+5. Toque no **⚙** → **Meu perfil** ou **Material de pesca**
 
 ## Publicar
 

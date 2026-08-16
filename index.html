@@ -27,7 +27,7 @@
     <span class="hud-label" id="hudLabel">Radar ativo</span>
     <span class="hud-count" id="hudCount">—</span>
   </div>
-  <button class="hud-btn" id="gearBtn" type="button" aria-label="Meu material">⚙</button>
+  <button class="hud-btn" id="gearBtn" type="button" aria-label="Opções">⚙</button>
   <button class="hud-btn" id="relocate" type="button" aria-label="Atualizar localização">◎</button>
 </header>
 
@@ -119,11 +119,55 @@
   </nav>
 </aside>
 
-<div class="gear-panel" id="gearPanel" aria-hidden="true">
+<div class="sheet-panel" id="optionsMenu" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Menu</span>
+      <h3 class="checklist-title">Opções</h3>
+    </div>
+    <button class="checklist-close" id="optionsMenuClose" type="button" aria-label="Fechar">✕</button>
+  </div>
+  <div class="menu-list">
+    <button class="menu-item" id="openProfile" type="button">
+      <span class="menu-item-label">Meu perfil</span>
+      <span class="menu-item-meta" id="menuProfileMeta">—</span>
+    </button>
+    <button class="menu-item" id="openGearFromMenu" type="button">
+      <span class="menu-item-label">Material de pesca</span>
+      <span class="menu-item-meta" id="menuGearMeta">—</span>
+    </button>
+  </div>
+</div>
+
+<div class="sheet-panel" id="profilePanel" aria-hidden="true">
   <div class="checklist-head">
     <div>
       <span class="checklist-tag">Cadastro</span>
-      <h3 class="checklist-title">Meu material</h3>
+      <h3 class="checklist-title">Meu perfil</h3>
+    </div>
+    <button class="checklist-close" id="profileClose" type="button" aria-label="Voltar">✕</button>
+  </div>
+  <p class="checklist-hint">Salvo no seu aparelho.</p>
+  <label class="profile-field">
+    <span class="gear-field-label">Nome</span>
+    <input class="profile-input" id="profileName" type="text" maxlength="40" placeholder="Como você quer ser chamado" autocomplete="name">
+  </label>
+  <div class="gear-field">
+    <p class="gear-field-label">Estilo preferido</p>
+    <div class="gear-options" id="profileStyle"></div>
+  </div>
+  <div class="gear-field">
+    <p class="gear-field-label">Nível</p>
+    <div class="gear-options" id="profileLevel"></div>
+  </div>
+  <button class="gear-save" id="profileSave" type="button">Salvar perfil</button>
+</div>
+
+<div class="sheet-panel" id="gearPanel" aria-hidden="true">
+  <div class="checklist-head">
+    <div>
+      <span class="checklist-tag">Cadastro</span>
+      <h3 class="checklist-title">Material de pesca</h3>
     </div>
     <button class="checklist-close" id="gearEditorClose" type="button" aria-label="Fechar">✕</button>
   </div>
