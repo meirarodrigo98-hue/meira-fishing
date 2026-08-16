@@ -30,20 +30,21 @@ import {
 } from './map.js';
 import { capturePrecisePosition } from './location.js';
 import {
+  canOpenSettingsDirectly,
+  copyIosSettingsPath,
   getLocationSettingsGuide,
   getLocationPlatform,
-  openAndroidLocationSettings,
+  openAndroidBrowserSettings,
+  openAndroidGpsSettings,
   openLocationSettings,
 } from '../lib/location-settings.js';
 
 let onRelocateRef = null;
 
 function syncLocSettingsButtons() {
-  const guide = getLocationSettingsGuide();
-  const label = getLocationPlatform().isIOS
-    ? 'Como liberar localização'
-    : guide.openLabel || 'Como liberar localização';
-  ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud', 'locSettingsOpen'].forEach((id) => {
+  const direct = canOpenSettingsDirectly();
+  const label = direct ? 'Abrir configurações' : 'Como liberar no iPhone';
+  ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud'].forEach((id) => {
     const el = $(id);
     if (el) el.textContent = label;
   });
@@ -51,18 +52,26 @@ function syncLocSettingsButtons() {
 
 function showLocationHelp() {
   const guide = getLocationSettingsGuide();
+  const { isIOS, isAndroid } = getLocationPlatform();
   $('locSettingsTitle').textContent = guide.title;
   const steps = $('locSettingsSteps');
   if (steps) steps.innerHTML = guide.steps.map((s) => `<li>${s}</li>`).join('');
-  const openBtn = $('locSettingsOpen');
-  if (openBtn) {
-    openBtn.textContent = guide.openLabel || 'Abrir configurações de localização';
-    openBtn.classList.toggle('is-hidden', !guide.openLabel);
+  const notice = $('locSettingsNotice');
+  if (notice) {
+    notice.textContent = guide.notice || '';
+    notice.classList.toggle('is-hidden', !guide.notice);
   }
+  $('locSettingsOpenBrowser')?.classList.toggle('is-hidden', !isAndroid);
+  $('locSettingsOpenGps')?.classList.toggle('is-hidden', !isAndroid);
+  $('locSettingsCopy')?.classList.toggle('is-hidden', !isIOS);
   showSheet('locSettingsPanel');
 }
 
 function handleOpenLocationSettings() {
+  if (canOpenSettingsDirectly()) {
+    openLocationSettings();
+    return;
+  }
   openLocationSettings(showLocationHelp);
 }
 
@@ -535,10 +544,9 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
   ['openLocSettingsRecover', 'openLocSettingsPerm', 'openLocSettingsHud'].forEach((id) => {
     $(id)?.addEventListener('click', handleOpenLocationSettings);
   });
-  $('locSettingsOpen')?.addEventListener('click', () => {
-    if (getLocationPlatform().isAndroid) openAndroidLocationSettings();
-    else toast('Abra Ajustes manualmente — veja os passos acima.');
-  });
+  $('locSettingsOpenBrowser')?.addEventListener('click', () => openAndroidBrowserSettings());
+  $('locSettingsOpenGps')?.addEventListener('click', () => openAndroidGpsSettings());
+  $('locSettingsCopy')?.addEventListener('click', () => copyIosSettingsPath());
   $('locSettingsClose')?.addEventListener('click', () => hideSheet('locSettingsPanel'));
   $('locSettingsDone')?.addEventListener('click', () => {
     hideSheet('locSettingsPanel');
@@ -655,9 +663,9 @@ export function showPermissionDenied() {
   syncLocSettingsButtons();
   const hint = $('recoverDeniedHint');
   if (hint) {
-    hint.textContent = getLocationPlatform().isIOS
-      ? 'No iPhone, toque no botão abaixo para ver o passo a passo nos Ajustes.'
-      : 'Toque no botão abaixo para abrir as configurações do navegador.';
+    hint.textContent = canOpenSettingsDirectly()
+      ? 'Toque no botão abaixo — abre direto as configurações do navegador.'
+      : 'No iPhone, abra Ajustes manualmente — toque no botão para ver o caminho.';
   }
   setEntryVisible(false);
 }

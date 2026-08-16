@@ -625,6 +625,11 @@ body.app-ready .leaflet-marker-icon .marker{opacity:1;filter:none}
   font-size:13px;line-height:1.45;color:var(--muted)
 }
 .loc-settings-steps li{padding-left:4px}
+.loc-settings-notice{
+  margin:0 0 12px;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.45;
+  color:#fde68a;background:rgba(120,80,0,.35);border:1px solid rgba(250,204,21,.35)
+}
+.loc-settings-notice.is-hidden{display:none}
 #locSettingsPanel .ghost.primary{margin-bottom:8px}
 #locSettingsPanel .ghost{margin-top:0}
 

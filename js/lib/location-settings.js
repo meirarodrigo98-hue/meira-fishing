@@ -17,25 +17,48 @@ function androidBrowserPackage() {
   return 'com.android.chrome';
 }
 
-function openIntent(url) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.rel = 'noopener';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+function isStandalonePwa() {
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 }
 
-export function openAndroidLocationSettings() {
+function launchIntent(url) {
+  window.location.assign(url);
+}
+
+/** Abre permissões do navegador (Chrome, Samsung, etc.). */
+export function openAndroidBrowserSettings() {
   const pkg = androidBrowserPackage();
-  openIntent(
-    `intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;scheme=package;package=${pkg};end`,
+  launchIntent(
+    `intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;data=package:${pkg};end`,
   );
 }
 
-function isStandalonePwa() {
-  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+/** Abre liga/desliga GPS do celular. */
+export function openAndroidGpsSettings() {
+  launchIntent('intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end');
+}
+
+export function openAndroidLocationSettings() {
+  openAndroidBrowserSettings();
+}
+
+export function getIosSettingsPath() {
+  if (isStandalonePwa()) {
+    return 'Ajustes → Meira Fishing → Localização → Ao Usar o App';
+  }
+  return 'Ajustes → Apps → Safari → Localização → Permitir';
+}
+
+export async function copyIosSettingsPath() {
+  const path = getIosSettingsPath();
+  try {
+    await navigator.clipboard.writeText(path);
+    toast('Caminho copiado — abra Ajustes no iPhone.');
+    return true;
+  } catch {
+    toast(path);
+    return false;
+  }
 }
 
 export function getLocationSettingsGuide() {
@@ -44,44 +67,39 @@ export function getLocationSettingsGuide() {
   if (isAndroid) {
     return {
       title: 'Liberar localização no Android',
-      openLabel: 'Abrir configurações do celular',
+      notice: 'Toque no botão — abre direto as configurações do celular.',
       steps: [
-        'Toque no botão abaixo — abre as configurações do navegador.',
         'Em Permissões, toque Localização → Permitir.',
-        'Se o GPS estiver desligado: Configurações → Localização → Usar localização.',
-        'Volte aqui e toque Tentar localização de novo.',
+        'Se o GPS estiver desligado, use o botão GPS do celular abaixo.',
+        'Volte ao app e toque Tentar localização de novo.',
       ],
     };
   }
 
   if (isIOS) {
-    if (isStandalonePwa()) {
-      return {
-        title: 'Liberar localização no iPhone',
-        openLabel: null,
-        steps: [
-          'Saia do app e abra Ajustes no iPhone.',
-          'Role até Meira Fishing (ícone na tela inicial).',
-          'Toque Localização → Ao Usar o App ou Permitir.',
-          'Volte ao app e toque Tentar localização de novo.',
-        ],
-      };
-    }
     return {
       title: 'Liberar localização no iPhone',
-      openLabel: null,
-      steps: [
-        'Saia do Safari e abra Ajustes no iPhone.',
-        'Toque Apps → Safari → Localização → Permitir ou Ao Usar o App.',
-        'Confira também: Ajustes → Privacidade e Segurança → Serviços de Localização (ligado).',
-        'Volte ao Safari, recarregue a página e toque Permitir no popup.',
-      ],
+      notice:
+        'A Apple não permite sites abrirem os Ajustes automaticamente. Abra Ajustes manualmente e siga os passos:',
+      steps: isStandalonePwa()
+        ? [
+            'Abra Ajustes no iPhone.',
+            'Role até Meira Fishing (ícone na tela inicial).',
+            'Localização → Ao Usar o App ou Permitir.',
+            'Volte ao app e toque Tentar localização de novo.',
+          ]
+        : [
+            'Abra Ajustes → Apps → Safari.',
+            'Localização → Permitir ou Ao Usar o App.',
+            'Ajustes → Privacidade e Segurança → Serviços de Localização (ligado).',
+            'Volte ao Safari, recarregue e toque Permitir no popup.',
+          ],
     };
   }
 
   return {
     title: 'Liberar localização',
-    openLabel: null,
+    notice: null,
     steps: [
       'Clique no cadeado ao lado do endereço do site.',
       'Em Localização, escolha Permitir.',
@@ -90,16 +108,20 @@ export function getLocationSettingsGuide() {
   };
 }
 
-/** Android abre configurações; iPhone mostra guia (Safari não permite abrir Ajustes). */
+/** Android: abre configurações direto. iPhone: só guia (bloqueio da Apple). */
 export function openLocationSettings(onShowGuide) {
   const { isIOS, isAndroid } = getLocationPlatform();
 
   if (isAndroid) {
-    openAndroidLocationSettings();
-    toast('Permissões → Localização → Permitir.');
+    openAndroidBrowserSettings();
+    toast('Abrindo configurações… Permissões → Localização → Permitir.');
     return 'android';
   }
 
   onShowGuide?.();
   return isIOS ? 'ios' : 'desktop';
+}
+
+export function canOpenSettingsDirectly() {
+  return getLocationPlatform().isAndroid;
 }
