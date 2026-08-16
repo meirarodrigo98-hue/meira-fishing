@@ -503,11 +503,20 @@ function renderUsersList() {
   });
 }
 
+function usersPanelHintText() {
+  if (isSupabaseEnabled()) {
+    return 'Nuvem ativa — usuários novos entram em qualquer aparelho após cadastro.';
+  }
+  return 'Nuvem desligada — logins ficam só neste aparelho. Use “Copiar para o repo” e faça push para valer no site inteiro.';
+}
+
 function openUsersPanel() {
   if (!isSessionAdmin()) {
     toast('Somente administradores.');
     return;
   }
+  const hint = $('usersPanelHint');
+  if (hint) hint.textContent = usersPanelHintText();
   renderUsersList();
   $('newUserLogin').value = '';
   $('newUserName').value = '';
