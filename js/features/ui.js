@@ -365,13 +365,20 @@ function syncLocHud() {
   if (!isRadarOn()) return;
   const label = $('hudLabel');
   const banner = $('locBanner');
-  document.body.classList.toggle('loc-approx', !!state.userPos?.approx);
+  const weakGps = state.userPos?.gps && !state.userPos?.approx && state.userPos.accuracy != null && state.userPos.accuracy > 40;
+  document.body.classList.toggle('loc-approx', !!state.userPos?.approx || weakGps);
 
   if (state.userPos?.approx) {
     if (label) label.textContent = 'Local impreciso';
     if (banner) {
       banner.classList.remove('is-hidden');
       banner.textContent = 'Posição veio da internet (pode errar km). Toque ⌖ para GPS preciso.';
+    }
+  } else if (weakGps) {
+    if (label) label.textContent = `GPS calibrando ±${Math.round(state.userPos.accuracy)} m`;
+    if (banner) {
+      banner.classList.remove('is-hidden');
+      banner.textContent = 'Aguardando GPS fino… fique ao ar livre ou toque ⌖ para forçar.';
     }
   } else if (state.userPos?.gps && state.userPos.accuracy != null) {
     if (label) label.textContent = `GPS ±${Math.round(state.userPos.accuracy)} m`;

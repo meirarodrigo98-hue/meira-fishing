@@ -17,15 +17,15 @@ let watchId = null;
 let locating = false;
 
 const GEO_ATTEMPTS = [
-  { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
-  { enableHighAccuracy: true, timeout: 28000, maximumAge: 0 },
-  { enableHighAccuracy: true, timeout: 35000, maximumAge: 0 },
+  { enableHighAccuracy: true, timeout: 22000, maximumAge: 0 },
+  { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
+  { enableHighAccuracy: true, timeout: 40000, maximumAge: 0 },
 ];
 
 const WATCH_OPTS = {
   enableHighAccuracy: true,
   maximumAge: 0,
-  timeout: 30000,
+  timeout: 60000,
 };
 
 function posFromReading(pos) {
@@ -51,11 +51,19 @@ function releaseLocating() {
 
 function shouldAcceptReading(reading) {
   if (!state.userPos) return true;
-  if (state.userPos.approx) return true;
-  if (!state.userPos.gps) return true;
+  if (state.userPos.approx || !state.userPos.gps) return true;
   const acc = reading.accuracy ?? 9999;
   const cur = state.userPos.accuracy ?? 9999;
-  return acc < cur + 2;
+  if (acc <= cur) return true;
+  if (cur > 50) return acc < cur;
+  return false;
+}
+
+function pushReading(readings, reading) {
+  readings.push(reading);
+  if (shouldAcceptReading(reading)) {
+    setUser(reading, { follow: false });
+  }
 }
 
 export function beginTracking() {
@@ -115,8 +123,24 @@ function succeedGps(pos, onSuccess) {
   onSuccess(location);
 }
 
-/** Amostra GPS fino — escolhe a leitura mais precisa. */
-export function capturePrecisePosition({ maxWaitMs = 18000, targetAccuracy = 12 } = {}) {
+function finishGpsSession(reading, onSuccess, { toastMsg } = {}) {
+  hideAwaitingPermission();
+  showSearching();
+  setUser(reading, { center: true, zoom: 18 });
+  clearWatch();
+  beginTracking();
+  releaseLocating();
+  if (toastMsg) toast(toastMsg);
+  onSuccess?.(reading);
+}
+
+function gpsToast(reading, prefix = 'Localização corrigida') {
+  const m = reading.accuracy != null ? `±${Math.round(reading.accuracy)} m` : '';
+  return `${prefix} ${m}`.trim();
+}
+
+/** Amostra GPS fino — escolhe a leitura mais precisa. Ignora timeouts transitórios do watch. */
+export function capturePrecisePosition({ maxWaitMs = 22000, targetAccuracy = 12 } = {}) {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation || !window.isSecureContext) {
       reject(new Error('no-gps'));
@@ -140,30 +164,43 @@ export function capturePrecisePosition({ maxWaitMs = 18000, targetAccuracy = 12 
       resolve(readings[0]);
     };
 
+    const onPos = (pos) => {
+      if (settled || !validCoords(pos)) return;
+      const reading = posFromReading(pos);
+      pushReading(readings, reading);
+      const acc = reading.accuracy ?? 9999;
+      if (acc <= targetAccuracy) finish(false);
+    };
+
     const timer = setTimeout(() => finish(true), maxWaitMs);
 
+    readPosition({ enableHighAccuracy: true, timeout: 18000, maximumAge: 0 }, 20000)
+      .then(onPos)
+      .catch(() => {});
+
     wId = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (!validCoords(pos)) return;
-        const reading = posFromReading(pos);
-        readings.push(reading);
-        if (shouldAcceptReading(reading)) {
-          setUser(reading, { follow: false });
-        }
-        const acc = reading.accuracy ?? 9999;
-        if (acc <= targetAccuracy) finish(false);
-      },
+      onPos,
       (err) => {
-        if (!readings.length) {
+        if (errorKind(err) === 'denied' && !readings.length) {
           settled = true;
           clearTimeout(timer);
           if (wId != null) navigator.geolocation.clearWatch(wId);
           reject(err);
         }
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 25000 },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 },
     );
   });
+}
+
+function runGeoFallback(onSuccess, onFallback, onReading) {
+  attemptGeo(
+    (reading) => {
+      if (onReading) onReading(reading);
+      else onSuccess(reading);
+    },
+    onFallback,
+  );
 }
 
 /** Botão ⌖ — força novo GPS fino (substitui posição imprecisa). */
@@ -178,20 +215,29 @@ export function refreshGpsPosition(onSuccess, onFail) {
   locating = true;
   showSearching();
 
-  capturePrecisePosition({ maxWaitMs: 20000, targetAccuracy: 15 })
-    .then((reading) => {
-      setUser(reading, { center: true, zoom: 18 });
-      clearWatch();
-      beginTracking();
-      releaseLocating();
-      const m = reading.accuracy != null ? `±${Math.round(reading.accuracy)} m` : '';
-      toast(`Localização corrigida ${m}`.trim());
-      onSuccess?.(reading);
-    })
-    .catch(() => {
-      releaseLocating();
-      toast('GPS impreciso — saia de prédios, ative localização e tente de novo.');
-      onFail?.('timeout');
+  const done = (reading) =>
+    finishGpsSession(reading, onSuccess, { toastMsg: gpsToast(reading) });
+
+  const fail = () => {
+    releaseLocating();
+    toast('GPS impreciso — saia de prédios, ative localização e tente de novo.');
+    onFail?.('timeout');
+  };
+
+  capturePrecisePosition({ maxWaitMs: 28000, targetAccuracy: 25 })
+    .then(done)
+    .catch((err) => {
+      if (errorKind(err) === 'denied') {
+        releaseLocating();
+        toast('GPS bloqueado — permita localização nas configurações.');
+        onFail?.('denied');
+        return;
+      }
+      runGeoFallback(
+        (reading) => done(reading),
+        () => fail(),
+        (reading) => done(reading),
+      );
     });
 }
 
@@ -234,13 +280,14 @@ function attemptGeo(onSuccess, onFallback, index = 0, lastErr = 'timeout') {
   }
 
   const opt = GEO_ATTEMPTS[index];
-  readPosition(opt, opt.timeout + 3000)
+  readPosition(opt, opt.timeout + 4000)
     .then((pos) => {
       if (!validCoords(pos)) {
         attemptGeo(onSuccess, onFallback, index + 1, 'unavailable');
         return;
       }
-      succeedGps(pos, onSuccess);
+      const reading = posFromReading(pos);
+      succeedGps(pos, () => onSuccess(reading));
     })
     .catch((err) => {
       const kind = errorKind(err);
@@ -274,7 +321,7 @@ export function captureLocation(onSuccess, onFallback) {
   hideRecover();
   showAwaitingPermission();
 
-  capturePrecisePosition({ maxWaitMs: 30000, targetAccuracy: 25 })
+  capturePrecisePosition({ maxWaitMs: 35000, targetAccuracy: 30 })
     .then((reading) => {
       hideAwaitingPermission();
       showSearching();
@@ -288,7 +335,7 @@ export function captureLocation(onSuccess, onFallback) {
         failDenied(onFallback);
         return;
       }
-      attemptGeo(onSuccess, onFallback);
+      runGeoFallback(onSuccess, onFallback);
     });
 }
 
@@ -315,4 +362,13 @@ export function useManualPlace(place, onReady) {
 export function isInAppBrowser() {
   const ua = navigator.userAgent || '';
   return /Instagram|FBAN|FBAV|Line\//i.test(ua);
+}
+
+/** GPS considerado fino quando precisão ≤ este valor (metros). */
+export const FINE_GPS_MAX_M = 40;
+
+export function isFineGps(pos = state.userPos) {
+  if (!pos || pos.approx || !pos.gps) return false;
+  const acc = pos.accuracy;
+  return acc == null || acc <= FINE_GPS_MAX_M;
 }

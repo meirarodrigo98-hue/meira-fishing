@@ -157,6 +157,8 @@ async function handleReady() {
 
   if (state.userPos?.approx) {
     toast('Localização imprecisa — toque ⌖ no topo para corrigir com GPS.');
+  } else if (state.userPos?.gps && state.userPos.accuracy != null && state.userPos.accuracy > 40) {
+    toast('GPS ainda calibrando — toque ⌖ se a posição estiver errada.');
   }
 
   renderList(allPoints(), { nearby: true });
