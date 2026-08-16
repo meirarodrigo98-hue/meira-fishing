@@ -136,11 +136,13 @@ async function boot() {
 }
 
 function startInitialRadar() {
+  hideRecover();
   if (!window.isSecureContext || !navigator.geolocation) {
     showRecover('unsupported');
     return;
   }
   if (hasCapturedLocation()) {
+    showSearching();
     finishRadar();
     return;
   }

@@ -1,4 +1,4 @@
-import { filterNearby, mapPointIds, setShoreCatalog } from '../lib/utils.js';
+import { $, fmtKm, km, mapsUrl, toast, filterNearby, mapPointIds, setShoreCatalog } from '../lib/utils.js';
 import { getPointWeather, state, setFilter, setNavigating, setSelected, setFollowUser, hasCapturedLocation } from '../lib/state.js';
 import { rankPoints } from '../lib/scoring.js';
 import { loadMissingWeather } from '../lib/weather.js';
@@ -652,6 +652,7 @@ export function bindUi({ onCapture, onRelocate, onApprox, onRefreshGps, onFilter
     btn.onclick = () => {
       applyFishingMode(btn.dataset.mode);
       hideModePicker();
+      showSearching();
       onModeSelectedRef?.();
     };
   });
