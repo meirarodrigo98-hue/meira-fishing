@@ -195,6 +195,7 @@ function syncMarkPanel(pos) {
 }
 
 function openMarkPointSheet() {
+  if (!isSessionAdmin()) return;
   if (!isRadarOn()) {
     toast('Ligue o radar primeiro.');
     return;
@@ -514,6 +515,7 @@ function copyUsersSnippet() {
 function openMyPointsPanel() {
   sheetOrigin = 'menu';
   renderMyPointsList();
+  $('markFromList')?.classList.toggle('is-hidden', !isSessionAdmin());
   hideSheet('optionsMenu');
   showSheet('myPointsPanel');
 }
@@ -852,7 +854,7 @@ export function ready() {
   hideOverlays();
   document.body.classList.add('app-ready');
   setFollowUser(true);
-  setMarkFabVisible(true);
+  setMarkFabVisible(isSessionAdmin());
   setRadarDockVisible(false);
   syncChrome();
   setTopbarVisible(true);
@@ -1060,6 +1062,8 @@ function syncMenuMeta() {
   $('menuSessionMeta').textContent = session ? sessionLabel(session) : '—';
   $('openUsers')?.classList.toggle('is-hidden', !isSessionAdmin());
   $('menuUsersMeta').textContent = isSessionAdmin() ? usersSummary() : '—';
+  $('markHereFromMenu')?.classList.toggle('is-hidden', !isSessionAdmin());
+  $('markFromList')?.classList.toggle('is-hidden', !isSessionAdmin());
 }
 
 function showProfileEditor() {
